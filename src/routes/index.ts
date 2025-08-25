@@ -9,6 +9,7 @@ import pressureProfileRoutes from './pressureProfile';
 import operatePointRoutes from './operatePoint';
 import cavitationRiskRoutes from './cavitationRisk';
 import energyRoutes from './energy';
+import valveRoutes from './valves';
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Health check endpoint
@@ -86,4 +87,5 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(operatePointRoutes);
   await fastify.register(cavitationRiskRoutes);
   await fastify.register(energyRoutes);
+  await fastify.register(valveRoutes);
 }
