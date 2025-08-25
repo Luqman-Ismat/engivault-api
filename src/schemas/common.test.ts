@@ -347,9 +347,18 @@ describe('JSON Schema Generation', () => {
   });
 
   it('should debug JSON schema structure', () => {
-    console.log('Quantity JSON Schema:', JSON.stringify(quantityJsonSchema, null, 2));
+    console.log(
+      'Quantity JSON Schema:',
+      JSON.stringify(quantityJsonSchema, null, 2)
+    );
     console.log('Fluid JSON Schema:', JSON.stringify(fluidJsonSchema, null, 2));
-    console.log('Warning JSON Schema:', JSON.stringify(warningJsonSchema, null, 2));
-    console.log('CalcMeta JSON Schema:', JSON.stringify(calcMetaJsonSchema, null, 2));
+    console.log(
+      'Warning JSON Schema:',
+      JSON.stringify(warningJsonSchema, null, 2)
+    );
+    console.log(
+      'CalcMeta JSON Schema:',
+      JSON.stringify(calcMetaJsonSchema, null, 2)
+    );
   });
 });
