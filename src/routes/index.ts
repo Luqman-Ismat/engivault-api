@@ -4,6 +4,7 @@ import npshRoutes from './npsh';
 import flowFittingsRoutes from './flowFittings';
 import pumpSystemCurveRoutes from './pumpSystemCurve';
 import npshRequiredRoutes from './npshRequired';
+import minorLossesRoutes from './minorLosses';
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Health check endpoint
@@ -76,4 +77,5 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(flowFittingsRoutes, { prefix: '/api/v1' });
   await fastify.register(pumpSystemCurveRoutes, { prefix: '/api/v1' });
   await fastify.register(npshRequiredRoutes, { prefix: '/api/v1' });
+  await fastify.register(minorLossesRoutes, { prefix: '/api/v1' });
 }
