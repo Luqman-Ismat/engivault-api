@@ -11,25 +11,31 @@ export const pressureDropSchema = z.object({
 });
 
 // NPSH Schemas
-export const npshSchema = z.object({
-  atmosphericPressure: z.number().positive(),
-  vaporPressure: z.number().positive(),
-  fluidDensity: z.number().positive(),
-  staticHead: z.number(),
-  frictionLosses: z.number().nonnegative(),
-  velocityHead: z.number().nonnegative().optional(),
-  flowRate: z.number().nonnegative().optional(),
-  pipeDiameter: z.number().positive().optional(),
-}).refine(data => {
-  // Custom validation: if velocityHead is not provided, flowRate and pipeDiameter must be provided
-  if (data.velocityHead === undefined) {
-    return data.flowRate !== undefined && data.pipeDiameter !== undefined;
-  }
-  return true;
-}, {
-  message: "If velocityHead is not provided, flowRate and pipeDiameter must be provided.",
-  path: ["velocityHead", "flowRate", "pipeDiameter"],
-});
+export const npshSchema = z
+  .object({
+    atmosphericPressure: z.number().positive(),
+    vaporPressure: z.number().positive(),
+    fluidDensity: z.number().positive(),
+    staticHead: z.number(),
+    frictionLosses: z.number().nonnegative(),
+    velocityHead: z.number().nonnegative().optional(),
+    flowRate: z.number().nonnegative().optional(),
+    pipeDiameter: z.number().positive().optional(),
+  })
+  .refine(
+    data => {
+      // Custom validation: if velocityHead is not provided, flowRate and pipeDiameter must be provided
+      if (data.velocityHead === undefined) {
+        return data.flowRate !== undefined && data.pipeDiameter !== undefined;
+      }
+      return true;
+    },
+    {
+      message:
+        'If velocityHead is not provided, flowRate and pipeDiameter must be provided.',
+      path: ['velocityHead', 'flowRate', 'pipeDiameter'],
+    }
+  );
 
 // Flow Fittings Schemas
 export const flowFittingsSchema = z.object({
@@ -45,7 +51,9 @@ export const pumpCurvePointSchema = z.object({
 });
 
 export const pumpSystemCurveSchema = z.object({
-  pumpCurve: z.array(pumpCurvePointSchema).min(2, "Pump curve must have at least two points."),
+  pumpCurve: z
+    .array(pumpCurvePointSchema)
+    .min(2, 'Pump curve must have at least two points.'),
   systemCurve: z.object({
     staticHead: z.number(),
     resistanceCoefficient: z.number().nonnegative(),
@@ -60,7 +68,9 @@ export const npshrCurvePointSchema = z.object({
 
 export const npshrSchema = z.object({
   flowRate: z.number(),
-  npshrCurve: z.array(npshrCurvePointSchema).min(2, "NPSHr curve must have at least two points."),
+  npshrCurve: z
+    .array(npshrCurvePointSchema)
+    .min(2, 'NPSHr curve must have at least two points.'),
 });
 
 // Type exports

@@ -1,39 +1,48 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = npshrRoutes;
-const zod_1 = require("zod");
 const npsh_1 = require("../logic/npsh");
-// Define Zod schema for NpshrCurvePoint
-const npshrCurvePointSchema = zod_1.z.object({
-    flow: zod_1.z.number(),
-    npshr: zod_1.z.number(),
-});
-// Define Zod schema for the request body
-const npshrInputSchema = zod_1.z.object({
-    flowRate: zod_1.z.number(),
-    npshrCurve: zod_1.z.array(npshrCurvePointSchema).min(2, "NPSHr curve must have at least two points."),
-});
-async function npshrRoutes(fastify, options) {
+const validation_1 = require("../schemas/validation");
+const errorHandler_1 = require("../utils/errorHandler");
+const schemaConverter_1 = require("../utils/schemaConverter");
+async function npshrRoutes(fastify) {
     fastify.post('/calculate/npsh-required', {
         schema: {
-            body: {
-                type: 'object',
-                properties: {
-                    flowRate: { type: 'number' },
-                    npshrCurve: {
-                        type: 'array',
-                        items: {
-                            type: 'object',
-                            properties: {
-                                flow: { type: 'number' },
-                                npshr: { type: 'number' },
-                            },
-                            required: ['flow', 'npshr'],
-                        },
-                        minItems: 2,
+            tags: ['NPSH'],
+            summary: 'Calculate NPSH Required',
+            description: 'Calculate Net Positive Suction Head Required (NPSHr) from curve data',
+            body: (0, schemaConverter_1.createFastifySchema)(validation_1.npshrSchema),
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        npshr: { type: 'number' },
+                    },
+                    required: ['npshr'],
+                },
+                400: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' },
+                        code: { type: 'string' },
+                        details: { type: 'object' },
                     },
                 },
-                required: ['flowRate', 'npshrCurve'],
+                422: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' },
+                        code: { type: 'string' },
+                        details: { type: 'object' },
+                    },
+                },
+                500: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' },
+                        code: { type: 'string' },
+                    },
+                },
             },
         },
     }, async (request, reply) => {
@@ -43,8 +52,8 @@ async function npshrRoutes(fastify, options) {
             return reply.send(results);
         }
         catch (error) {
-            fastify.log.error(error);
-            reply.status(500).send({ error: error.message || 'Internal Server Error' });
+            (0, errorHandler_1.handleError)(error, reply);
         }
     });
 }
+//# sourceMappingURL=npshRequired.js.map

@@ -3,9 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.calculatePressureDrop = calculatePressureDrop;
 const fluidProperties_1 = require("./fluidProperties");
 function calculatePressureDrop(inputs) {
-    const { flowRate, pipeDiameter, pipeLength, fluidDensity, fluidViscosity, roughness } = inputs;
+    const { flowRate, pipeDiameter, pipeLength, fluidDensity, fluidViscosity, roughness, } = inputs;
     // Validate non-physical inputs
-    if (pipeDiameter <= 0 || fluidDensity <= 0 || fluidViscosity <= 0 || roughness < 0 || pipeLength < 0) {
+    if (pipeDiameter <= 0 ||
+        fluidDensity <= 0 ||
+        fluidViscosity <= 0 ||
+        roughness < 0 ||
+        pipeLength < 0) {
         return {
             pressureDrop: NaN,
             reynoldsNumber: NaN,
@@ -38,7 +42,9 @@ function calculatePressureDrop(inputs) {
         pipeDiameter,
     });
     // Calculate pressure drop using Darcy-Weisbach equation
-    let pressureDrop = frictionFactor * (pipeLength / pipeDiameter) * (fluidDensity * Math.pow(velocity, 2) / 2);
+    let pressureDrop = frictionFactor *
+        (pipeLength / pipeDiameter) *
+        ((fluidDensity * Math.pow(velocity, 2)) / 2);
     // If pipe length is zero, pressure drop is zero, but other values are calculated normally
     if (pipeLength === 0) {
         pressureDrop = 0;
@@ -49,3 +55,4 @@ function calculatePressureDrop(inputs) {
         frictionFactor,
     };
 }
+//# sourceMappingURL=pressureDrop.js.map

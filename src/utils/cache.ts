@@ -8,7 +8,8 @@ export class SimpleCache<T> {
   private cache = new Map<string, CacheEntry<T>>();
   private readonly defaultTTL: number;
 
-  constructor(defaultTTL: number = 5 * 60 * 1000) { // 5 minutes default
+  constructor(defaultTTL: number = 5 * 60 * 1000) {
+    // 5 minutes default
     this.defaultTTL = defaultTTL;
   }
 
@@ -29,7 +30,7 @@ export class SimpleCache<T> {
     this.cache.set(key, {
       value,
       timestamp: Date.now(),
-      ttl: ttl || this.defaultTTL
+      ttl: ttl || this.defaultTTL,
     });
   }
 
@@ -46,7 +47,10 @@ export class SimpleCache<T> {
 export const calculationCache = new SimpleCache<number>(10 * 60 * 1000); // 10 minutes TTL
 
 // Utility function to create cache keys for mathematical calculations
-export function createCacheKey(prefix: string, params: Record<string, number>): string {
+export function createCacheKey(
+  prefix: string,
+  params: Record<string, number>
+): string {
   const sortedParams = Object.keys(params)
     .sort()
     .map(key => `${key}:${params[key]}`)

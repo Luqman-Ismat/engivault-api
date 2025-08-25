@@ -1,14 +1,18 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { calculatePressureDrop } from '../logic/pressureDrop';
 import { pressureDropSchema, PressureDropInput } from '../schemas/validation';
 import { handleError } from '../utils/errorHandler';
+import { createFastifySchema } from '../utils/schemaConverter';
 
-export default async function pressureDropRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
+export default async function pressureDropRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: PressureDropInput }>(
     '/calculate/pressure-drop',
     {
       schema: {
-        body: pressureDropSchema,
+        tags: ['Pressure Drop'],
+        summary: 'Calculate pressure drop',
+        description: 'Calculate pressure drop using Darcy-Weisbach equation',
+        body: createFastifySchema(pressureDropSchema),
         response: {
           200: {
             type: 'object',

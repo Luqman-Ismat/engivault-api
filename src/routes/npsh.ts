@@ -1,14 +1,18 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { calculateNpsh } from '../logic/npsh';
 import { npshSchema, NpshInput } from '../schemas/validation';
 import { handleError } from '../utils/errorHandler';
+import { createFastifySchema } from '../utils/schemaConverter';
 
-export default async function npshRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
+export default async function npshRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: NpshInput }>(
     '/calculate/npsh',
     {
       schema: {
-        body: npshSchema,
+        tags: ['NPSH'],
+        summary: 'Calculate NPSH Available',
+        description: 'Calculate Net Positive Suction Head Available (NPSHa)',
+        body: createFastifySchema(npshSchema),
         response: {
           200: {
             type: 'object',

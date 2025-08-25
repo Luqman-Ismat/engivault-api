@@ -17,8 +17,9 @@ function calculateFittingPressureDrop(inputs) {
     }
     // Calculate pressure drop using K-factor formula
     // Delta P = K * (rho * v^2) / 2
-    const pressureDrop = kFactor * (fluidDensity * Math.pow(Math.abs(velocity), 2)) / 2;
+    const pressureDrop = (kFactor * (fluidDensity * Math.pow(Math.abs(velocity), 2))) / 2;
     return {
         pressureDrop,
     };
 }
+//# sourceMappingURL=flowFittings.js.map

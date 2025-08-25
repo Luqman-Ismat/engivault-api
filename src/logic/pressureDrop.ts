@@ -1,4 +1,7 @@
-import { calculateReynoldsNumber, calculateFrictionFactor } from './fluidProperties';
+import {
+  calculateReynoldsNumber,
+  calculateFrictionFactor,
+} from './fluidProperties';
 import { PressureDropInput } from '../schemas/validation';
 
 export interface PressureDropOutputs {
@@ -7,11 +10,26 @@ export interface PressureDropOutputs {
   frictionFactor: number; // Darcy Friction Factor
 }
 
-export function calculatePressureDrop(inputs: PressureDropInput): PressureDropOutputs {
-  const { flowRate, pipeDiameter, pipeLength, fluidDensity, fluidViscosity, roughness } = inputs;
+export function calculatePressureDrop(
+  inputs: PressureDropInput
+): PressureDropOutputs {
+  const {
+    flowRate,
+    pipeDiameter,
+    pipeLength,
+    fluidDensity,
+    fluidViscosity,
+    roughness,
+  } = inputs;
 
   // Validate non-physical inputs
-  if (pipeDiameter <= 0 || fluidDensity <= 0 || fluidViscosity <= 0 || roughness < 0 || pipeLength < 0) {
+  if (
+    pipeDiameter <= 0 ||
+    fluidDensity <= 0 ||
+    fluidViscosity <= 0 ||
+    roughness < 0 ||
+    pipeLength < 0
+  ) {
     return {
       pressureDrop: NaN,
       reynoldsNumber: NaN,
@@ -50,7 +68,10 @@ export function calculatePressureDrop(inputs: PressureDropInput): PressureDropOu
   });
 
   // Calculate pressure drop using Darcy-Weisbach equation
-  let pressureDrop = frictionFactor * (pipeLength / pipeDiameter) * (fluidDensity * Math.pow(velocity, 2) / 2);
+  let pressureDrop =
+    frictionFactor *
+    (pipeLength / pipeDiameter) *
+    ((fluidDensity * Math.pow(velocity, 2)) / 2);
 
   // If pipe length is zero, pressure drop is zero, but other values are calculated normally
   if (pipeLength === 0) {

@@ -1,14 +1,19 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { calculateFittingPressureDrop } from '../logic/flowFittings';
 import { flowFittingsSchema, FlowFittingsInput } from '../schemas/validation';
 import { handleError } from '../utils/errorHandler';
+import { createFastifySchema } from '../utils/schemaConverter';
 
-export default async function flowFittingsRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
+export default async function flowFittingsRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: FlowFittingsInput }>(
     '/calculate/flow-fittings',
     {
       schema: {
-        body: flowFittingsSchema,
+        tags: ['Flow Fittings'],
+        summary: 'Calculate flow fitting pressure drop',
+        description:
+          'Calculate pressure drop across flow fittings using K-factor method',
+        body: createFastifySchema(flowFittingsSchema),
         response: {
           200: {
             type: 'object',

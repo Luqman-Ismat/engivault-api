@@ -100,3 +100,20 @@ Thumbs.db
 
 # Docker
 .dockerignore
+
+# Testing
+coverage/
+.nyc_output/
+
+# ESLint
+.eslintcache
+
+# Prettier
+.prettierignore
+
+# TypeScript
+*.tsbuildinfo
+
+# Temporary files
+tmp/
+temp/

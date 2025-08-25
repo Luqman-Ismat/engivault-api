@@ -11,7 +11,10 @@ describe('calculateOperatingPoint', () => {
     ];
     const systemCurveEquation = (flow: number) => 10 + 0.05 * Math.pow(flow, 2);
 
-    const operatingPoint = calculateOperatingPoint(pumpCurve, systemCurveEquation);
+    const operatingPoint = calculateOperatingPoint(
+      pumpCurve,
+      systemCurveEquation
+    );
 
     // Expected intersection: flow ~20, head ~30
     expect(operatingPoint.flow).toBeCloseTo(20);
@@ -19,12 +22,12 @@ describe('calculateOperatingPoint', () => {
   });
 
   it('should throw an error if pump curve has less than two points', () => {
-    const pumpCurve: PumpCurvePoint[] = [
-      { flow: 0, head: 50 },
-    ];
+    const pumpCurve: PumpCurvePoint[] = [{ flow: 0, head: 50 }];
     const systemCurveEquation = (flow: number) => 10 + 0.05 * Math.pow(flow, 2);
 
-    expect(() => calculateOperatingPoint(pumpCurve, systemCurveEquation)).toThrow("Pump curve must have at least two points.");
+    expect(() =>
+      calculateOperatingPoint(pumpCurve, systemCurveEquation)
+    ).toThrow('Pump curve must have at least two points.');
   });
 
   it('should throw an error if no intersection is found within the range', () => {
@@ -34,7 +37,9 @@ describe('calculateOperatingPoint', () => {
     ];
     const systemCurveEquation = (flow: number) => 50 + 0.05 * Math.pow(flow, 2); // System curve always above pump curve
 
-    expect(() => calculateOperatingPoint(pumpCurve, systemCurveEquation)).toThrow("No intersection found within the provided pump curve range.");
+    expect(() =>
+      calculateOperatingPoint(pumpCurve, systemCurveEquation)
+    ).toThrow('No intersection found within the provided pump curve range.');
   });
 
   it('should handle a pump curve that is always above the system curve', () => {
@@ -45,7 +50,9 @@ describe('calculateOperatingPoint', () => {
     ];
     const systemCurveEquation = (flow: number) => 10 + 0.05 * Math.pow(flow, 2);
 
-    expect(() => calculateOperatingPoint(pumpCurve, systemCurveEquation)).toThrow("No intersection found within the provided pump curve range.");
+    expect(() =>
+      calculateOperatingPoint(pumpCurve, systemCurveEquation)
+    ).toThrow('No intersection found within the provided pump curve range.');
   });
 
   it('should handle a pump curve that is always below the system curve', () => {
@@ -56,7 +63,9 @@ describe('calculateOperatingPoint', () => {
     ];
     const systemCurveEquation = (flow: number) => 50 + 0.05 * Math.pow(flow, 2);
 
-    expect(() => calculateOperatingPoint(pumpCurve, systemCurveEquation)).toThrow("No intersection found within the provided pump curve range.");
+    expect(() =>
+      calculateOperatingPoint(pumpCurve, systemCurveEquation)
+    ).toThrow('No intersection found within the provided pump curve range.');
   });
 
   it('should handle a system curve with zero resistance', () => {
@@ -66,9 +75,12 @@ describe('calculateOperatingPoint', () => {
       { flow: 20, head: 30 },
       { flow: 30, head: 10 },
     ];
-    const systemCurveEquation = (flow: number) => 20; // Constant head system curve
+    const systemCurveEquation = () => 20; // Constant head system curve
 
-    const operatingPoint = calculateOperatingPoint(pumpCurve, systemCurveEquation);
+    const operatingPoint = calculateOperatingPoint(
+      pumpCurve,
+      systemCurveEquation
+    );
 
     // Expected intersection: between flow 20 and 30, head 20
     // Pump head at flow 20 is 30, at flow 30 is 10. Linear interpolation:

@@ -2,30 +2,42 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = pressureDropRoutes;
 const pressureDrop_1 = require("../logic/pressureDrop");
-// Define the schema for the request body
-const pressureDropSchema = {
-    type: 'object',
-    required: [
-        'flowRate',
-        'pipeDiameter',
-        'pipeLength',
-        'fluidDensity',
-        'fluidViscosity',
-        'roughness',
-    ],
-    properties: {
-        flowRate: { type: 'number' },
-        pipeDiameter: { type: 'number' },
-        pipeLength: { type: 'number' },
-        fluidDensity: { type: 'number' },
-        fluidViscosity: { type: 'number' },
-        roughness: { type: 'number' },
-    },
-};
-async function pressureDropRoutes(fastify, options) {
+const validation_1 = require("../schemas/validation");
+const errorHandler_1 = require("../utils/errorHandler");
+const schemaConverter_1 = require("../utils/schemaConverter");
+async function pressureDropRoutes(fastify) {
     fastify.post('/calculate/pressure-drop', {
         schema: {
-            body: pressureDropSchema,
+            tags: ['Pressure Drop'],
+            summary: 'Calculate pressure drop',
+            description: 'Calculate pressure drop using Darcy-Weisbach equation',
+            body: (0, schemaConverter_1.createFastifySchema)(validation_1.pressureDropSchema),
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        pressureDrop: { type: 'number' },
+                        reynoldsNumber: { type: 'number' },
+                        frictionFactor: { type: 'number' },
+                    },
+                    required: ['pressureDrop', 'reynoldsNumber', 'frictionFactor'],
+                },
+                400: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' },
+                        code: { type: 'string' },
+                        details: { type: 'object' },
+                    },
+                },
+                500: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' },
+                        code: { type: 'string' },
+                    },
+                },
+            },
         },
     }, async (request, reply) => {
         try {
@@ -34,8 +46,8 @@ async function pressureDropRoutes(fastify, options) {
             return reply.send(results);
         }
         catch (error) {
-            fastify.log.error(error);
-            reply.status(500).send({ error: 'Internal Server Error' });
+            (0, errorHandler_1.handleError)(error, reply);
         }
     });
 }
+//# sourceMappingURL=pressureDrop.js.map

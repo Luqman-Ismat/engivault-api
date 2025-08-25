@@ -4,7 +4,9 @@ export interface FlowFittingsOutputs {
   pressureDrop: number; // Pascals
 }
 
-export function calculateFittingPressureDrop(inputs: FlowFittingsInput): FlowFittingsOutputs {
+export function calculateFittingPressureDrop(
+  inputs: FlowFittingsInput
+): FlowFittingsOutputs {
   const { kFactor, fluidDensity, velocity } = inputs;
 
   // Handle zero fluid density
@@ -23,7 +25,8 @@ export function calculateFittingPressureDrop(inputs: FlowFittingsInput): FlowFit
 
   // Calculate pressure drop using K-factor formula
   // Delta P = K * (rho * v^2) / 2
-  const pressureDrop = kFactor * (fluidDensity * Math.pow(Math.abs(velocity), 2)) / 2;
+  const pressureDrop =
+    (kFactor * (fluidDensity * Math.pow(Math.abs(velocity), 2))) / 2;
 
   return {
     pressureDrop,

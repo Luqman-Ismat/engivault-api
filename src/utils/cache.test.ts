@@ -20,7 +20,7 @@ describe('SimpleCache', () => {
   it('should expire values after TTL', async () => {
     cache.set('expire-test', 'expire-value', 100); // 100ms TTL
     expect(cache.get('expire-test')).toBe('expire-value');
-    
+
     await new Promise(resolve => setTimeout(resolve, 150)); // Wait for expiration
     expect(cache.get('expire-test')).toBeNull();
   });
@@ -29,7 +29,7 @@ describe('SimpleCache', () => {
     cache.set('key1', 'value1');
     cache.set('key2', 'value2');
     expect(cache.size()).toBe(2);
-    
+
     cache.clear();
     expect(cache.size()).toBe(0);
     expect(cache.get('key1')).toBeNull();
@@ -49,27 +49,27 @@ describe('createCacheKey', () => {
   it('should create consistent keys for same parameters', () => {
     const params1 = { a: 1, b: 2, c: 3 };
     const params2 = { c: 3, a: 1, b: 2 };
-    
+
     const key1 = createCacheKey('test', params1);
     const key2 = createCacheKey('test', params2);
-    
+
     expect(key1).toBe(key2);
   });
 
   it('should create different keys for different parameters', () => {
     const params1 = { a: 1, b: 2 };
     const params2 = { a: 1, b: 3 };
-    
+
     const key1 = createCacheKey('test', params1);
     const key2 = createCacheKey('test', params2);
-    
+
     expect(key1).not.toBe(key2);
   });
 
   it('should include prefix in key', () => {
     const params = { a: 1, b: 2 };
     const key = createCacheKey('reynolds', params);
-    
+
     expect(key).toContain('reynolds');
   });
 });

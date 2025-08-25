@@ -16,7 +16,7 @@ export function calculateOperatingPoint(
   systemCurveEquation: (flow: number) => number
 ): OperatingPoint {
   if (pumpCurve.length < 2) {
-    throw new Error("Pump curve must have at least two points.");
+    throw new Error('Pump curve must have at least two points.');
   }
 
   // Sort pump curve by flow to ensure proper interpolation
@@ -43,7 +43,10 @@ export function calculateOperatingPoint(
         // Here, y is the difference (PumpHead - SystemHead), and x is the flow
         // We want to find x when y = 0
 
-        const flow = prevPoint.flow - prevDiff * (currentPoint.flow - prevPoint.flow) / (currentDiff - prevDiff);
+        const flow =
+          prevPoint.flow -
+          (prevDiff * (currentPoint.flow - prevPoint.flow)) /
+            (currentDiff - prevDiff);
 
         // Calculate head at the intersection flow using either pump curve interpolation or system curve equation
         // Using system curve equation as it's a continuous function
@@ -57,5 +60,7 @@ export function calculateOperatingPoint(
 
   // If no intersection found within the given pump curve range, return the last point or throw an error
   // For now, let's throw an error indicating no intersection found within the range
-  throw new Error("No intersection found within the provided pump curve range.");
+  throw new Error(
+    'No intersection found within the provided pump curve range.'
+  );
 }

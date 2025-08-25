@@ -1,14 +1,22 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { calculateOperatingPoint } from '../logic/pumpSystemCurve';
-import { pumpSystemCurveSchema, PumpSystemCurveInput } from '../schemas/validation';
+import {
+  pumpSystemCurveSchema,
+  PumpSystemCurveInput,
+} from '../schemas/validation';
 import { handleError } from '../utils/errorHandler';
+import { createFastifySchema } from '../utils/schemaConverter';
 
-export default async function pumpSystemCurveRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
+export default async function pumpSystemCurveRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: PumpSystemCurveInput }>(
     '/calculate/pump-system-curve',
     {
       schema: {
-        body: pumpSystemCurveSchema,
+        tags: ['Pump System Curve'],
+        summary: 'Calculate pump system curve intersection',
+        description:
+          'Find the operating point where pump curve intersects system curve',
+        body: createFastifySchema(pumpSystemCurveSchema),
         response: {
           200: {
             type: 'object',
@@ -50,10 +58,16 @@ export default async function pumpSystemCurveRoutes(fastify: FastifyInstance, op
 
         // Construct the system curve equation function
         const systemCurveEquation = (flow: number): number => {
-          return systemCurve.staticHead + systemCurve.resistanceCoefficient * Math.pow(flow, 2);
+          return (
+            systemCurve.staticHead +
+            systemCurve.resistanceCoefficient * Math.pow(flow, 2)
+          );
         };
 
-        const operatingPoint = calculateOperatingPoint(pumpCurve, systemCurveEquation);
+        const operatingPoint = calculateOperatingPoint(
+          pumpCurve,
+          systemCurveEquation
+        );
         return reply.send(operatingPoint);
       } catch (error) {
         handleError(error, reply);

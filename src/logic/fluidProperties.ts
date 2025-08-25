@@ -16,7 +16,9 @@ export interface ReynoldsNumberOutputs {
  * @param inputs Fluid density, velocity, pipe diameter, and fluid viscosity.
  * @returns The calculated Reynolds number.
  */
-export function calculateReynoldsNumber(inputs: ReynoldsNumberInputs): ReynoldsNumberOutputs {
+export function calculateReynoldsNumber(
+  inputs: ReynoldsNumberInputs
+): ReynoldsNumberOutputs {
   const { fluidDensity, velocity, pipeDiameter, fluidViscosity } = inputs;
 
   if (fluidViscosity <= 0 || pipeDiameter <= 0) {
@@ -24,15 +26,21 @@ export function calculateReynoldsNumber(inputs: ReynoldsNumberInputs): ReynoldsN
   }
 
   // Create cache key for this calculation
-  const cacheKey = createCacheKey('reynolds', { fluidDensity, velocity, pipeDiameter, fluidViscosity });
-  
+  const cacheKey = createCacheKey('reynolds', {
+    fluidDensity,
+    velocity,
+    pipeDiameter,
+    fluidViscosity,
+  });
+
   // Check cache first
   const cached = calculationCache.get(cacheKey);
   if (cached !== null) {
     return { reynoldsNumber: cached };
   }
 
-  const reynoldsNumber = (fluidDensity * velocity * pipeDiameter) / fluidViscosity;
+  const reynoldsNumber =
+    (fluidDensity * velocity * pipeDiameter) / fluidViscosity;
 
   // Cache the result
   calculationCache.set(cacheKey, reynoldsNumber);
@@ -56,7 +64,9 @@ export interface FrictionFactorOutputs {
  * @param inputs Reynolds number, roughness, and pipe diameter.
  * @returns The calculated Darcy friction factor.
  */
-export function calculateFrictionFactor(inputs: FrictionFactorInputs): FrictionFactorOutputs {
+export function calculateFrictionFactor(
+  inputs: FrictionFactorInputs
+): FrictionFactorOutputs {
   const { reynoldsNumber, roughness, pipeDiameter } = inputs;
 
   if (pipeDiameter <= 0) {
@@ -69,12 +79,20 @@ export function calculateFrictionFactor(inputs: FrictionFactorInputs): FrictionF
 
   if (reynoldsNumber < 0) {
     // Friction factor is typically for positive Reynolds number. Use absolute value.
-    return calculateFrictionFactor({ reynoldsNumber: Math.abs(reynoldsNumber), roughness, pipeDiameter });
+    return calculateFrictionFactor({
+      reynoldsNumber: Math.abs(reynoldsNumber),
+      roughness,
+      pipeDiameter,
+    });
   }
 
   // Create cache key for this calculation
-  const cacheKey = createCacheKey('friction', { reynoldsNumber, roughness, pipeDiameter });
-  
+  const cacheKey = createCacheKey('friction', {
+    reynoldsNumber,
+    roughness,
+    pipeDiameter,
+  });
+
   // Check cache first
   const cached = calculationCache.get(cacheKey);
   if (cached !== null) {
@@ -85,10 +103,15 @@ export function calculateFrictionFactor(inputs: FrictionFactorInputs): FrictionF
 
   // Churchill Equation components
   const term1 = Math.pow(8 / reynoldsNumber, 12);
-  const termA = Math.pow(2.457 * Math.log(Math.pow(7 / reynoldsNumber, 0.9) + 0.27 * relativeRoughness), 16);
+  const termA = Math.pow(
+    2.457 *
+      Math.log(Math.pow(7 / reynoldsNumber, 0.9) + 0.27 * relativeRoughness),
+    16
+  );
   const termB = Math.pow(37530 / reynoldsNumber, 16);
 
-  const frictionFactor = 8 * Math.pow(term1 + Math.pow(termA + termB, -1.5), 1 / 12);
+  const frictionFactor =
+    8 * Math.pow(term1 + Math.pow(termA + termB, -1.5), 1 / 12);
 
   // Cache the result
   calculationCache.set(cacheKey, frictionFactor);

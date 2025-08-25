@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { calculateReynoldsNumber, calculateFrictionFactor } from './fluidProperties';
+import {
+  calculateReynoldsNumber,
+  calculateFrictionFactor,
+} from './fluidProperties';
 
 describe('calculateReynoldsNumber', () => {
   it('should calculate Reynolds number correctly for typical values', () => {
@@ -114,7 +117,7 @@ describe('calculateFrictionFactor', () => {
     expect(result.frictionFactor).toBeCloseTo(0.018, 3);
   });
 
-    it('should handle zero pipe diameter (expect NaN)', () => {
+  it('should handle zero pipe diameter (expect NaN)', () => {
     const inputs = {
       reynoldsNumber: 100000,
       roughness: 0.0001,
