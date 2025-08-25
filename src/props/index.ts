@@ -125,11 +125,16 @@ export function getFluidDefaults(
   }
 
   // Merge with overrides
-  return {
+  const result: FluidProperties = {
     density: overrides.density || baseProps.density,
     viscosity: overrides.viscosity || baseProps.viscosity,
-    vaporPressure: overrides.vaporPressure || baseProps.vaporPressure,
   };
+
+  if (baseProps.vaporPressure) {
+    result.vaporPressure = overrides.vaporPressure || baseProps.vaporPressure;
+  }
+
+  return result;
 }
 
 // Utility function to get Antoine coefficients for a substance

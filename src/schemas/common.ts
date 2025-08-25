@@ -12,8 +12,8 @@ export type Quantity = z.infer<typeof zQuantity>;
 // Fluid properties with optional fields
 export const zFluid = z.object({
   name: z.string().optional(),
-  density: zQuantity,
-  viscosity: zQuantity,
+  density: zQuantity.optional(),
+  viscosity: zQuantity.optional(),
   temperature: zQuantity.optional(),
   vaporPressure: zQuantity.optional(),
 });

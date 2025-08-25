@@ -77,5 +77,5 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(flowFittingsRoutes, { prefix: '/api/v1' });
   await fastify.register(pumpSystemCurveRoutes, { prefix: '/api/v1' });
   await fastify.register(npshRequiredRoutes, { prefix: '/api/v1' });
-  await fastify.register(minorLossesRoutes, { prefix: '/api/v1' });
+  await fastify.register(minorLossesRoutes);
 }

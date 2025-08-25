@@ -186,4 +186,3 @@ export function warnPressureRange(
 }
 
 // Export types for external use
-export type { Warning };

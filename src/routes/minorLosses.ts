@@ -4,6 +4,7 @@ import { zQuantity, zFluid } from '@/schemas/common';
 import { sumMinorLosses } from '@/logic/minorLosses';
 import { convert } from '@/utils/units';
 import { getFluidDefaults } from '@/props';
+import { handleError } from '@/utils/errorHandler';
 
 // Zod schema for minor loss fitting item
 const zMinorLossItem = z.object({
@@ -102,13 +103,21 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
           200: {
             type: 'object',
             properties: {
-              deltaP: { type: 'object' },
+              deltaP: {
+                type: 'object',
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
+                required: ['value', 'unit'],
+              },
               Keq: { type: 'number' },
               warnings: {
                 type: 'array',
                 items: { type: 'string' },
               },
             },
+            required: ['deltaP', 'Keq', 'warnings'],
           },
         },
       },
@@ -125,11 +134,7 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
 
         if (fluid.temperature) {
           // Convert temperature to Kelvin
-          const tempKelvin = convert(
-            fluid.temperature.value,
-            fluid.temperature.unit,
-            'K'
-          );
+          const tempKelvin = convert(fluid.temperature, 'K');
           temperature = tempKelvin.value;
         } else {
           temperature = 293.15; // Default to 20°C
@@ -137,24 +142,19 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
 
         if (fluid.density) {
           // Use provided density
-          const densitySI = convert(
-            fluid.density.value,
-            fluid.density.unit,
-            'kg/m³'
-          );
+          const densitySI = convert(fluid.density, 'kg/m³');
           rho = densitySI.value;
         } else {
           // Get density from fluid properties
+          if (!fluid.name) {
+            throw new Error('Fluid name is required when density is not provided');
+          }
           const fluidProps = getFluidDefaults(fluid.name, temperature);
           rho = fluidProps.density.value;
         }
 
         // Convert pipe diameter to SI units
-        const diameterSI = convert(
-          pipe.diameter.value,
-          pipe.diameter.unit,
-          'm'
-        );
+        const diameterSI = convert(pipe.diameter, 'm');
         const D = diameterSI.value;
 
         // Calculate velocity
@@ -162,20 +162,12 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
 
         if ('velocity' in body) {
           // Use provided velocity
-          const velocitySI = convert(
-            body.velocity.value,
-            body.velocity.unit,
-            'm/s'
-          );
+          const velocitySI = convert(body.velocity, 'm/s');
           velocity = velocitySI.value;
         } else if ('flow' in body && 'diameter' in body) {
           // Calculate velocity from flow rate
-          const flowSI = convert(body.flow.value, body.flow.unit, 'm³/s');
-          const flowDiameterSI = convert(
-            body.diameter.value,
-            body.diameter.unit,
-            'm'
-          );
+          const flowSI = convert(body.flow, 'm³/s');
+          const flowDiameterSI = convert(body.diameter, 'm');
 
           const area = Math.PI * (flowDiameterSI.value / 2) ** 2;
           velocity = flowSI.value / area;
@@ -183,9 +175,18 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
           throw new Error('Either velocity or flow+diameter must be provided');
         }
 
+        // Convert fittings to proper MinorLossItem format
+        const minorLossItems = fittings.map(fitting => ({
+          type: fitting.type,
+          count: fitting.count,
+          ...(fitting.k !== undefined && { k: fitting.k }),
+          ...(fitting.nominalSize !== undefined && { nominalSize: fitting.nominalSize }),
+          ...(fitting.schedule !== undefined && { schedule: fitting.schedule }),
+        }));
+
         // Calculate minor losses
         const result = sumMinorLosses({
-          items: fittings,
+          items: minorLossItems,
           rho,
           v: velocity,
           D,
@@ -209,18 +210,7 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
 
         return reply.send(response);
       } catch (error) {
-        if (error instanceof z.ZodError) {
-          return reply.status(400).send({
-            error: 'Validation error',
-            details: error.errors,
-          });
-        }
-
-        fastify.log.error(error);
-        return reply.status(500).send({
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        });
+        handleError(error, reply);
       }
     }
   );
@@ -282,11 +272,7 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
           return reply.send({ kFactors: GENERIC_K_FACTORS });
         }
       } catch (error) {
-        fastify.log.error(error);
-        return reply.status(500).send({
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        });
+        handleError(error, reply);
       }
     }
   );
@@ -313,18 +299,14 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request, reply) => {
+    async (_request, reply) => {
       try {
         const { getAvailableFittingTypes } = await import('@/data/k-factors');
         const fittingTypes = getAvailableFittingTypes();
 
         return reply.send({ fittingTypes });
       } catch (error) {
-        fastify.log.error(error);
-        return reply.status(500).send({
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        });
+        handleError(error, reply);
       }
     }
   );

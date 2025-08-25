@@ -1,4 +1,5 @@
 import { FastifyReply } from 'fastify';
+import { z } from 'zod';
 
 export interface ApiError {
   error: string;
@@ -27,7 +28,13 @@ export class CalculationError extends Error {
 }
 
 export function handleError(error: unknown, reply: FastifyReply): void {
-  if (error instanceof ValidationError) {
+  if (error instanceof z.ZodError) {
+    reply.status(400).send({
+      error: 'Validation error',
+      code: 'VALIDATION_ERROR',
+      details: error.errors,
+    });
+  } else if (error instanceof ValidationError) {
     reply.status(400).send({
       error: error.message,
       code: 'VALIDATION_ERROR',
@@ -41,7 +48,7 @@ export function handleError(error: unknown, reply: FastifyReply): void {
     });
   } else if (error instanceof Error) {
     reply.status(500).send({
-      error: 'Internal Server Error',
+      error: 'Internal server error',
       code: 'INTERNAL_ERROR',
     });
   } else {

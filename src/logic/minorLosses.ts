@@ -75,12 +75,17 @@ export function sumMinorLosses(input: MinorLossesInput): MinorLossesResult {
     equivalentLength = (totalK * D) / f;
   }
 
-  return {
+  const result: MinorLossesResult = {
     deltaP,
     Keq: totalK,
-    equivalentLength,
     warnings,
   };
+
+  if (equivalentLength !== undefined) {
+    result.equivalentLength = equivalentLength;
+  }
+
+  return result;
 }
 
 /**
@@ -103,12 +108,17 @@ export function calculateMinorLossesWithFluid(
     const fluidProps = getFluidDefaults(fluidName, temperature);
     const rho = fluidProps.density.value;
 
-    return sumMinorLosses({
+    const input: MinorLossesInput = {
       items,
       rho,
       v: velocity,
-      D: diameter,
-    });
+    };
+
+    if (diameter !== undefined) {
+      input.D = diameter;
+    }
+
+    return sumMinorLosses(input);
   } catch (error) {
     return {
       deltaP: 0,
