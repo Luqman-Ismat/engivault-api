@@ -70,5 +70,10 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
+// Export build function for testing
+export async function build(): Promise<FastifyInstance> {
+  return createFastifyInstance();
+}
+
 // Start the server
 startServer();

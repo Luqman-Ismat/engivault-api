@@ -15,9 +15,15 @@ const UNIT_CONVERSIONS: Record<string, UnitConversion> = {
   // Diameter
   in: { factor: 0.0254, offset: 0 },
 
+  // Area
+  'm²': { factor: 1, offset: 0 },
+  'ft²': { factor: 0.092903, offset: 0 },
+  'in²': { factor: 0.00064516, offset: 0 },
+
   // Pressure
   Pa: { factor: 1, offset: 0 },
   psi: { factor: 6894.76, offset: 0 },
+  psia: { factor: 6894.76, offset: 0 }, // Pounds per square inch absolute
   bar: { factor: 100000, offset: 0 },
 
   // Density
@@ -33,6 +39,13 @@ const UNIT_CONVERSIONS: Record<string, UnitConversion> = {
   'L/s': { factor: 0.001, offset: 0 },
   gpm: { factor: 0.0000630902, offset: 0 },
 
+  // Mass Flow
+  'kg/s': { factor: 1, offset: 0 },
+  scfm: { factor: 0.000471947, offset: 0 }, // Standard cubic feet per minute to m³/s
+
+  // Mass Flux
+  'kg/(m²·s)': { factor: 1, offset: 0 },
+
   // Velocity
   'm/s': { factor: 1, offset: 0 },
   'ft/s': { factor: 0.3048, offset: 0 },
@@ -40,17 +53,33 @@ const UNIT_CONVERSIONS: Record<string, UnitConversion> = {
   // Temperature (affine conversions)
   K: { factor: 1, offset: 0 },
   C: { factor: 1, offset: 273.15 },
+  R: { factor: 5 / 9, offset: 0 }, // Rankine to Kelvin
   F: { factor: 5 / 9, offset: (32 * 5) / 9 + 273.15 },
 
   // Power
   W: { factor: 1, offset: 0 },
   kW: { factor: 1000, offset: 0 },
   hp: { factor: 745.7, offset: 0 },
+
+  // Heat Flux
+  'W/m²': { factor: 1, offset: 0 },
+
+  // Time
+  s: { factor: 1, offset: 0 },
+  min: { factor: 60, offset: 0 },
+  h: { factor: 3600, offset: 0 },
+
+  // Dimensionless
+  dimensionless: { factor: 1, offset: 0 },
+
+  // Molecular Weight
+  'kg/kmol': { factor: 1, offset: 0 },
 };
 
 // SI base units for each category
 const SI_BASE_UNITS: Record<string, string> = {
   length: 'm',
+  area: 'm²',
   pressure: 'Pa',
   head: 'm',
   density: 'kg/m³',
@@ -59,6 +88,9 @@ const SI_BASE_UNITS: Record<string, string> = {
   velocity: 'm/s',
   temperature: 'K',
   power: 'W',
+  time: 's',
+  dimensionless: 'dimensionless',
+  'kg/kmol': 'kg/kmol',
 };
 
 // Unit category mapping
@@ -69,6 +101,11 @@ const UNIT_CATEGORIES: Record<string, string> = {
 
   // Diameter (compatible with length since both use meters)
   in: 'length',
+
+  // Area
+  'm²': 'area',
+  'ft²': 'area',
+  'in²': 'area',
 
   // Pressure
   Pa: 'pressure',
@@ -91,19 +128,40 @@ const UNIT_CATEGORIES: Record<string, string> = {
   'L/s': 'flow',
   gpm: 'flow',
 
+  // Mass Flow
+  'kg/s': 'flow',
+
+  // Mass Flux
+  'kg/(m²·s)': 'flow',
+
   // Velocity
   'm/s': 'velocity',
   'ft/s': 'velocity',
 
+  // Time
+  s: 'time',
+  min: 'time',
+  h: 'time',
+
+  // Dimensionless
+  dimensionless: 'dimensionless',
+
+  // Molecular Weight
+  'kg/kmol': 'kg/kmol',
+
   // Temperature
   K: 'temperature',
   C: 'temperature',
+  R: 'temperature', // Rankine
   F: 'temperature',
 
   // Power
   W: 'power',
   kW: 'power',
   hp: 'power',
+
+  // Heat Flux
+  'W/m²': 'power',
 };
 
 /**

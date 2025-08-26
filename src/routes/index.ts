@@ -10,6 +10,14 @@ import operatePointRoutes from './operatePoint';
 import cavitationRiskRoutes from './cavitationRisk';
 import energyRoutes from './energy';
 import valveRoutes from './valves';
+import reliefRoutes from './relief';
+import networkRoutes from './networks';
+import transientRoutes from './transients';
+import dynamicsRoutes from './dynamics';
+import slurryRoutes from './slurries';
+import gasRoutes from './gas';
+import thermalRoutes from './thermal';
+import hxRoutes from './hx';
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Health check endpoint
@@ -88,4 +96,12 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(cavitationRiskRoutes);
   await fastify.register(energyRoutes);
   await fastify.register(valveRoutes);
+  // await fastify.register(reliefRoutes);
+  await fastify.register(networkRoutes);
+  await fastify.register(transientRoutes);
+  await fastify.register(dynamicsRoutes);
+  await fastify.register(slurryRoutes);
+  await fastify.register(gasRoutes);
+  await fastify.register(thermalRoutes);
+  await fastify.register(hxRoutes);
 }
