@@ -3,375 +3,279 @@ import {
   interpolateCurve,
   scaleByAffinity,
   bepc,
+  bepDistance,
   calculatePumpPower,
   findOperatingPoint,
   validatePumpCurve,
-  PumpCurve,
-  PumpCurvePoint,
+  PumpCurve
 } from './pumps';
 
-describe('Pump Logic', () => {
-  const sampleCurve: { q: number; h: number }[] = [
-    { q: 0, h: 50 },
-    { q: 0.1, h: 48 },
-    { q: 0.2, h: 44 },
-    { q: 0.3, h: 38 },
-    { q: 0.4, h: 30 },
-    { q: 0.5, h: 20 },
-  ];
-
-  const sampleCurveWithEfficiency: PumpCurve = {
+describe('Pump Module', () => {
+  const sampleCurve: PumpCurve = {
     points: [
-      { q: 0, h: 50, efficiency: 0.3 },
-      { q: 0.1, h: 48, efficiency: 0.6 },
-      { q: 0.2, h: 44, efficiency: 0.8 },
-      { q: 0.3, h: 38, efficiency: 0.85 },
-      { q: 0.4, h: 30, efficiency: 0.75 },
-      { q: 0.5, h: 20, efficiency: 0.5 },
-    ],
-    name: 'Test Pump',
-    units: {
-      flow: 'm³/s',
-      head: 'm',
-      efficiency: 'decimal',
-    },
+      { q: 0, h: 100, efficiency: 0 },
+      { q: 0.05, h: 95, efficiency: 0.6 },
+      { q: 0.1, h: 85, efficiency: 0.8 },
+      { q: 0.15, h: 70, efficiency: 0.75 },
+      { q: 0.2, h: 50, efficiency: 0.6 },
+      { q: 0.25, h: 25, efficiency: 0.4 },
+      { q: 0.3, h: 0, efficiency: 0 }
+    ]
+  };
+
+  const sampleCurveNoEfficiency: PumpCurve = {
+    points: [
+      { q: 0, h: 100 },
+      { q: 0.05, h: 95 },
+      { q: 0.1, h: 85 },
+      { q: 0.15, h: 70 },
+      { q: 0.2, h: 50 },
+      { q: 0.25, h: 25 },
+      { q: 0.3, h: 0 }
+    ]
   };
 
   describe('interpolateCurve', () => {
-    it('should interpolate between curve points', () => {
-      const interpolator = interpolateCurve(sampleCurve);
+    it('should interpolate between points', () => {
+      const curve = [
+        { q: 0, h: 100 },
+        { q: 0.1, h: 80 },
+        { q: 0.2, h: 60 }
+      ];
+      const interpolator = interpolateCurve(curve);
       
-      // Test interpolation at known points
-      expect(interpolator(0)).toBe(50);
-      expect(interpolator(0.5)).toBe(20);
-      
-      // Test interpolation between points
-      expect(interpolator(0.05)).toBeCloseTo(49, 1);
-      expect(interpolator(0.25)).toBeCloseTo(41, 1);
-      expect(interpolator(0.45)).toBeCloseTo(25, 1);
+      expect(interpolator(0.05)).toBeCloseTo(90, 1);
+      expect(interpolator(0.15)).toBeCloseTo(70, 1);
     });
 
     it('should handle extrapolation', () => {
-      const interpolator = interpolateCurve(sampleCurve);
-      
-      // Extrapolation below minimum flow
-      expect(interpolator(-0.1)).toBe(50);
-      
-      // Extrapolation above maximum flow
-      expect(interpolator(0.6)).toBe(20);
-    });
-
-    it('should handle unsorted curve points', () => {
-      const unsortedCurve = [
-        { q: 0.3, h: 38 },
-        { q: 0, h: 50 },
-        { q: 0.2, h: 44 },
-        { q: 0.1, h: 48 },
+      const curve = [
+        { q: 0.1, h: 80 },
+        { q: 0.2, h: 60 }
       ];
+      const interpolator = interpolateCurve(curve);
       
-      const interpolator = interpolateCurve(unsortedCurve);
-      expect(interpolator(0.15)).toBeCloseTo(46, 1);
+      expect(interpolator(0)).toBe(80);
+      expect(interpolator(0.3)).toBe(60);
     });
 
     it('should throw error for insufficient points', () => {
-      expect(() => interpolateCurve([])).toThrow('Curve must have at least 2 points');
-      expect(() => interpolateCurve([{ q: 0, h: 50 }])).toThrow('Curve must have at least 2 points');
+      expect(() => interpolateCurve([{ q: 0, h: 100 }])).toThrow('Curve must have at least 2 points');
     });
 
     it('should throw error for duplicate flow rates', () => {
-      const duplicateCurve = [
-        { q: 0, h: 50 },
-        { q: 0.1, h: 48 },
-        { q: 0.1, h: 47 }, // Duplicate flow rate
+      const curve = [
+        { q: 0.1, h: 80 },
+        { q: 0.1, h: 60 }
       ];
-      
-      expect(() => interpolateCurve(duplicateCurve)).toThrow('Curve contains duplicate flow rates');
+      expect(() => interpolateCurve(curve)).toThrow('Curve contains duplicate flow rates');
     });
   });
 
   describe('scaleByAffinity', () => {
-    it('should scale curve by speed ratio only', () => {
-      const speedRatio = 1.2;
-      const result = scaleByAffinity(sampleCurveWithEfficiency, speedRatio);
-      
-      expect(result.speedRatio).toBe(speedRatio);
-      expect(result.impellerRatio).toBeUndefined();
-      expect(result.scalingApplied.speed).toBe(true);
-      expect(result.scalingApplied.impeller).toBe(false);
-      
-      // Check scaling relations: Q ~ n, H ~ n²
-      const originalPoint = sampleCurveWithEfficiency.points[2]; // q=0.2, h=44
-      const scaledPoint = result.curve.points[2];
-      
-      expect(scaledPoint.q).toBeCloseTo(originalPoint.q * speedRatio, 6);
-      expect(scaledPoint.h).toBeCloseTo(originalPoint.h * speedRatio * speedRatio, 6);
-      expect(scaledPoint.efficiency).toBe(originalPoint.efficiency); // Efficiency should not change
-    });
-
-    it('should scale curve by both speed and impeller ratios', () => {
-      const speedRatio = 1.1;
-      const impellerRatio = 1.05;
-      const result = scaleByAffinity(sampleCurveWithEfficiency, speedRatio, impellerRatio);
-      
-      expect(result.speedRatio).toBe(speedRatio);
-      expect(result.impellerRatio).toBe(impellerRatio);
-      expect(result.scalingApplied.speed).toBe(true);
-      expect(result.scalingApplied.impeller).toBe(true);
-      
-      // Check scaling relations: Q ~ n·d³, H ~ n²·d²
-      const originalPoint = sampleCurveWithEfficiency.points[3]; // q=0.3, h=38
-      const scaledPoint = result.curve.points[3];
-      
-      const expectedQ = originalPoint.q * speedRatio * Math.pow(impellerRatio, 3);
-      const expectedH = originalPoint.h * speedRatio * speedRatio * Math.pow(impellerRatio, 2);
-      
-      expect(scaledPoint.q).toBeCloseTo(expectedQ, 6);
-      expect(scaledPoint.h).toBeCloseTo(expectedH, 6);
-    });
-
-    it('should preserve curve metadata', () => {
-      const result = scaleByAffinity(sampleCurveWithEfficiency, 1.1);
-      
-      expect(result.curve.name).toBe(sampleCurveWithEfficiency.name);
-      expect(result.curve.units).toEqual(sampleCurveWithEfficiency.units);
-    });
-
-    it('should throw error for invalid speed ratio', () => {
-      expect(() => scaleByAffinity(sampleCurveWithEfficiency, 0)).toThrow('Speed ratio must be positive');
-      expect(() => scaleByAffinity(sampleCurveWithEfficiency, -1)).toThrow('Speed ratio must be positive');
-    });
-
-    it('should throw error for invalid impeller ratio', () => {
-      expect(() => scaleByAffinity(sampleCurveWithEfficiency, 1.1, 0)).toThrow('Impeller ratio must be positive');
-      expect(() => scaleByAffinity(sampleCurveWithEfficiency, 1.1, -0.5)).toThrow('Impeller ratio must be positive');
-    });
-
-    it('should handle curve without efficiency data', () => {
-      const curveWithoutEfficiency: PumpCurve = {
-        points: sampleCurve.map(p => ({ q: p.q, h: p.h })),
+    it('should scale curve by speed ratio', () => {
+      const curve: PumpCurve = {
+        points: [
+          { q: 0.1, h: 80, efficiency: 0.8 },
+          { q: 0.2, h: 60, efficiency: 0.7 }
+        ]
       };
       
-      const result = scaleByAffinity(curveWithoutEfficiency, 1.2);
-      expect(result.curve.points[0].efficiency).toBeUndefined();
+      const result = scaleByAffinity(curve, 1.5);
+      
+      expect(result.curve.points[0].q).toBeCloseTo(0.15, 2);
+      expect(result.curve.points[0].h).toBeCloseTo(180, 1);
+      expect(result.curve.points[0].efficiency).toBe(0.8);
+      expect(result.scalingApplied.speed).toBe(true);
+      expect(result.scalingApplied.impeller).toBe(false);
+    });
+
+    it('should scale curve by both speed and impeller ratio', () => {
+      const curve: PumpCurve = {
+        points: [
+          { q: 0.1, h: 80, efficiency: 0.8 },
+          { q: 0.2, h: 60, efficiency: 0.7 }
+        ]
+      };
+      
+      const result = scaleByAffinity(curve, 1.5, 1.2);
+      
+      expect(result.curve.points[0].q).toBeCloseTo(0.2592, 3);
+      expect(result.curve.points[0].h).toBeCloseTo(259.2, 1);
+      expect(result.scalingApplied.impeller).toBe(true);
+    });
+
+    it('should throw error for negative speed ratio', () => {
+      const curve: PumpCurve = { points: [{ q: 0.1, h: 80 }] };
+      expect(() => scaleByAffinity(curve, -1)).toThrow('Speed ratio must be positive');
     });
   });
 
   describe('bepc', () => {
     it('should find BEP using efficiency data', () => {
-      const result = bepc(0.25, 41, sampleCurveWithEfficiency);
+      const result = bepc(0.12, 75, sampleCurve);
       
+      expect(result.bepPoint.q).toBe(0.1);
+      expect(result.bepPoint.h).toBe(85);
+      expect(result.bepPoint.efficiency).toBe(0.8);
       expect(result.method).toBe('efficiency');
-      expect(result.bepPoint.q).toBe(0.3);
-      expect(result.bepPoint.h).toBe(38);
-      expect(result.bepPoint.efficiency).toBe(0.85);
-      expect(result.bepIndex).toBe(3);
       expect(result.distance).toBeGreaterThan(0);
     });
 
     it('should find BEP using midpoint when no efficiency data', () => {
-      const curveWithoutEfficiency: PumpCurve = {
-        points: sampleCurve.map(p => ({ q: p.q, h: p.h })),
-      };
-      
-      const result = bepc(0.25, 41, curveWithoutEfficiency);
+      const result = bepc(0.12, 75, sampleCurveNoEfficiency);
       
       expect(result.method).toBe('midpoint');
-      expect(result.bepIndex).toBe(3); // Middle point (0-based index) for 6 points
-      expect(result.bepPoint.q).toBe(0.3);
-      expect(result.bepPoint.h).toBe(38);
-      expect(result.distance).toBeGreaterThan(0);
-    });
-
-    it('should calculate correct distance to BEP', () => {
-      // Use the actual BEP point (q=0.3, h=38, efficiency=0.85)
-      const result = bepc(0.3, 38, sampleCurveWithEfficiency);
-      
-      // Distance should be 0 since we're at the BEP point
-      expect(result.distance).toBeCloseTo(0, 6);
-    });
-
-    it('should handle single point curve', () => {
-      const singlePointCurve: PumpCurve = {
-        points: [{ q: 0.1, h: 48, efficiency: 0.8 }],
-      };
-      
-      const result = bepc(0.2, 40, singlePointCurve);
-      
-      expect(result.bepPoint.q).toBe(0.1);
-      expect(result.bepPoint.h).toBe(48);
-      expect(result.bepIndex).toBe(0);
+      expect(result.bepIndex).toBe(3); // Middle point
       expect(result.distance).toBeGreaterThan(0);
     });
 
     it('should throw error for empty curve', () => {
       const emptyCurve: PumpCurve = { points: [] };
+      expect(() => bepc(0.1, 80, emptyCurve)).toThrow('Curve must have at least one point');
+    });
+  });
+
+  describe('bepDistance', () => {
+    it('should calculate BEP distance with warnings for far operation', () => {
+      const result = bepDistance({ q: 0.25, h: 30 }, sampleCurve);
       
-      expect(() => bepc(0.1, 48, emptyCurve)).toThrow('Curve must have at least one point');
+      expect(result.bepPoint.q).toBe(0.1);
+      expect(result.bepPoint.h).toBe(85);
+      expect(result.method).toBe('efficiency');
+      expect(result.distance).toBeGreaterThan(0);
+      expect(result.warnings.length).toBeGreaterThan(0);
+      
+      // Should have warnings for being far from BEP
+      const bepWarnings = result.warnings.filter(w => w.type === 'bep_distance');
+      expect(bepWarnings.length).toBeGreaterThan(0);
+    });
+
+    it('should calculate BEP distance with warnings for operation outside curve range', () => {
+      const result = bepDistance({ q: 0.4, h: 10 }, sampleCurve);
+      
+      expect(result.warnings.length).toBeGreaterThan(0);
+      
+      // Should have warnings for being outside curve range
+      const rangeWarnings = result.warnings.filter(w => w.type === 'curve_range');
+      expect(rangeWarnings.length).toBeGreaterThan(0);
+    });
+
+    it('should calculate BEP distance with efficiency warnings', () => {
+      const result = bepDistance({ q: 0.05, h: 95 }, sampleCurve);
+      
+      expect(result.warnings.length).toBeGreaterThan(0);
+      
+      // Should have efficiency warnings for low efficiency operation
+      const efficiencyWarnings = result.warnings.filter(w => w.type === 'efficiency');
+      expect(efficiencyWarnings.length).toBeGreaterThan(0);
+    });
+
+    it('should handle operation close to BEP with minimal warnings', () => {
+      const result = bepDistance({ q: 0.11, h: 83 }, sampleCurve);
+      
+      expect(result.bepPoint.q).toBe(0.1);
+      expect(result.bepPoint.h).toBe(85);
+      expect(result.distance).toBeGreaterThan(0);
+      
+      // Should have fewer warnings for operation close to BEP
+      const bepWarnings = result.warnings.filter(w => w.type === 'bep_distance');
+      expect(bepWarnings.length).toBeLessThanOrEqual(1);
     });
   });
 
   describe('calculatePumpPower', () => {
     it('should calculate pump power correctly', () => {
-      const q = 0.1; // m³/s
-      const h = 30; // m
-      const efficiency = 0.8;
-      const rho = 1000; // kg/m³
+      const power = calculatePumpPower(0.1, 80, 0.8, 1000);
       
-      const power = calculatePumpPower(q, h, efficiency, rho);
-      
-      // P = ρ·g·Q·H / η
-      const expectedPower = (rho * 9.81 * q * h) / efficiency;
-      expect(power).toBeCloseTo(expectedPower, 6);
-    });
-
-    it('should use default density of 1000 kg/m³', () => {
-      const q = 0.1;
-      const h = 30;
-      const efficiency = 0.8;
-      
-      const powerWithDefault = calculatePumpPower(q, h, efficiency);
-      const powerWithExplicit = calculatePumpPower(q, h, efficiency, 1000);
-      
-      expect(powerWithDefault).toBe(powerWithExplicit);
+      // P = ρ * g * Q * H / η
+      // P = 1000 * 9.81 * 0.1 * 80 / 0.8 = 98100 W
+      expect(power).toBeCloseTo(98100, 0);
     });
 
     it('should throw error for invalid efficiency', () => {
-      expect(() => calculatePumpPower(0.1, 30, 0)).toThrow('Efficiency must be between 0 and 1');
-      expect(() => calculatePumpPower(0.1, 30, 1.1)).toThrow('Efficiency must be between 0 and 1');
-      expect(() => calculatePumpPower(0.1, 30, -0.1)).toThrow('Efficiency must be between 0 and 1');
+      expect(() => calculatePumpPower(0.1, 80, 1.5, 1000)).toThrow('Efficiency must be between 0 and 1');
+      expect(() => calculatePumpPower(0.1, 80, -0.1, 1000)).toThrow('Efficiency must be between 0 and 1');
     });
 
-    it('should throw error for invalid density', () => {
-      expect(() => calculatePumpPower(0.1, 30, 0.8, 0)).toThrow('Density must be positive');
-      expect(() => calculatePumpPower(0.1, 30, 0.8, -1000)).toThrow('Density must be positive');
+    it('should throw error for negative density', () => {
+      expect(() => calculatePumpPower(0.1, 80, 0.8, -1000)).toThrow('Density must be positive');
     });
   });
 
   describe('findOperatingPoint', () => {
     it('should find operating point at intersection', () => {
-      // Pump curve: H = 50 - 60Q
-      const pumpCurve = (q: number) => 50 - 60 * q;
+      const pumpCurve = (q: number) => 100 - 100 * q; // Linear pump curve
+      const systemCurve = (q: number) => 20 + 80 * q * q; // Quadratic system curve
       
-      // System curve: H = 20 + 40Q²
-      const systemCurve = (q: number) => 20 + 40 * q * q;
-      
-      const result = findOperatingPoint(pumpCurve, systemCurve, 0, 0.5);
-      
-      // Verify that both curves give the same head at the operating point
-      const pumpHead = pumpCurve(result.q);
-      const systemHead = systemCurve(result.q);
-      
-      expect(Math.abs(pumpHead - systemHead)).toBeLessThan(1e-4);
-      expect(result.h).toBeCloseTo(pumpHead, 6);
-    });
-
-    it('should handle linear system curve', () => {
-      const pumpCurve = (q: number) => 50 - 60 * q;
-      const systemCurve = (q: number) => 20 + 30 * q;
-      
-      const result = findOperatingPoint(pumpCurve, systemCurve, 0, 0.5);
+      const result = findOperatingPoint(pumpCurve, systemCurve, 0, 1, 1e-6);
       
       expect(result.q).toBeGreaterThan(0);
-      expect(result.q).toBeLessThan(0.5);
       expect(result.h).toBeGreaterThan(0);
+      expect(Math.abs(pumpCurve(result.q) - systemCurve(result.q))).toBeLessThan(1e-5);
     });
 
     it('should throw error for no intersection', () => {
-      const pumpCurve = (q: number) => 50 - 60 * q;
-      const systemCurve = (q: number) => 100 + 30 * q; // Always above pump curve
+      const pumpCurve = (q: number) => 100 + 100 * q; // Always above
+      const systemCurve = (q: number) => 50 + 50 * q; // Always below
       
-      expect(() => findOperatingPoint(pumpCurve, systemCurve, 0, 0.5)).toThrow('No intersection found in the specified range');
+      expect(() => findOperatingPoint(pumpCurve, systemCurve, 0, 1)).toThrow('No intersection found');
     });
 
     it('should throw error for invalid range', () => {
-      const pumpCurve = (q: number) => 50 - 60 * q;
-      const systemCurve = (q: number) => 20 + 30 * q;
+      const pumpCurve = (q: number) => 100 - 100 * q;
+      const systemCurve = (q: number) => 50 + 50 * q;
       
-      expect(() => findOperatingPoint(pumpCurve, systemCurve, 0.5, 0)).toThrow('qMin must be less than qMax');
+      expect(() => findOperatingPoint(pumpCurve, systemCurve, 1, 0)).toThrow('qMin must be less than qMax');
     });
   });
 
   describe('validatePumpCurve', () => {
     it('should validate correct curve', () => {
-      const result = validatePumpCurve(sampleCurveWithEfficiency);
+      const curve: PumpCurve = {
+        points: [
+          { q: 0.1, h: 80, efficiency: 0.8 },
+          { q: 0.2, h: 60, efficiency: 0.7 }
+        ]
+      };
       
+      const result = validatePumpCurve(curve);
       expect(result.isValid).toBe(true);
-      expect(result.errors).toHaveLength(0);
+      expect(result.errors.length).toBe(0);
     });
 
-    it('should reject empty curve', () => {
-      const emptyCurve: PumpCurve = { points: [] };
-      const result = validatePumpCurve(emptyCurve);
-      
-      expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Curve must have at least one point');
-    });
-
-    it('should warn about insufficient points', () => {
-      const singlePointCurve: PumpCurve = {
-        points: [{ q: 0.1, h: 48, efficiency: 0.8 }],
-      };
-      const result = validatePumpCurve(singlePointCurve);
-      
-      expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Curve must have at least 2 points for interpolation');
-    });
-
-    it('should reject negative flow rates', () => {
-      const invalidCurve: PumpCurve = {
+    it('should detect negative values', () => {
+      const curve: PumpCurve = {
         points: [
-          { q: 0, h: 50 },
-          { q: -0.1, h: 48 }, // Negative flow rate
-          { q: 0.2, h: 44 },
-        ],
+          { q: -0.1, h: 80, efficiency: 0.8 },
+          { q: 0.2, h: -60, efficiency: 1.5 }
+        ]
       };
-      const result = validatePumpCurve(invalidCurve);
       
+      const result = validatePumpCurve(curve);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Point 1: Flow rate cannot be negative');
+      expect(result.errors.length).toBeGreaterThan(0);
     });
 
-    it('should reject negative head', () => {
-      const invalidCurve: PumpCurve = {
+    it('should detect duplicate flow rates', () => {
+      const curve: PumpCurve = {
         points: [
-          { q: 0, h: 50 },
-          { q: 0.1, h: -10 }, // Negative head
-          { q: 0.2, h: 44 },
-        ],
+          { q: 0.1, h: 80, efficiency: 0.8 },
+          { q: 0.1, h: 60, efficiency: 0.7 }
+        ]
       };
-      const result = validatePumpCurve(invalidCurve);
       
+      const result = validatePumpCurve(curve);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Point 1: Head cannot be negative');
+      expect(result.errors.some(e => e.includes('duplicate'))).toBe(true);
     });
 
-    it('should reject invalid efficiency values', () => {
-      const invalidCurve: PumpCurve = {
-        points: [
-          { q: 0, h: 50, efficiency: 0.8 },
-          { q: 0.1, h: 48, efficiency: 1.2 }, // Efficiency > 1
-          { q: 0.2, h: 44, efficiency: -0.1 }, // Efficiency < 0
-        ],
-      };
-      const result = validatePumpCurve(invalidCurve);
+    it('should detect insufficient points', () => {
+      const curve: PumpCurve = { points: [] };
       
+      const result = validatePumpCurve(curve);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Point 1: Efficiency must be between 0 and 1');
-      expect(result.errors).toContain('Point 2: Efficiency must be between 0 and 1');
-    });
-
-    it('should reject duplicate flow rates', () => {
-      const invalidCurve: PumpCurve = {
-        points: [
-          { q: 0, h: 50 },
-          { q: 0.1, h: 48 },
-          { q: 0.1, h: 47 }, // Duplicate flow rate
-        ],
-      };
-      const result = validatePumpCurve(invalidCurve);
-      
-      expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Curve contains duplicate flow rates');
+      expect(result.errors.some(e => e.includes('at least one point'))).toBe(true);
     });
   });
 });

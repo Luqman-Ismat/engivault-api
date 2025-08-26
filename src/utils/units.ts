@@ -35,10 +35,18 @@ const UNIT_CONVERSIONS: Record<string, UnitConversion> = {
   'Pa·s': { factor: 1, offset: 0 },
   cP: { factor: 0.001, offset: 0 },
 
+  // Volume
+  'm³': { factor: 1, offset: 0 },
+  'L': { factor: 0.001, offset: 0 },
+  gal: { factor: 0.00378541, offset: 0 },
+  'ft³': { factor: 0.0283168, offset: 0 },
+
   // Flow
   'm³/s': { factor: 1, offset: 0 },
   'L/s': { factor: 0.001, offset: 0 },
   gpm: { factor: 0.0000630902, offset: 0 },
+  'gal/min': { factor: 0.0000630902, offset: 0 },
+  'L/min': { factor: 0.0000166667, offset: 0 },
 
   // Mass Flow
   'kg/s': { factor: 1, offset: 0 },
@@ -82,6 +90,7 @@ const UNIT_CONVERSIONS: Record<string, UnitConversion> = {
 const SI_BASE_UNITS: Record<string, string> = {
   length: 'm',
   area: 'm²',
+  volume: 'm³',
   pressure: 'Pa',
   head: 'm',
   density: 'kg/m³',
@@ -109,6 +118,12 @@ const UNIT_CATEGORIES: Record<string, string> = {
   'ft²': 'area',
   'in²': 'area',
 
+  // Volume
+  'm³': 'volume',
+  'L': 'volume',
+  gal: 'volume',
+  'ft³': 'volume',
+
   // Pressure
   Pa: 'pressure',
   kPa: 'pressure',
@@ -130,6 +145,8 @@ const UNIT_CATEGORIES: Record<string, string> = {
   'm³/s': 'flow',
   'L/s': 'flow',
   gpm: 'flow',
+  'gal/min': 'flow',
+  'L/min': 'flow',
 
   // Mass Flow
   'kg/s': 'flow',
