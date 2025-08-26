@@ -22,6 +22,7 @@ const UNIT_CONVERSIONS: Record<string, UnitConversion> = {
 
   // Pressure
   Pa: { factor: 1, offset: 0 },
+  kPa: { factor: 1000, offset: 0 },
   psi: { factor: 6894.76, offset: 0 },
   psia: { factor: 6894.76, offset: 0 }, // Pounds per square inch absolute
   bar: { factor: 100000, offset: 0 },
@@ -49,6 +50,7 @@ const UNIT_CONVERSIONS: Record<string, UnitConversion> = {
   // Velocity
   'm/s': { factor: 1, offset: 0 },
   'ft/s': { factor: 0.3048, offset: 0 },
+  'km/h': { factor: 0.277778, offset: 0 },
 
   // Temperature (affine conversions)
   K: { factor: 1, offset: 0 },
@@ -109,6 +111,7 @@ const UNIT_CATEGORIES: Record<string, string> = {
 
   // Pressure
   Pa: 'pressure',
+  kPa: 'pressure',
   psi: 'pressure',
   bar: 'pressure',
 

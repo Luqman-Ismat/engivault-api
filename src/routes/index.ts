@@ -18,6 +18,7 @@ import slurryRoutes from './slurries';
 import gasRoutes from './gas';
 import thermalRoutes from './thermal';
 import hxRoutes from './hx';
+import hydraulicsRoutes from './hydraulics';
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Health check endpoint
@@ -104,4 +105,5 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(gasRoutes);
   await fastify.register(thermalRoutes);
   await fastify.register(hxRoutes);
+  await fastify.register(hydraulicsRoutes);
 }

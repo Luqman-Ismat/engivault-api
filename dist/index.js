@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createFastifyInstance = createFastifyInstance;
+exports.build = build;
 const fastify_1 = __importDefault(require("fastify"));
 const environment_1 = require("@/config/environment");
 // Import plugins
@@ -60,6 +61,10 @@ process.on('SIGTERM', () => {
     console.log('Received SIGTERM, shutting down gracefully...');
     process.exit(0);
 });
+// Export build function for testing
+async function build() {
+    return createFastifyInstance();
+}
 // Start the server
 startServer();
 //# sourceMappingURL=index.js.map
