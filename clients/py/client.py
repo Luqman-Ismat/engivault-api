@@ -5,7 +5,7 @@ EngiVault API Client
 import requests
 import json
 from typing import Dict, Any, Optional, List
-from models import *
+from .models import *
 
 class EngiVaultClient:
     """Client for EngiVault API"""
@@ -27,11 +27,11 @@ class EngiVaultClient:
     # Hydraulics endpoints
     def calculate_pressure_drop(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate pressure drop"""
-        return self._make_request("POST", "/api/v1/calculate/pressure-drop", data)
+        return self._make_request("POST", "/api/v1/hydraulics/pressure-drop", data)
     
     def calculate_minor_losses(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate minor losses"""
-        return self._make_request("POST", "/api/v1/calculate/minor-losses", data)
+        return self._make_request("POST", "/api/v1/hydraulics/minor-losses", data)
     
     def size_pipe(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Size pipe for target velocity or pressure drop"""
@@ -40,7 +40,7 @@ class EngiVaultClient:
     # Pumps endpoints
     def calculate_npsh(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate NPSH"""
-        return self._make_request("POST", "/api/v1/npsh", data)
+        return self._make_request("POST", "/api/v1/pumps/npsh", data)
     
     def check_bep(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Check Best Efficiency Point"""
@@ -59,12 +59,12 @@ class EngiVaultClient:
     # Transients endpoints
     def calculate_transients(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate transients"""
-        return self._make_request("POST", "/api/v1/transients/joukowsky", data)
+        return self._make_request("POST", "/api/v1/transients/calculate", data)
     
     # Gas endpoints
     def calculate_gas_flow(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate gas flow"""
-        return self._make_request("POST", "/api/v1/gas/pressure-drop", data)
+        return self._make_request("POST", "/api/v1/gas/flow", data)
     
     def calculate_fanno_line(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate Fanno line"""
@@ -86,7 +86,7 @@ class EngiVaultClient:
     # Slurries endpoints
     def calculate_slurry_flow(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate slurry flow"""
-        return self._make_request("POST", "/api/v1/slurries/pressure-drop", data)
+        return self._make_request("POST", "/api/v1/slurries/flow", data)
     
     # Operations endpoints
     def calculate_fill_drain_time(self, data: Dict[str, Any]) -> Dict[str, Any]:

@@ -133,7 +133,9 @@ describe('Cavitation Risk API', () => {
       const result = JSON.parse(response.payload);
 
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some((w: string) => w.includes('margin'))).toBe(true);
+      expect(result.warnings.some((w: string) => w.includes('margin'))).toBe(
+        true
+      );
     });
 
     it('should return validation error for missing atmospheric pressure and altitude', async () => {
@@ -309,9 +311,7 @@ describe('Cavitation Risk API', () => {
         losses: { value: 5000, unit: 'Pa' },
         flowRate: { value: 0.15, unit: 'm³/s' },
         npshCurve: {
-          points: [
-            { q: 0, npshr: 2.0 },
-          ],
+          points: [{ q: 0, npshr: 2.0 }],
         },
         fluidName: 'water',
       };

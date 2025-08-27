@@ -22,29 +22,29 @@ describe('Dynamics Routes', () => {
             area: { value: 10, unit: 'm²' },
             initialLevel: { value: 1, unit: 'm' },
             maxLevel: { value: 5, unit: 'm' },
-            minLevel: { value: 0, unit: 'm' }
+            minLevel: { value: 0, unit: 'm' },
           },
           inflow: {
             type: 'constant',
-            value: { value: 0.1, unit: 'm³/s' }
+            value: { value: 0.1, unit: 'm³/s' },
           },
           outflow: {
             type: 'orifice',
             orifice: {
               coefficient: 0.6,
-              area: { value: 0.01, unit: 'm²' }
-            }
+              area: { value: 0.01, unit: 'm²' },
+            },
           },
           simulation: {
             endTime: { value: 100, unit: 's' },
-            timeStep: { value: 1, unit: 's' }
-          }
-        }
+            timeStep: { value: 1, unit: 's' },
+          },
+        },
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.timeSeries).toBeDefined();
       expect(result.timeSeries).toHaveLength(101); // 0 to 100 seconds
       expect(result.summary).toBeDefined();
@@ -64,11 +64,11 @@ describe('Dynamics Routes', () => {
             area: { value: 10, unit: 'm²' },
             initialLevel: { value: 1, unit: 'm' },
             maxLevel: { value: 5, unit: 'm' },
-            minLevel: { value: 0, unit: 'm' }
+            minLevel: { value: 0, unit: 'm' },
           },
           inflow: {
             type: 'constant',
-            value: { value: 0.2, unit: 'm³/s' }
+            value: { value: 0.2, unit: 'm³/s' },
           },
           outflow: {
             type: 'pump',
@@ -77,32 +77,32 @@ describe('Dynamics Routes', () => {
                 { head: 5, flow: { value: 0, unit: 'm³/s' } },
                 { head: 3, flow: { value: 0.08, unit: 'm³/s' } },
                 { head: 1, flow: { value: 0.15, unit: 'm³/s' } },
-                { head: 0, flow: { value: 0.18, unit: 'm³/s' } }
+                { head: 0, flow: { value: 0.18, unit: 'm³/s' } },
               ],
               onOffControl: {
                 highLevel: { value: 2.5, unit: 'm' },
-                lowLevel: { value: 2, unit: 'm' }
-              }
-            }
+                lowLevel: { value: 2, unit: 'm' },
+              },
+            },
           },
           simulation: {
             endTime: { value: 100, unit: 's' },
-            timeStep: { value: 1, unit: 's' }
-          }
-        }
+            timeStep: { value: 1, unit: 's' },
+          },
+        },
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.timeSeries).toBeDefined();
       expect(result.timeSeries).toHaveLength(101);
-      
+
       // Check that pump states are recorded
       const pumpStates = result.timeSeries.map((point: any) => point.pumpOn);
       expect(pumpStates).toBeDefined();
       expect(pumpStates.length).toBeGreaterThan(0);
-      
+
       // Check that at least some pump states are false (pump off)
       expect(pumpStates.some((state: boolean) => !state)).toBe(true);
     });
@@ -114,24 +114,24 @@ describe('Dynamics Routes', () => {
         payload: {
           tank: {
             // Missing area
-            initialLevel: { value: 1, unit: 'm' }
+            initialLevel: { value: 1, unit: 'm' },
           },
           inflow: {
             type: 'constant',
-            value: { value: 0.1, unit: 'm³/s' }
+            value: { value: 0.1, unit: 'm³/s' },
           },
           outflow: {
             type: 'orifice',
             orifice: {
               coefficient: 0.6,
-              area: { value: 0.01, unit: 'm²' }
-            }
+              area: { value: 0.01, unit: 'm²' },
+            },
           },
           simulation: {
             endTime: { value: 100, unit: 's' },
-            timeStep: { value: 1, unit: 's' }
-          }
-        }
+            timeStep: { value: 1, unit: 's' },
+          },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -144,21 +144,21 @@ describe('Dynamics Routes', () => {
         payload: {
           tank: {
             area: { value: 10, unit: 'm²' },
-            initialLevel: { value: 1, unit: 'm' }
+            initialLevel: { value: 1, unit: 'm' },
           },
           inflow: {
             type: 'constant',
-            value: { value: 0.1, unit: 'm³/s' }
+            value: { value: 0.1, unit: 'm³/s' },
           },
           outflow: {
-            type: 'orifice'
+            type: 'orifice',
             // Missing orifice configuration
           },
           simulation: {
             endTime: { value: 100, unit: 's' },
-            timeStep: { value: 1, unit: 's' }
-          }
-        }
+            timeStep: { value: 1, unit: 's' },
+          },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -171,21 +171,21 @@ describe('Dynamics Routes', () => {
         payload: {
           tank: {
             area: { value: 10, unit: 'm²' },
-            initialLevel: { value: 1, unit: 'm' }
+            initialLevel: { value: 1, unit: 'm' },
           },
           inflow: {
             type: 'constant',
-            value: { value: 0.1, unit: 'm³/s' }
+            value: { value: 0.1, unit: 'm³/s' },
           },
           outflow: {
-            type: 'pump'
+            type: 'pump',
             // Missing pump configuration
           },
           simulation: {
             endTime: { value: 100, unit: 's' },
-            timeStep: { value: 1, unit: 's' }
-          }
-        }
+            timeStep: { value: 1, unit: 's' },
+          },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -198,30 +198,30 @@ describe('Dynamics Routes', () => {
         payload: {
           tank: {
             area: { value: 10, unit: 'm²' },
-            initialLevel: { value: 1, unit: 'm' }
+            initialLevel: { value: 1, unit: 'm' },
           },
           inflow: {
             type: 'constant',
-            value: { value: 0.1, unit: 'm³/s' }
+            value: { value: 0.1, unit: 'm³/s' },
           },
           outflow: {
             type: 'pump',
             pump: {
               curve: [
                 { head: 5, flow: { value: 0, unit: 'm³/s' } },
-                { head: 3, flow: { value: 0.08, unit: 'm³/s' } }
+                { head: 3, flow: { value: 0.08, unit: 'm³/s' } },
               ],
               onOffControl: {
                 highLevel: { value: 2, unit: 'm' }, // Same as low level
-                lowLevel: { value: 2, unit: 'm' }
-              }
-            }
+                lowLevel: { value: 2, unit: 'm' },
+              },
+            },
           },
           simulation: {
             endTime: { value: 100, unit: 's' },
-            timeStep: { value: 1, unit: 's' }
-          }
-        }
+            timeStep: { value: 1, unit: 's' },
+          },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -234,24 +234,24 @@ describe('Dynamics Routes', () => {
         payload: {
           tank: {
             area: { value: 10, unit: 'm²' },
-            initialLevel: { value: 1, unit: 'm' }
+            initialLevel: { value: 1, unit: 'm' },
           },
           inflow: {
-            type: 'constant'
+            type: 'constant',
             // Missing value
           },
           outflow: {
             type: 'orifice',
             orifice: {
               coefficient: 0.6,
-              area: { value: 0.01, unit: 'm²' }
-            }
+              area: { value: 0.01, unit: 'm²' },
+            },
           },
           simulation: {
             endTime: { value: 100, unit: 's' },
-            timeStep: { value: 1, unit: 's' }
-          }
-        }
+            timeStep: { value: 1, unit: 's' },
+          },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -264,24 +264,24 @@ describe('Dynamics Routes', () => {
         payload: {
           tank: {
             area: { value: 10, unit: 'm²' },
-            initialLevel: { value: 1, unit: 'm' }
+            initialLevel: { value: 1, unit: 'm' },
           },
           inflow: {
             type: 'curve',
-            curve: [] // Empty curve
+            curve: [], // Empty curve
           },
           outflow: {
             type: 'orifice',
             orifice: {
               coefficient: 0.6,
-              area: { value: 0.01, unit: 'm²' }
-            }
+              area: { value: 0.01, unit: 'm²' },
+            },
           },
           simulation: {
             endTime: { value: 100, unit: 's' },
-            timeStep: { value: 1, unit: 's' }
-          }
-        }
+            timeStep: { value: 1, unit: 's' },
+          },
+        },
       });
 
       expect(response.statusCode).toBe(400);

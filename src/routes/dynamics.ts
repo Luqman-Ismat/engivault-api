@@ -14,32 +14,46 @@ const zTankGeometry = z.object({
 const zInflowCurve = z.object({
   type: z.enum(['constant', 'curve', 'function']),
   value: zQuantity.optional(),
-  curve: z.array(z.object({
-    time: z.number(),
-    flow: zQuantity,
-  })).optional(),
+  curve: z
+    .array(
+      z.object({
+        time: z.number(),
+        flow: zQuantity,
+      })
+    )
+    .optional(),
   function: z.string().optional(),
 });
 
 const zOutflowCurve = z.object({
   type: z.enum(['orifice', 'pump', 'constant']),
-  orifice: z.object({
-    coefficient: z.number().min(0).max(1),
-    area: zQuantity,
-  }).optional(),
-  pump: z.object({
-    curve: z.array(z.object({
-      head: z.number(),
+  orifice: z
+    .object({
+      coefficient: z.number().min(0).max(1),
+      area: zQuantity,
+    })
+    .optional(),
+  pump: z
+    .object({
+      curve: z.array(
+        z.object({
+          head: z.number(),
+          flow: zQuantity,
+        })
+      ),
+      onOffControl: z
+        .object({
+          highLevel: zQuantity,
+          lowLevel: zQuantity,
+        })
+        .optional(),
+    })
+    .optional(),
+  constant: z
+    .object({
       flow: zQuantity,
-    })),
-    onOffControl: z.object({
-      highLevel: zQuantity,
-      lowLevel: zQuantity,
-    }).optional(),
-  }).optional(),
-  constant: z.object({
-    flow: zQuantity,
-  }).optional(),
+    })
+    .optional(),
 });
 
 const zTankSimulationRequest = z.object({
@@ -53,13 +67,15 @@ const zTankSimulationRequest = z.object({
 });
 
 const zTankSimulationResponse = z.object({
-  timeSeries: z.array(z.object({
-    time: z.number(),
-    level: z.number(),
-    inflow: z.number(),
-    outflow: z.number(),
-    pumpOn: z.boolean(),
-  })),
+  timeSeries: z.array(
+    z.object({
+      time: z.number(),
+      level: z.number(),
+      inflow: z.number(),
+      outflow: z.number(),
+      pumpOn: z.boolean(),
+    })
+  ),
   summary: z.object({
     finalLevel: z.number(),
     maxLevel: z.number(),
@@ -94,22 +110,34 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
               properties: {
                 area: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 initialLevel: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 maxLevel: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 minLevel: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
               },
@@ -118,13 +146,16 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
             inflow: {
               type: 'object',
               properties: {
-                type: { 
-                  type: 'string', 
-                  enum: ['constant', 'curve', 'function'] 
+                type: {
+                  type: 'string',
+                  enum: ['constant', 'curve', 'function'],
                 },
                 value: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 curve: {
@@ -135,7 +166,10 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
                       time: { type: 'number' },
                       flow: {
                         type: 'object',
-                        properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                        properties: {
+                          value: { type: 'number' },
+                          unit: { type: 'string' },
+                        },
                         required: ['value', 'unit'],
                       },
                     },
@@ -149,9 +183,9 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
             outflow: {
               type: 'object',
               properties: {
-                type: { 
-                  type: 'string', 
-                  enum: ['orifice', 'pump', 'constant'] 
+                type: {
+                  type: 'string',
+                  enum: ['orifice', 'pump', 'constant'],
                 },
                 orifice: {
                   type: 'object',
@@ -159,7 +193,10 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
                     coefficient: { type: 'number', minimum: 0, maximum: 1 },
                     area: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                   },
@@ -176,7 +213,10 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
                           head: { type: 'number' },
                           flow: {
                             type: 'object',
-                            properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                            properties: {
+                              value: { type: 'number' },
+                              unit: { type: 'string' },
+                            },
                             required: ['value', 'unit'],
                           },
                         },
@@ -188,12 +228,18 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
                       properties: {
                         highLevel: {
                           type: 'object',
-                          properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                          properties: {
+                            value: { type: 'number' },
+                            unit: { type: 'string' },
+                          },
                           required: ['value', 'unit'],
                         },
                         lowLevel: {
                           type: 'object',
-                          properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                          properties: {
+                            value: { type: 'number' },
+                            unit: { type: 'string' },
+                          },
                           required: ['value', 'unit'],
                         },
                       },
@@ -207,7 +253,10 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
                   properties: {
                     flow: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                   },
@@ -221,12 +270,18 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
               properties: {
                 endTime: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 timeStep: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
               },
@@ -264,7 +319,15 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
                   overflow: { type: 'boolean' },
                   empty: { type: 'boolean' },
                 },
-                required: ['finalLevel', 'maxLevel', 'minLevel', 'averageInflow', 'averageOutflow', 'overflow', 'empty'],
+                required: [
+                  'finalLevel',
+                  'maxLevel',
+                  'minLevel',
+                  'averageInflow',
+                  'averageOutflow',
+                  'overflow',
+                  'empty',
+                ],
               },
               warnings: { type: 'array', items: { type: 'string' } },
               metadata: {
@@ -307,57 +370,64 @@ export default async function dynamicsRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         const input = zTankSimulationRequest.parse(request.body);
-        
+
         // Validate inflow configuration
         if (input.inflow.type === 'constant' && !input.inflow.value) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Constant inflow requires a value'
+            message: 'Constant inflow requires a value',
           });
         }
-        
-        if (input.inflow.type === 'curve' && (!input.inflow.curve || input.inflow.curve.length === 0)) {
+
+        if (
+          input.inflow.type === 'curve' &&
+          (!input.inflow.curve || input.inflow.curve.length === 0)
+        ) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Curve inflow requires a non-empty curve array'
+            message: 'Curve inflow requires a non-empty curve array',
           });
         }
-        
+
         // Validate outflow configuration
         if (input.outflow.type === 'orifice' && !input.outflow.orifice) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Orifice outflow requires orifice configuration'
+            message: 'Orifice outflow requires orifice configuration',
           });
         }
-        
-        if (input.outflow.type === 'pump' && (!input.outflow.pump || input.outflow.pump.curve.length === 0)) {
+
+        if (
+          input.outflow.type === 'pump' &&
+          (!input.outflow.pump || input.outflow.pump.curve.length === 0)
+        ) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Pump outflow requires a non-empty pump curve'
+            message: 'Pump outflow requires a non-empty pump curve',
           });
         }
-        
+
         if (input.outflow.type === 'constant' && !input.outflow.constant) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Constant outflow requires constant flow configuration'
+            message: 'Constant outflow requires constant flow configuration',
           });
         }
-        
+
         // Validate pump on/off control if present
         if (input.outflow.type === 'pump' && input.outflow.pump?.onOffControl) {
           const { highLevel, lowLevel } = input.outflow.pump.onOffControl;
           if (highLevel.value <= lowLevel.value) {
             return reply.status(400).send({
               error: 'ValidationError',
-              message: 'High level must be greater than low level for pump control'
+              message:
+                'High level must be greater than low level for pump control',
             });
           }
         }
-        
+
         const result = simulateTank(input);
-        
+
         return reply.send(result);
       } catch (error) {
         return handleError(error, reply);

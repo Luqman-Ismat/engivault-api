@@ -43,23 +43,23 @@ describe('Operating Point API Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.flow).toBeDefined();
       expect(result.flow.value).toBeGreaterThan(0);
       expect(result.flow.unit).toBe('m³/s');
-      
+
       expect(result.head).toBeDefined();
       expect(result.head.value).toBeGreaterThan(0);
       expect(result.head.unit).toBe('m');
-      
+
       expect(result.pumpHead).toBeDefined();
       expect(result.systemHead).toBeDefined();
-      
+
       expect(result.meta).toBeDefined();
       expect(result.meta.convergence).toBe(true);
       expect(result.meta.iterations).toBeGreaterThan(0);
       expect(result.meta.method).toBe('bisection');
-      
+
       expect(result.warnings).toBeDefined();
       expect(Array.isArray(result.warnings)).toBe(true);
     });
@@ -99,7 +99,7 @@ describe('Operating Point API Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.flow.value).toBeGreaterThan(0);
       expect(result.head.value).toBeGreaterThan(0);
       expect(result.meta.convergence).toBe(true);
@@ -140,7 +140,7 @@ describe('Operating Point API Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.flow.value).toBeGreaterThan(0);
       expect(result.head.value).toBeGreaterThan(0);
       expect(result.meta.convergence).toBe(true);
@@ -173,7 +173,7 @@ describe('Operating Point API Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.flow.value).toBeGreaterThan(0);
       expect(result.head.value).toBeGreaterThan(0);
       expect(result.meta.convergence).toBe(true);
@@ -206,7 +206,7 @@ describe('Operating Point API Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.flow.value).toBeGreaterThan(0);
       expect(result.head.value).toBeGreaterThan(0);
       expect(result.meta.convergence).toBe(true);
@@ -290,7 +290,9 @@ describe('Operating Point API Routes', () => {
       expect(result.error).toBe('Bad Request');
       // Some validation errors may not have details
       if (result.details) {
-        expect(result.details).toContain('Pump pump1: Curve must have at least 2 points');
+        expect(result.details).toContain(
+          'Pump pump1: Curve must have at least 2 points'
+        );
       }
     });
 
@@ -383,7 +385,9 @@ describe('Operating Point API Routes', () => {
       expect(result.error).toBe('Bad Request');
       // Some validation errors may not have details
       if (result.details) {
-        expect(result.details).toContain('System coefficient k cannot be negative');
+        expect(result.details).toContain(
+          'System coefficient k cannot be negative'
+        );
       }
     });
 
@@ -411,16 +415,16 @@ describe('Operating Point API Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.arrangements).toBeDefined();
       expect(Array.isArray(result.arrangements)).toBe(true);
       expect(result.arrangements).toHaveLength(3);
-      
+
       const arrangementTypes = result.arrangements.map((a: any) => a.type);
       expect(arrangementTypes).toContain('single');
       expect(arrangementTypes).toContain('parallel');
       expect(arrangementTypes).toContain('series');
-      
+
       // Check that each arrangement has required properties
       result.arrangements.forEach((arrangement: any) => {
         expect(arrangement.type).toBeDefined();

@@ -40,22 +40,26 @@ const zNetworkRequest = z.object({
 });
 
 const zNetworkResponse = z.object({
-  nodes: z.array(z.object({
-    id: z.string(),
-    elevation: zQuantity,
-    demand: zQuantity.optional(),
-    head: z.number(),
-  })),
-  pipes: z.array(z.object({
-    id: z.string(),
-    from: z.string(),
-    to: z.string(),
-    length: zQuantity,
-    diameter: zQuantity,
-    roughness: zQuantity,
-    flow: z.number(),
-    headloss: z.number(),
-  })),
+  nodes: z.array(
+    z.object({
+      id: z.string(),
+      elevation: zQuantity,
+      demand: zQuantity.optional(),
+      head: z.number(),
+    })
+  ),
+  pipes: z.array(
+    z.object({
+      id: z.string(),
+      from: z.string(),
+      to: z.string(),
+      length: zQuantity,
+      diameter: zQuantity,
+      roughness: zQuantity,
+      flow: z.number(),
+      headloss: z.number(),
+    })
+  ),
   loops: z.array(zLoop),
   convergence: z.object({
     converged: z.boolean(),
@@ -123,12 +127,18 @@ export default async function networkRoutes(fastify: FastifyInstance) {
                   id: { type: 'string' },
                   elevation: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   demand: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                 },
@@ -145,21 +155,37 @@ export default async function networkRoutes(fastify: FastifyInstance) {
                   to: { type: 'string' },
                   length: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   diameter: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   roughness: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                 },
-                required: ['id', 'from', 'to', 'length', 'diameter', 'roughness'],
+                required: [
+                  'id',
+                  'from',
+                  'to',
+                  'length',
+                  'diameter',
+                  'roughness',
+                ],
               },
             },
             loops: {
@@ -178,12 +204,18 @@ export default async function networkRoutes(fastify: FastifyInstance) {
               properties: {
                 density: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 viscosity: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
               },
@@ -207,12 +239,18 @@ export default async function networkRoutes(fastify: FastifyInstance) {
                     id: { type: 'string' },
                     elevation: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                     demand: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                     head: { type: 'number' },
@@ -230,23 +268,41 @@ export default async function networkRoutes(fastify: FastifyInstance) {
                     to: { type: 'string' },
                     length: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                     diameter: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                     roughness: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                     flow: { type: 'number' },
                     headloss: { type: 'number' },
                   },
-                  required: ['id', 'from', 'to', 'length', 'diameter', 'roughness', 'flow', 'headloss'],
+                  required: [
+                    'id',
+                    'from',
+                    'to',
+                    'length',
+                    'diameter',
+                    'roughness',
+                    'flow',
+                    'headloss',
+                  ],
                 },
               },
               loops: {
@@ -268,7 +324,12 @@ export default async function networkRoutes(fastify: FastifyInstance) {
                   finalTolerance: { type: 'number' },
                   maxTolerance: { type: 'number' },
                 },
-                required: ['converged', 'iterations', 'finalTolerance', 'maxTolerance'],
+                required: [
+                  'converged',
+                  'iterations',
+                  'finalTolerance',
+                  'maxTolerance',
+                ],
               },
               metadata: {
                 type: 'object',
@@ -311,24 +372,24 @@ export default async function networkRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         const input = zNetworkRequest.parse(request.body);
-        
+
         // Validate network connectivity
         const nodeIds = new Set(input.nodes.map(n => n.id));
         const pipeNodeIds = new Set([
           ...input.pipes.map(p => p.from),
-          ...input.pipes.map(p => p.to)
+          ...input.pipes.map(p => p.to),
         ]);
-        
+
         // Check if all pipe nodes exist
         for (const nodeId of pipeNodeIds) {
           if (!nodeIds.has(nodeId)) {
             return reply.status(400).send({
               error: 'ValidationError',
-              message: `Pipe references non-existent node: ${nodeId}`
+              message: `Pipe references non-existent node: ${nodeId}`,
             });
           }
         }
-        
+
         // Check if all loop pipes exist
         const pipeIds = new Set(input.pipes.map(p => p.id));
         for (const loop of input.loops) {
@@ -336,14 +397,14 @@ export default async function networkRoutes(fastify: FastifyInstance) {
             if (!pipeIds.has(pipeId)) {
               return reply.status(400).send({
                 error: 'ValidationError',
-                message: `Loop references non-existent pipe: ${pipeId}`
+                message: `Loop references non-existent pipe: ${pipeId}`,
               });
             }
           }
         }
-        
+
         const result = solveNetwork(input);
-        
+
         return reply.send(result);
       } catch (error) {
         return handleError(error, reply);

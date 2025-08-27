@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createLogger, createRequestLogger, sanitizeRequestData, LogConfig } from './logger';
+import {
+  createLogger,
+  createRequestLogger,
+  sanitizeRequestData,
+  LogConfig,
+} from './logger';
 import { FastifyRequest } from 'fastify';
 
 describe('Logger', () => {
@@ -11,7 +16,7 @@ describe('Logger', () => {
       url: '/test',
       headers: {
         'user-agent': 'test-agent',
-        'authorization': 'Bearer secret-token',
+        authorization: 'Bearer secret-token',
         'content-type': 'application/json',
       },
       body: {

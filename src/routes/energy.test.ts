@@ -21,7 +21,7 @@ describe('Energy API', () => {
         name: 'water',
       },
       pumpEfficiency: 0.75,
-      motorEfficiency: 0.90,
+      motorEfficiency: 0.9,
       loadProfile: [
         {
           hours: 4000,
@@ -130,7 +130,7 @@ describe('Energy API', () => {
       const result = JSON.parse(response.payload);
 
       expect(result.loadProfile).toHaveLength(3);
-      
+
       // Lower speeds should result in lower power consumption
       const powers = result.loadProfile.map((p: any) => p.power.value);
       expect(powers[0]).toBeGreaterThan(powers[1]); // Full speed > half speed
@@ -176,7 +176,9 @@ describe('Energy API', () => {
       const result = JSON.parse(response.payload);
 
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some((w: string) => w.includes('efficiency'))).toBe(true);
+      expect(
+        result.warnings.some((w: string) => w.includes('efficiency'))
+      ).toBe(true);
     });
 
     it('should return validation error for negative fluid density', async () => {
@@ -389,7 +391,7 @@ describe('Energy API', () => {
       const invalidRequest = {
         fluid: 'invalid',
         pumpEfficiency: 0.75,
-        motorEfficiency: 0.90,
+        motorEfficiency: 0.9,
         loadProfile: [
           {
             hours: 1000,

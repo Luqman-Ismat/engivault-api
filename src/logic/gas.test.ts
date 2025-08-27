@@ -14,7 +14,7 @@ import {
   GasFlowInput,
   GasState,
   FannoLineInput,
-  RayleighLineInput
+  RayleighLineInput,
 } from './gas';
 
 describe('Gas Module', () => {
@@ -22,9 +22,9 @@ describe('Gas Module', () => {
     it('should calculate Mach number correctly', () => {
       const velocity = 100; // m/s
       const sonicVelocity = 340; // m/s (speed of sound in air)
-      
+
       const mach = machNumber(velocity, sonicVelocity);
-      
+
       expect(mach).toBeCloseTo(100 / 340, 3);
     });
 
@@ -34,7 +34,9 @@ describe('Gas Module', () => {
     });
 
     it('should throw error for zero sonic velocity', () => {
-      expect(() => machNumber(100, 0)).toThrow('Sonic velocity must be positive');
+      expect(() => machNumber(100, 0)).toThrow(
+        'Sonic velocity must be positive'
+      );
     });
   });
 
@@ -43,9 +45,13 @@ describe('Gas Module', () => {
       const compressibilityFactor = 1.0;
       const temperature = 298.15; // K (25°C)
       const molecularWeight = 28.97; // kg/kmol (air)
-      
-      const sonicVelocity = isothermalSonicVelocity(compressibilityFactor, temperature, molecularWeight);
-      
+
+      const sonicVelocity = isothermalSonicVelocity(
+        compressibilityFactor,
+        temperature,
+        molecularWeight
+      );
+
       // a = sqrt(Z * R * T / M)
       // a = sqrt(1.0 * 8314.46 * 298.15 / 28.97)
       // a = sqrt(85547.5) = 292.5 m/s
@@ -53,9 +59,15 @@ describe('Gas Module', () => {
     });
 
     it('should throw error for invalid inputs', () => {
-      expect(() => isothermalSonicVelocity(0, 298.15, 28.97)).toThrow('All parameters must be positive');
-      expect(() => isothermalSonicVelocity(1.0, 0, 28.97)).toThrow('All parameters must be positive');
-      expect(() => isothermalSonicVelocity(1.0, 298.15, 0)).toThrow('All parameters must be positive');
+      expect(() => isothermalSonicVelocity(0, 298.15, 28.97)).toThrow(
+        'All parameters must be positive'
+      );
+      expect(() => isothermalSonicVelocity(1.0, 0, 28.97)).toThrow(
+        'All parameters must be positive'
+      );
+      expect(() => isothermalSonicVelocity(1.0, 298.15, 0)).toThrow(
+        'All parameters must be positive'
+      );
     });
   });
 
@@ -65,9 +77,14 @@ describe('Gas Module', () => {
       const compressibilityFactor = 1.0;
       const temperature = 298.15; // K (25°C)
       const molecularWeight = 28.97; // kg/kmol (air)
-      
-      const sonicVelocity = adiabaticSonicVelocity(specificHeatRatio, compressibilityFactor, temperature, molecularWeight);
-      
+
+      const sonicVelocity = adiabaticSonicVelocity(
+        specificHeatRatio,
+        compressibilityFactor,
+        temperature,
+        molecularWeight
+      );
+
       // a = sqrt(γ * Z * R * T / M)
       // a = sqrt(1.4 * 1.0 * 8314.46 * 298.15 / 28.97)
       // a = sqrt(119766.5) = 346.1 m/s
@@ -75,10 +92,18 @@ describe('Gas Module', () => {
     });
 
     it('should throw error for invalid inputs', () => {
-      expect(() => adiabaticSonicVelocity(1.0, 1.0, 298.15, 28.97)).toThrow('All parameters must be positive and γ > 1');
-      expect(() => adiabaticSonicVelocity(1.4, 0, 298.15, 28.97)).toThrow('All parameters must be positive and γ > 1');
-      expect(() => adiabaticSonicVelocity(1.4, 1.0, 0, 28.97)).toThrow('All parameters must be positive and γ > 1');
-      expect(() => adiabaticSonicVelocity(1.4, 1.0, 298.15, 0)).toThrow('All parameters must be positive and γ > 1');
+      expect(() => adiabaticSonicVelocity(1.0, 1.0, 298.15, 28.97)).toThrow(
+        'All parameters must be positive and γ > 1'
+      );
+      expect(() => adiabaticSonicVelocity(1.4, 0, 298.15, 28.97)).toThrow(
+        'All parameters must be positive and γ > 1'
+      );
+      expect(() => adiabaticSonicVelocity(1.4, 1.0, 0, 28.97)).toThrow(
+        'All parameters must be positive and γ > 1'
+      );
+      expect(() => adiabaticSonicVelocity(1.4, 1.0, 298.15, 0)).toThrow(
+        'All parameters must be positive and γ > 1'
+      );
     });
   });
 
@@ -92,7 +117,7 @@ describe('Gas Module', () => {
       const compressibilityFactor = 1.0;
       const temperature = 298.15; // K
       const molecularWeight = 28.97; // kg/kmol (air)
-      
+
       const result = isothermalPressureDrop(
         inletPressure,
         massFlowRate,
@@ -103,7 +128,7 @@ describe('Gas Module', () => {
         temperature,
         molecularWeight
       );
-      
+
       expect(result.outletPressure).toBeGreaterThan(0);
       expect(result.outletPressure).toBeLessThan(inletPressure);
       expect(result.pressureDrop).toBeGreaterThan(0);
@@ -119,7 +144,7 @@ describe('Gas Module', () => {
       const compressibilityFactor = 1.0;
       const temperature = 298.15; // K
       const molecularWeight = 28.97; // kg/kmol
-      
+
       const result = isothermalPressureDrop(
         inletPressure,
         massFlowRate,
@@ -130,17 +155,19 @@ describe('Gas Module', () => {
         temperature,
         molecularWeight
       );
-      
+
       // Should be choked (outlet pressure = 0)
       expect(result.outletPressure).toBe(0);
       expect(result.pressureDrop).toBe(inletPressure);
     });
 
     it('should throw error for invalid inputs', () => {
-      expect(() => isothermalPressureDrop(0, 1.0, 100, 0.1, 0.02, 1.0, 298.15, 28.97))
-        .toThrow('All input parameters must be positive');
-      expect(() => isothermalPressureDrop(1e6, 1.0, 100, 0.1, 0, 1.0, 298.15, 28.97))
-        .toThrow('All physical parameters must be positive');
+      expect(() =>
+        isothermalPressureDrop(0, 1.0, 100, 0.1, 0.02, 1.0, 298.15, 28.97)
+      ).toThrow('All input parameters must be positive');
+      expect(() =>
+        isothermalPressureDrop(1e6, 1.0, 100, 0.1, 0, 1.0, 298.15, 28.97)
+      ).toThrow('All physical parameters must be positive');
     });
   });
 
@@ -155,7 +182,7 @@ describe('Gas Module', () => {
       const compressibilityFactor = 1.0;
       const temperature = 298.15; // K
       const molecularWeight = 28.97; // kg/kmol (air)
-      
+
       const result = adiabaticPressureDrop(
         inletPressure,
         massFlowRate,
@@ -167,7 +194,7 @@ describe('Gas Module', () => {
         temperature,
         molecularWeight
       );
-      
+
       expect(result.outletPressure).toBeGreaterThan(0);
       expect(result.outletPressure).toBeLessThan(inletPressure);
       expect(result.pressureDrop).toBeGreaterThan(0);
@@ -175,8 +202,9 @@ describe('Gas Module', () => {
     });
 
     it('should throw error for invalid inputs', () => {
-      expect(() => adiabaticPressureDrop(1e6, 1.0, 100, 0.1, 0.02, 1.0, 1.0, 298.15, 28.97))
-        .toThrow('All physical parameters must be positive and γ > 1');
+      expect(() =>
+        adiabaticPressureDrop(1e6, 1.0, 100, 0.1, 0.02, 1.0, 1.0, 298.15, 28.97)
+      ).toThrow('All physical parameters must be positive and γ > 1');
     });
   });
 
@@ -187,9 +215,15 @@ describe('Gas Module', () => {
       const stagnationPressure = 101325; // Pa
       const stagnationTemperature = 298.15; // K
       const molecularWeight = 28.97; // kg/kmol
-      
-      const state = gasStateAtMach(machNumber, specificHeatRatio, stagnationPressure, stagnationTemperature, molecularWeight);
-      
+
+      const state = gasStateAtMach(
+        machNumber,
+        specificHeatRatio,
+        stagnationPressure,
+        stagnationTemperature,
+        molecularWeight
+      );
+
       expect(state.machNumber).toBe(machNumber);
       expect(state.pressure).toBeLessThan(stagnationPressure);
       expect(state.temperature).toBeLessThan(stagnationTemperature);
@@ -201,7 +235,7 @@ describe('Gas Module', () => {
 
     it('should handle Mach number = 0 (stagnation conditions)', () => {
       const state = gasStateAtMach(0, 1.4, 101325, 298.15, 28.97);
-      
+
       expect(state.machNumber).toBe(0);
       expect(state.pressure).toBeCloseTo(101325, 0);
       expect(state.temperature).toBeCloseTo(298.15, 0);
@@ -209,9 +243,15 @@ describe('Gas Module', () => {
     });
 
     it('should throw error for invalid inputs', () => {
-      expect(() => gasStateAtMach(-1, 1.4, 101325, 298.15, 28.97)).toThrow('Invalid input parameters');
-      expect(() => gasStateAtMach(0.5, 1.0, 101325, 298.15, 28.97)).toThrow('Invalid input parameters');
-      expect(() => gasStateAtMach(0.5, 1.4, 0, 298.15, 28.97)).toThrow('Invalid input parameters');
+      expect(() => gasStateAtMach(-1, 1.4, 101325, 298.15, 28.97)).toThrow(
+        'Invalid input parameters'
+      );
+      expect(() => gasStateAtMach(0.5, 1.0, 101325, 298.15, 28.97)).toThrow(
+        'Invalid input parameters'
+      );
+      expect(() => gasStateAtMach(0.5, 1.4, 0, 298.15, 28.97)).toThrow(
+        'Invalid input parameters'
+      );
     });
   });
 
@@ -233,11 +273,11 @@ describe('Gas Module', () => {
         diameter: { value: 0.1, unit: 'm' },
         frictionFactor: 0.02,
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
+
       const result = fannoLine(input);
-      
+
       expect(result.states.length).toBeGreaterThan(1);
       expect(result.maxLength).toBeGreaterThan(0);
       // Flow may be choked depending on the parameters
@@ -253,22 +293,22 @@ describe('Gas Module', () => {
         diameter: { value: 0.1, unit: 'm' },
         frictionFactor: 0.02,
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
+
       const result = fannoLine(input);
-      
+
       // Check monotonic trends
       const pressures = result.states.map(s => s.pressure);
       const temperatures = result.states.map(s => s.temperature);
       const velocities = result.states.map(s => s.velocity);
       const machNumbers = result.states.map(s => s.machNumber);
-      
+
       // Mach number should increase (this is the most reliable trend)
       for (let i = 1; i < machNumbers.length; i++) {
         expect(machNumbers[i]).toBeGreaterThanOrEqual(machNumbers[i - 1]);
       }
-      
+
       // Velocity should increase
       for (let i = 1; i < velocities.length; i++) {
         expect(velocities[i]).toBeGreaterThanOrEqual(velocities[i - 1]);
@@ -282,20 +322,23 @@ describe('Gas Module', () => {
         diameter: { value: 0.01, unit: 'm' }, // Very small diameter
         frictionFactor: 0.02,
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
+
       const result = fannoLine(input);
-      
+
       // Should be choked
       expect(result.isChoked).toBe(true);
-      
+
       // Should have warning about choked flow
-      const hasChokedWarning = result.warnings.some(w => 
-        typeof w === 'object' && 'message' in w && w.message.includes('choked')
+      const hasChokedWarning = result.warnings.some(
+        w =>
+          typeof w === 'object' &&
+          'message' in w &&
+          w.message.includes('choked')
       );
       expect(hasChokedWarning).toBe(true);
-      
+
       // Final Mach number should be higher than initial
       const finalMach = result.states[result.states.length - 1].machNumber;
       expect(finalMach).toBeGreaterThan(baseState.machNumber);
@@ -309,10 +352,12 @@ describe('Gas Module', () => {
         diameter: { value: 0.1, unit: 'm' },
         frictionFactor: 0.02,
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
-      expect(() => fannoLine(input)).toThrow('Initial Mach number must be subsonic for Fanno line analysis');
+
+      expect(() => fannoLine(input)).toThrow(
+        'Initial Mach number must be subsonic for Fanno line analysis'
+      );
     });
 
     it('should throw error for invalid inputs', () => {
@@ -322,10 +367,12 @@ describe('Gas Module', () => {
         diameter: { value: 0.1, unit: 'm' },
         frictionFactor: 0.02,
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
-      expect(() => fannoLine(input)).toThrow('All input parameters must be positive and γ > 1');
+
+      expect(() => fannoLine(input)).toThrow(
+        'All input parameters must be positive and γ > 1'
+      );
     });
   });
 
@@ -346,11 +393,11 @@ describe('Gas Module', () => {
         heatTransferRate: { value: 1000, unit: 'W/m²' }, // Heat addition
         diameter: { value: 0.1, unit: 'm' },
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
+
       const result = rayleighLine(input);
-      
+
       expect(result.states.length).toBeGreaterThan(1);
       expect(result.maxHeatTransfer).toBeGreaterThan(0);
       expect(result.isChoked).toBe(false);
@@ -364,11 +411,11 @@ describe('Gas Module', () => {
         heatTransferRate: { value: -1000, unit: 'W/m²' }, // Heat removal
         diameter: { value: 0.1, unit: 'm' },
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
+
       const result = rayleighLine(input);
-      
+
       expect(result.states.length).toBeGreaterThan(1);
       expect(result.maxHeatTransfer).toBeGreaterThan(0);
       expect(result.isChoked).toBe(false);
@@ -380,20 +427,20 @@ describe('Gas Module', () => {
         heatTransferRate: { value: 500, unit: 'W/m²' }, // Heat addition
         diameter: { value: 0.1, unit: 'm' },
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
+
       const result = rayleighLine(input);
-      
+
       // Check trends for heat addition
       const temperatures = result.states.map(s => s.temperature);
       const machNumbers = result.states.map(s => s.machNumber);
-      
+
       // Temperature should increase with heat addition
       for (let i = 1; i < temperatures.length; i++) {
         expect(temperatures[i]).toBeGreaterThanOrEqual(temperatures[i - 1]);
       }
-      
+
       // Mach number should decrease with heat addition (for subsonic flow)
       for (let i = 1; i < machNumbers.length; i++) {
         expect(machNumbers[i]).toBeLessThanOrEqual(machNumbers[i - 1]);
@@ -406,20 +453,20 @@ describe('Gas Module', () => {
         heatTransferRate: { value: -500, unit: 'W/m²' }, // Heat removal
         diameter: { value: 0.1, unit: 'm' },
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
+
       const result = rayleighLine(input);
-      
+
       // Check trends for heat removal
       const temperatures = result.states.map(s => s.temperature);
       const machNumbers = result.states.map(s => s.machNumber);
-      
+
       // Temperature should decrease with heat removal
       for (let i = 1; i < temperatures.length; i++) {
         expect(temperatures[i]).toBeLessThanOrEqual(temperatures[i - 1]);
       }
-      
+
       // Mach number should increase with heat removal (for subsonic flow)
       for (let i = 1; i < machNumbers.length; i++) {
         expect(machNumbers[i]).toBeGreaterThanOrEqual(machNumbers[i - 1]);
@@ -432,16 +479,16 @@ describe('Gas Module', () => {
         heatTransferRate: { value: 10000, unit: 'W/m²' }, // Very high heat addition
         diameter: { value: 0.1, unit: 'm' },
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
+
       const result = rayleighLine(input);
-      
+
       // Should have significant changes in properties
       const initialTemp = result.states[0].temperature;
       const finalTemp = result.states[result.states.length - 1].temperature;
       expect(finalTemp).toBeGreaterThan(initialTemp);
-      
+
       const initialMach = result.states[0].machNumber;
       const finalMach = result.states[result.states.length - 1].machNumber;
       expect(finalMach).toBeLessThan(initialMach); // Heat addition decreases Mach for subsonic
@@ -454,11 +501,11 @@ describe('Gas Module', () => {
         heatTransferRate: { value: 1000, unit: 'W/m²' },
         diameter: { value: 0.1, unit: 'm' },
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
+
       const result = rayleighLine(input);
-      
+
       // Should work for supersonic conditions
       expect(result.states.length).toBeGreaterThan(1);
       expect(result.metadata.calculations.type).toBe('rayleigh');
@@ -470,10 +517,12 @@ describe('Gas Module', () => {
         heatTransferRate: { value: 1000, unit: 'W/m²' },
         diameter: { value: 0, unit: 'm' }, // Invalid diameter
         specificHeatRatio: 1.4,
-        molecularWeight: { value: 28.97, unit: 'kg/kmol' }
+        molecularWeight: { value: 28.97, unit: 'kg/kmol' },
       };
-      
-      expect(() => rayleighLine(input)).toThrow('All input parameters must be positive and γ > 1');
+
+      expect(() => rayleighLine(input)).toThrow(
+        'All input parameters must be positive and γ > 1'
+      );
     });
   });
 
@@ -484,21 +533,21 @@ describe('Gas Module', () => {
           density: { value: 1.225, unit: 'kg/m³' }, // Air at STP
           viscosity: { value: 1.81e-5, unit: 'Pa·s' }, // Air at STP
           molecularWeight: { value: 28.97, unit: 'kg/kmol' }, // Air
-          compressibilityFactor: 1.0
+          compressibilityFactor: 1.0,
         },
         pipe: {
           diameter: { value: 0.1, unit: 'm' },
           length: { value: 100, unit: 'm' },
-          roughness: { value: 0.000045, unit: 'm' } // Steel
+          roughness: { value: 0.000045, unit: 'm' }, // Steel
         },
         inletPressure: { value: 101325, unit: 'Pa' }, // 1 atm
         massFlowRate: { value: 0.1, unit: 'kg/s' },
         temperature: { value: 273.15, unit: 'K' }, // 0°C
-        model: 'isothermal'
+        model: 'isothermal',
       };
-      
+
       const result = calculateGasFlow(input);
-      
+
       expect(result.inletPressure.value).toBe(101325);
       expect(result.outletPressure.value).toBeGreaterThan(0);
       expect(result.outletPressure.value).toBeLessThan(101325);
@@ -522,21 +571,21 @@ describe('Gas Module', () => {
           viscosity: { value: 1.81e-5, unit: 'Pa·s' }, // Air at STP
           molecularWeight: { value: 28.97, unit: 'kg/kmol' }, // Air
           specificHeatRatio: 1.4,
-          compressibilityFactor: 1.0
+          compressibilityFactor: 1.0,
         },
         pipe: {
           diameter: { value: 0.1, unit: 'm' },
           length: { value: 100, unit: 'm' },
-          roughness: { value: 0.000045, unit: 'm' } // Steel
+          roughness: { value: 0.000045, unit: 'm' }, // Steel
         },
         inletPressure: { value: 101325, unit: 'Pa' }, // 1 atm
         massFlowRate: { value: 0.1, unit: 'kg/s' },
         temperature: { value: 273.15, unit: 'K' }, // 0°C
-        model: 'adiabatic'
+        model: 'adiabatic',
       };
-      
+
       const result = calculateGasFlow(input);
-      
+
       expect(result.metadata.calculations.model).toBe('adiabatic');
       expect(result.metadata.calculations.specificHeatRatio).toBe(1.4);
       expect(result.metadata.calculations.sonicVelocity).toBeCloseTo(331.29, 1);
@@ -550,24 +599,27 @@ describe('Gas Module', () => {
           density: { value: 1.225, unit: 'kg/m³' },
           viscosity: { value: 1.81e-5, unit: 'Pa·s' },
           molecularWeight: { value: 28.97, unit: 'kg/kmol' },
-          compressibilityFactor: 1.0
+          compressibilityFactor: 1.0,
         },
         pipe: {
           diameter: { value: 0.01, unit: 'm' }, // Small diameter for high velocity
           length: { value: 100, unit: 'm' },
-          roughness: { value: 0.000045, unit: 'm' }
+          roughness: { value: 0.000045, unit: 'm' },
         },
         inletPressure: { value: 101325, unit: 'Pa' },
         massFlowRate: { value: 1.0, unit: 'kg/s' }, // High flow rate
         temperature: { value: 273.15, unit: 'K' },
-        model: 'isothermal'
+        model: 'isothermal',
       };
-      
+
       const result = calculateGasFlow(input);
-      
+
       // Should have warnings for high Mach number
-      const hasHighMachWarning = result.warnings.some(w => 
-        typeof w === 'object' && 'message' in w && w.message.includes('High Mach number')
+      const hasHighMachWarning = result.warnings.some(
+        w =>
+          typeof w === 'object' &&
+          'message' in w &&
+          w.message.includes('High Mach number')
       );
       expect(hasHighMachWarning).toBe(true);
     });
@@ -581,21 +633,21 @@ describe('Gas Module', () => {
           viscosity: { value: 1.1e-5, unit: 'Pa·s' }, // Natural gas
           molecularWeight: { value: 16.04, unit: 'kg/kmol' }, // Methane
           specificHeatRatio: 1.32,
-          compressibilityFactor: 0.95 // Non-ideal gas
+          compressibilityFactor: 0.95, // Non-ideal gas
         },
         pipe: {
           diameter: { value: 0.2, unit: 'm' },
           length: { value: 1000, unit: 'm' },
-          roughness: { value: 0.000045, unit: 'm' } // Steel
+          roughness: { value: 0.000045, unit: 'm' }, // Steel
         },
         inletPressure: { value: 5e6, unit: 'Pa' }, // 50 bar
         massFlowRate: { value: 10.0, unit: 'kg/s' },
         temperature: { value: 293.15, unit: 'K' }, // 20°C
-        model: 'adiabatic'
+        model: 'adiabatic',
       };
-      
+
       const result = calculateGasFlow(input);
-      
+
       expect(result.metadata.calculations.model).toBe('adiabatic');
       expect(result.metadata.calculations.compressibilityFactor).toBe(0.95);
       expect(result.metadata.calculations.specificHeatRatio).toBe(1.32);
@@ -610,29 +662,34 @@ describe('Gas Module', () => {
           density: { value: 0.668, unit: 'kg/m³' },
           viscosity: { value: 1.1e-5, unit: 'Pa·s' },
           molecularWeight: { value: 16.04, unit: 'kg/kmol' }, // Methane
-          compressibilityFactor: 0.95
+          compressibilityFactor: 0.95,
           // No specificHeatRatio provided - should be estimated
         },
         pipe: {
           diameter: { value: 0.2, unit: 'm' },
           length: { value: 1000, unit: 'm' },
-          roughness: { value: 0.000045, unit: 'm' }
+          roughness: { value: 0.000045, unit: 'm' },
         },
         inletPressure: { value: 5e6, unit: 'Pa' },
         massFlowRate: { value: 10.0, unit: 'kg/s' },
         temperature: { value: 293.15, unit: 'K' },
-        model: 'adiabatic'
+        model: 'adiabatic',
       };
-      
+
       const result = calculateGasFlow(input);
-      
+
       // Should have warning about estimated specific heat ratio
-      const hasEstimationWarning = result.warnings.some(w => 
-        typeof w === 'object' && 'message' in w && w.message.includes('estimated')
+      const hasEstimationWarning = result.warnings.some(
+        w =>
+          typeof w === 'object' &&
+          'message' in w &&
+          w.message.includes('estimated')
       );
       expect(hasEstimationWarning).toBe(true);
       expect(result.metadata.calculations.specificHeatRatio).toBeDefined();
-      expect(result.metadata.calculations.specificHeatRatio!).toBeGreaterThan(1);
+      expect(result.metadata.calculations.specificHeatRatio!).toBeGreaterThan(
+        1
+      );
     });
 
     it('should handle choked natural gas flow', () => {
@@ -642,29 +699,32 @@ describe('Gas Module', () => {
           viscosity: { value: 1.1e-5, unit: 'Pa·s' },
           molecularWeight: { value: 16.04, unit: 'kg/kmol' },
           specificHeatRatio: 1.32,
-          compressibilityFactor: 0.95
+          compressibilityFactor: 0.95,
         },
         pipe: {
           diameter: { value: 0.01, unit: 'm' }, // Very small diameter
           length: { value: 1000, unit: 'm' },
-          roughness: { value: 0.000045, unit: 'm' }
+          roughness: { value: 0.000045, unit: 'm' },
         },
         inletPressure: { value: 5e6, unit: 'Pa' },
         massFlowRate: { value: 100.0, unit: 'kg/s' }, // Very high flow rate
         temperature: { value: 293.15, unit: 'K' },
-        model: 'adiabatic'
+        model: 'adiabatic',
       };
-      
+
       const result = calculateGasFlow(input);
-      
+
       // Should be choked
       expect(result.isChoked).toBe(true);
       expect(result.outletPressure.value).toBe(0);
       expect(result.pressureDrop.value).toBe(input.inletPressure.value);
-      
+
       // Should have warning about choked flow
-      const hasChokedWarning = result.warnings.some(w => 
-        typeof w === 'object' && 'message' in w && w.message.includes('choked')
+      const hasChokedWarning = result.warnings.some(
+        w =>
+          typeof w === 'object' &&
+          'message' in w &&
+          w.message.includes('choked')
       );
       expect(hasChokedWarning).toBe(true);
     });
@@ -689,9 +749,13 @@ describe('Gas Module', () => {
       const pressure = 1e5; // 1 bar
       const temperature = 298.15; // 25°C
       const molecularWeight = 16.04; // Methane
-      
-      const z = estimateCompressibilityFactor(pressure, temperature, molecularWeight);
-      
+
+      const z = estimateCompressibilityFactor(
+        pressure,
+        temperature,
+        molecularWeight
+      );
+
       expect(z).toBeCloseTo(1.0, 1); // Near ideal gas conditions
     });
 
@@ -699,17 +763,27 @@ describe('Gas Module', () => {
       const pressure = 1e7; // 100 bar
       const temperature = 298.15; // 25°C
       const molecularWeight = 16.04; // Methane
-      
-      const z = estimateCompressibilityFactor(pressure, temperature, molecularWeight);
-      
+
+      const z = estimateCompressibilityFactor(
+        pressure,
+        temperature,
+        molecularWeight
+      );
+
       expect(z).toBeLessThan(1.0); // Non-ideal gas conditions
       expect(z).toBeGreaterThan(0.8);
     });
 
     it('should throw error for invalid inputs', () => {
-      expect(() => estimateCompressibilityFactor(0, 298.15, 16.04)).toThrow('All parameters must be positive');
-      expect(() => estimateCompressibilityFactor(1e5, 0, 16.04)).toThrow('All parameters must be positive');
-      expect(() => estimateCompressibilityFactor(1e5, 298.15, 0)).toThrow('All parameters must be positive');
+      expect(() => estimateCompressibilityFactor(0, 298.15, 16.04)).toThrow(
+        'All parameters must be positive'
+      );
+      expect(() => estimateCompressibilityFactor(1e5, 0, 16.04)).toThrow(
+        'All parameters must be positive'
+      );
+      expect(() => estimateCompressibilityFactor(1e5, 298.15, 0)).toThrow(
+        'All parameters must be positive'
+      );
     });
   });
 
@@ -721,34 +795,36 @@ describe('Gas Module', () => {
           viscosity: { value: 1.81e-5, unit: 'Pa·s' },
           molecularWeight: { value: 28.97, unit: 'kg/kmol' },
           specificHeatRatio: 1.4,
-          compressibilityFactor: 1.0
+          compressibilityFactor: 1.0,
         },
         pipe: {
           diameter: { value: 0.1, unit: 'm' },
           length: { value: 100, unit: 'm' },
-          roughness: { value: 0.000045, unit: 'm' }
+          roughness: { value: 0.000045, unit: 'm' },
         },
         inletPressure: { value: 1e6, unit: 'Pa' },
         massFlowRate: { value: 1.0, unit: 'kg/s' },
         temperature: { value: 298.15, unit: 'K' },
-        model: 'isothermal'
+        model: 'isothermal',
       };
-      
+
       const isothermalResult = calculateGasFlow(baseInput);
-      
+
       const adiabaticInput = { ...baseInput, model: 'adiabatic' as const };
       const adiabaticResult = calculateGasFlow(adiabaticInput);
-      
+
       // Adiabatic should have higher sonic velocity
-      expect(adiabaticResult.metadata.calculations.sonicVelocity).toBeGreaterThan(
-        isothermalResult.metadata.calculations.sonicVelocity
-      );
-      
+      expect(
+        adiabaticResult.metadata.calculations.sonicVelocity
+      ).toBeGreaterThan(isothermalResult.metadata.calculations.sonicVelocity);
+
       // Mach numbers should be different
       expect(adiabaticResult.machNumber).not.toBe(isothermalResult.machNumber);
-      
+
       // Pressure drops should be different
-      expect(adiabaticResult.pressureDrop.value).not.toBe(isothermalResult.pressureDrop.value);
+      expect(adiabaticResult.pressureDrop.value).not.toBe(
+        isothermalResult.pressureDrop.value
+      );
     });
   });
 
@@ -759,35 +835,38 @@ describe('Gas Module', () => {
           density: { value: 1.225, unit: 'kg/m³' },
           viscosity: { value: 1.81e-5, unit: 'Pa·s' },
           molecularWeight: { value: 28.97, unit: 'kg/kmol' },
-          compressibilityFactor: 1.0
+          compressibilityFactor: 1.0,
         },
         pipe: {
           diameter: { value: 0.1, unit: 'm' },
           length: { value: 100, unit: 'm' },
-          roughness: { value: 0.000045, unit: 'm' }
+          roughness: { value: 0.000045, unit: 'm' },
         },
         inletPressure: { value: 1e6, unit: 'Pa' },
         massFlowRate: { value: 1.0, unit: 'kg/s' },
         temperature: { value: 298.15, unit: 'K' },
-        model: 'isothermal'
+        model: 'isothermal',
       };
-      
+
       const idealResult = calculateGasFlow(baseInput);
-      
+
       const nonIdealInput = {
         ...baseInput,
-        gas: { ...baseInput.gas, compressibilityFactor: 0.7 }
+        gas: { ...baseInput.gas, compressibilityFactor: 0.7 },
       };
       const nonIdealResult = calculateGasFlow(nonIdealInput);
-      
+
       // Non-ideal gas should have different sonic velocity
       expect(nonIdealResult.metadata.calculations.sonicVelocity).toBeLessThan(
         idealResult.metadata.calculations.sonicVelocity
       );
-      
+
       // Should have warning about unusual compressibility factor
-      const hasCompressibilityWarning = nonIdealResult.warnings.some(w => 
-        typeof w === 'object' && 'message' in w && w.message.includes('compressibility')
+      const hasCompressibilityWarning = nonIdealResult.warnings.some(
+        w =>
+          typeof w === 'object' &&
+          'message' in w &&
+          w.message.includes('compressibility')
       );
       expect(hasCompressibilityWarning).toBe(true);
     });

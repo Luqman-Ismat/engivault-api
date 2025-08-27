@@ -39,7 +39,7 @@ describe('NPSH Logic', () => {
       // lossesHead = 5000 / (998 * 9.81) = 0.51 m
       // npsha = 10.35 + 5 - 0.24 - 0.51 = 14.60 m
 
-      expect(npsha).toBeCloseTo(14.60, 2);
+      expect(npsha).toBeCloseTo(14.6, 2);
     });
 
     it('should handle zero losses', () => {
@@ -116,7 +116,9 @@ describe('NPSH Logic', () => {
     });
 
     it('should throw error for empty curve', () => {
-      expect(() => npshRequired(0.1, [])).toThrow('NPSH curve must have at least one point');
+      expect(() => npshRequired(0.1, [])).toThrow(
+        'NPSH curve must have at least one point'
+      );
     });
   });
 
@@ -185,12 +187,16 @@ describe('NPSH Logic', () => {
 
     it('should throw error for temperature below 0°C', () => {
       const T_K = 273.14; // -0.01°C
-      expect(() => getWaterVaporPressure(T_K)).toThrow('Temperature must be between 0°C and 100°C');
+      expect(() => getWaterVaporPressure(T_K)).toThrow(
+        'Temperature must be between 0°C and 100°C'
+      );
     });
 
     it('should throw error for temperature above 100°C', () => {
       const T_K = 373.16; // 100.01°C
-      expect(() => getWaterVaporPressure(T_K)).toThrow('Temperature must be between 0°C and 100°C');
+      expect(() => getWaterVaporPressure(T_K)).toThrow(
+        'Temperature must be between 0°C and 100°C'
+      );
     });
   });
 
@@ -223,7 +229,9 @@ describe('NPSH Logic', () => {
       const result = calculateCavitationRisk(lowMarginInput);
 
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => typeof w === 'string' && w.includes('margin'))).toBe(true);
+      expect(
+        result.warnings.some(w => typeof w === 'string' && w.includes('margin'))
+      ).toBe(true);
     });
 
     it('should handle altitude input', () => {
@@ -258,7 +266,9 @@ describe('NPSH Logic', () => {
         vaporPressure: undefined,
       };
 
-      expect(() => calculateCavitationRisk(invalidInput)).toThrow('Either temperature or fluidName must be provided');
+      expect(() => calculateCavitationRisk(invalidInput)).toThrow(
+        'Either temperature or fluidName must be provided'
+      );
     });
 
     it('should handle custom vapor pressure', () => {
@@ -337,7 +347,9 @@ describe('NPSH Logic', () => {
       const result = validateNPSHInputs(invalidInput);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('NPSH curve must have at least one point');
+      expect(result.errors).toContain(
+        'NPSH curve must have at least one point'
+      );
     });
 
     it('should reject negative curve points', () => {
@@ -354,7 +366,9 @@ describe('NPSH Logic', () => {
       const result = validateNPSHInputs(invalidInput);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('NPSH curve point 1: Flow rate cannot be negative');
+      expect(result.errors).toContain(
+        'NPSH curve point 1: Flow rate cannot be negative'
+      );
     });
 
     it('should reject negative altitude', () => {

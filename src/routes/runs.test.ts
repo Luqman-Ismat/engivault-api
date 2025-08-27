@@ -31,19 +31,19 @@ describe('Runs Routes', () => {
           processingTime: 100,
           inputValidation: true,
           calculationMethod: 'test-method',
-          units: { length: 'm' }
+          units: { length: 'm' },
         },
-        result: { success: true }
+        result: { success: true },
       });
 
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/runs/test-id'
+        url: '/api/v1/runs/test-id',
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.id).toBe('test-id');
       expect(result.endpoint).toBe('/api/v1/test');
       expect(result.method).toBe('POST');
@@ -58,7 +58,7 @@ describe('Runs Routes', () => {
     it('should return 404 for non-existent transcript', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/runs/non-existent-id'
+        url: '/api/v1/runs/non-existent-id',
       });
 
       expect(response.statusCode).toBe(404);
@@ -82,9 +82,9 @@ describe('Runs Routes', () => {
           processingTime: 50,
           inputValidation: true,
           calculationMethod: 'test1',
-          units: {}
+          units: {},
         },
-        result: {}
+        result: {},
       });
 
       transcriptService.createTranscript('id2', {
@@ -98,31 +98,31 @@ describe('Runs Routes', () => {
           processingTime: 100,
           inputValidation: true,
           calculationMethod: 'test2',
-          units: {}
+          units: {},
         },
-        result: {}
+        result: {},
       });
 
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/runs'
+        url: '/api/v1/runs',
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.count).toBe(2);
       expect(result.transcripts).toHaveLength(2);
-      
+
       const transcript1 = result.transcripts.find((t: any) => t.id === 'id1');
       const transcript2 = result.transcripts.find((t: any) => t.id === 'id2');
-      
+
       expect(transcript1).toBeDefined();
       expect(transcript1.endpoint).toBe('/api/v1/test1');
       expect(transcript1.method).toBe('GET');
       expect(transcript1.calculationMethod).toBe('test1');
       expect(transcript1.processingTime).toBe(50);
-      
+
       expect(transcript2).toBeDefined();
       expect(transcript2.endpoint).toBe('/api/v1/test2');
       expect(transcript2.method).toBe('POST');
@@ -133,12 +133,12 @@ describe('Runs Routes', () => {
     it('should return empty list when no transcripts exist', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/runs'
+        url: '/api/v1/runs',
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.count).toBe(0);
       expect(result.transcripts).toHaveLength(0);
     });
@@ -158,23 +158,23 @@ describe('Runs Routes', () => {
           processingTime: 100,
           inputValidation: true,
           calculationMethod: 'test',
-          units: {}
+          units: {},
         },
-        result: {}
+        result: {},
       });
 
       expect(transcriptService.getCount()).toBe(1);
 
       const response = await app.inject({
         method: 'DELETE',
-        url: '/api/v1/runs/delete-test'
+        url: '/api/v1/runs/delete-test',
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
       expect(result.message).toBe('Transcript deleted successfully');
       expect(result.id).toBe('delete-test');
-      
+
       expect(transcriptService.getCount()).toBe(0);
       expect(transcriptService.getTranscript('delete-test')).toBeUndefined();
     });
@@ -182,7 +182,7 @@ describe('Runs Routes', () => {
     it('should return 404 for non-existent transcript', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: '/api/v1/runs/non-existent-id'
+        url: '/api/v1/runs/non-existent-id',
       });
 
       expect(response.statusCode).toBe(404);
@@ -206,9 +206,9 @@ describe('Runs Routes', () => {
           processingTime: 50,
           inputValidation: true,
           calculationMethod: 'test1',
-          units: {}
+          units: {},
         },
-        result: {}
+        result: {},
       });
 
       transcriptService.createTranscript('id2', {
@@ -222,23 +222,23 @@ describe('Runs Routes', () => {
           processingTime: 100,
           inputValidation: true,
           calculationMethod: 'test2',
-          units: {}
+          units: {},
         },
-        result: {}
+        result: {},
       });
 
       expect(transcriptService.getCount()).toBe(2);
 
       const response = await app.inject({
         method: 'DELETE',
-        url: '/api/v1/runs'
+        url: '/api/v1/runs',
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
       expect(result.message).toBe('All transcripts cleared successfully');
       expect(result.deletedCount).toBe(2);
-      
+
       expect(transcriptService.getCount()).toBe(0);
     });
 
@@ -247,7 +247,7 @@ describe('Runs Routes', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: '/api/v1/runs'
+        url: '/api/v1/runs',
       });
 
       expect(response.statusCode).toBe(200);

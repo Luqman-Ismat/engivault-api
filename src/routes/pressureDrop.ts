@@ -35,55 +35,78 @@ export default async function pressureDropRoutes(fastify: FastifyInstance) {
           {
             name: 'Water Flow in Steel Pipe',
             summary: 'Water flow in 100mm steel pipe',
-            description: 'Calculate pressure drop for water flowing in a 100mm diameter steel pipe',
+            description:
+              'Calculate pressure drop for water flowing in a 100mm diameter steel pipe',
             value: {
               flowRate: 0.05, // m³/s
               pipeDiameter: 0.1, // m
               pipeLength: 100, // m
               roughness: 0.000045, // m (steel pipe)
               fluidDensity: 998, // kg/m³ (water at 20°C)
-              fluidViscosity: 0.001002 // Pa·s (water at 20°C)
-            }
+              fluidViscosity: 0.001002, // Pa·s (water at 20°C)
+            },
           },
           {
             name: 'Oil Flow in Cast Iron Pipe',
             summary: 'Oil flow in 200mm cast iron pipe',
-            description: 'Calculate pressure drop for oil flowing in a 200mm diameter cast iron pipe',
+            description:
+              'Calculate pressure drop for oil flowing in a 200mm diameter cast iron pipe',
             value: {
               flowRate: 0.1, // m³/s
               pipeDiameter: 0.2, // m
               pipeLength: 500, // m
               roughness: 0.00026, // m (cast iron)
               fluidDensity: 850, // kg/m³ (typical oil)
-              fluidViscosity: 0.01 // Pa·s (typical oil)
-            }
-          }
-        ],
-                  response: {
-            200: {
-              type: 'object',
-              properties: {
-                pressureDrop: { type: 'number', description: 'Pressure drop in Pa' },
-                reynoldsNumber: { type: 'number', description: 'Reynolds number (dimensionless)' },
-                frictionFactor: { type: 'number', description: 'Darcy friction factor (dimensionless)' },
-                flowVelocity: { type: 'number', description: 'Flow velocity in m/s' },
-                relativeRoughness: { type: 'number', description: 'Relative roughness ε/D (dimensionless)' }
-              },
-              required: ['pressureDrop', 'reynoldsNumber', 'frictionFactor', 'flowVelocity', 'relativeRoughness'],
-              examples: [
-                {
-                  name: 'Water Flow Response',
-                  summary: 'Typical response for water flow',
-                  value: {
-                    pressureDrop: 24567.8, // Pa
-                    reynoldsNumber: 63420.5,
-                    frictionFactor: 0.0198,
-                    flowVelocity: 6.37, // m/s
-                    relativeRoughness: 0.00045
-                  }
-                }
-              ]
+              fluidViscosity: 0.01, // Pa·s (typical oil)
             },
+          },
+        ],
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              pressureDrop: {
+                type: 'number',
+                description: 'Pressure drop in Pa',
+              },
+              reynoldsNumber: {
+                type: 'number',
+                description: 'Reynolds number (dimensionless)',
+              },
+              frictionFactor: {
+                type: 'number',
+                description: 'Darcy friction factor (dimensionless)',
+              },
+              flowVelocity: {
+                type: 'number',
+                description: 'Flow velocity in m/s',
+              },
+              relativeRoughness: {
+                type: 'number',
+                description: 'Relative roughness ε/D (dimensionless)',
+              },
+            },
+            required: [
+              'pressureDrop',
+              'reynoldsNumber',
+              'frictionFactor',
+              'flowVelocity',
+              'relativeRoughness',
+            ],
+            examples: [
+              {
+                name: 'Water Flow Response',
+                summary: 'Typical response for water flow',
+                value: {
+                  pressureDrop: 24567.8, // Pa
+                  reynoldsNumber: 63420.5,
+                  frictionFactor: 0.0198,
+                  flowVelocity: 6.37, // m/s
+                  relativeRoughness: 0.00045,
+                },
+              },
+            ],
+          },
           400: {
             type: 'object',
             properties: {
@@ -106,7 +129,7 @@ export default async function pressureDropRoutes(fastify: FastifyInstance) {
       try {
         const inputs: PressureDropInput = request.body;
         const results = calculatePressureDrop(inputs);
-        
+
         // Add engineering hints based on calculation results
         const hints = ErrorHelper.addEngineeringHints('pressure_drop', {
           reynolds: results.reynoldsNumber,
@@ -114,7 +137,7 @@ export default async function pressureDropRoutes(fastify: FastifyInstance) {
           diameter: inputs.pipeDiameter,
           velocity: results.flowVelocity,
         });
-        
+
         // If there are hints, add them to the response
         if (hints.length > 0) {
           return reply.send({
@@ -122,7 +145,7 @@ export default async function pressureDropRoutes(fastify: FastifyInstance) {
             warnings: hints,
           });
         }
-        
+
         return reply.send(results);
       } catch (error) {
         // Add engineering hints to error response
@@ -132,7 +155,7 @@ export default async function pressureDropRoutes(fastify: FastifyInstance) {
           diameter: (error as any)?.pipeDiameter,
           velocity: (error as any)?.flowVelocity,
         });
-        
+
         handleError(error, reply, hints);
       }
     }

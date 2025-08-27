@@ -1,7 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { zQuantity } from '@/schemas/common';
-import { calculateCavitationRisk, validateNPSHInputs, resolveAtmosphericPressure } from '@/logic/npsh';
+import {
+  calculateCavitationRisk,
+  validateNPSHInputs,
+  resolveAtmosphericPressure,
+} from '@/logic/npsh';
 import { handleError } from '@/utils/errorHandler';
 
 const zNPSHCurvePoint = z.object({
@@ -54,27 +58,42 @@ export default async function cavitationRiskRoutes(fastify: FastifyInstance) {
           properties: {
             atmosphericPressure: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             vaporPressure: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             staticHead: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             losses: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             flowRate: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             npshCurve: {
@@ -99,7 +118,10 @@ export default async function cavitationRiskRoutes(fastify: FastifyInstance) {
             altitude: { type: 'number', minimum: 0 },
             temperature: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             fluidName: { type: 'string' },
@@ -112,17 +134,26 @@ export default async function cavitationRiskRoutes(fastify: FastifyInstance) {
             properties: {
               npshAvailable: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               npshRequired: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               cavitationMargin: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               warnings: { type: 'array', items: { type: 'string' } },
@@ -131,40 +162,71 @@ export default async function cavitationRiskRoutes(fastify: FastifyInstance) {
                 properties: {
                   atmosphericPressure: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   vaporPressure: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   staticHead: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   losses: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   flowRate: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   altitude: { type: 'number' },
                   temperature: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                 },
-                required: ['atmosphericPressure', 'vaporPressure', 'staticHead', 'losses', 'flowRate', 'temperature'],
+                required: [
+                  'atmosphericPressure',
+                  'vaporPressure',
+                  'staticHead',
+                  'losses',
+                  'flowRate',
+                  'temperature',
+                ],
               },
             },
-            required: ['npshAvailable', 'npshRequired', 'cavitationMargin', 'warnings', 'metadata'],
+            required: [
+              'npshAvailable',
+              'npshRequired',
+              'cavitationMargin',
+              'warnings',
+              'metadata',
+            ],
           },
           400: {
             type: 'object',
@@ -189,13 +251,13 @@ export default async function cavitationRiskRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         const body = zCavitationRiskRequest.parse(request.body);
-        
+
         // Resolve atmospheric pressure from altitude if not provided
         const resolvedInput = resolveAtmosphericPressure(body);
-        
+
         // Validate inputs
         const validation = validateNPSHInputs(resolvedInput);
-        
+
         if (!validation.isValid) {
           return reply.status(400).send({
             error: 'Invalid input parameters',
@@ -208,7 +270,7 @@ export default async function cavitationRiskRoutes(fastify: FastifyInstance) {
         const result = calculateCavitationRisk(resolvedInput);
 
         // Convert warnings to strings for API response
-        const stringWarnings = result.warnings.map(warning => 
+        const stringWarnings = result.warnings.map(warning =>
           typeof warning === 'string' ? warning : warning.message
         );
 
@@ -245,7 +307,12 @@ export default async function cavitationRiskRoutes(fastify: FastifyInstance) {
                     vaporPressureMethod: { type: 'string' },
                     temperatureRange: { type: 'string' },
                   },
-                  required: ['name', 'description', 'vaporPressureMethod', 'temperatureRange'],
+                  required: [
+                    'name',
+                    'description',
+                    'vaporPressureMethod',
+                    'temperatureRange',
+                  ],
                 },
               },
             },

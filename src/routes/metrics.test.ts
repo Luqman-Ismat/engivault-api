@@ -23,8 +23,10 @@ describe('Metrics Routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.headers['content-type']).toBe('text/plain; version=0.0.4; charset=utf-8');
-      
+      expect(response.headers['content-type']).toBe(
+        'text/plain; version=0.0.4; charset=utf-8'
+      );
+
       const metrics = response.payload;
       expect(typeof metrics).toBe('string');
       expect(metrics.length).toBeGreaterThan(0);
@@ -67,18 +69,18 @@ describe('Metrics Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const data = JSON.parse(response.payload);
-      
+
       expect(data).toHaveProperty('status', 'ok');
       expect(data).toHaveProperty('timestamp');
       expect(data).toHaveProperty('uptime');
       expect(data).toHaveProperty('version');
       expect(data).toHaveProperty('memory');
-      
+
       expect(data.memory).toHaveProperty('rss');
       expect(data.memory).toHaveProperty('heapTotal');
       expect(data.memory).toHaveProperty('heapUsed');
       expect(data.memory).toHaveProperty('external');
-      
+
       expect(typeof data.memory.rss).toBe('number');
       expect(typeof data.memory.heapTotal).toBe('number');
       expect(typeof data.memory.heapUsed).toBe('number');
@@ -93,7 +95,7 @@ describe('Metrics Routes', () => {
 
       const data = JSON.parse(response.payload);
       const timestamp = new Date(data.timestamp);
-      
+
       expect(timestamp.getTime()).toBeGreaterThan(0);
       expect(timestamp.toISOString()).toBe(data.timestamp);
     });
@@ -105,7 +107,7 @@ describe('Metrics Routes', () => {
       });
 
       const data = JSON.parse(response.payload);
-      
+
       expect(typeof data.uptime).toBe('number');
       expect(data.uptime).toBeGreaterThanOrEqual(0);
     });

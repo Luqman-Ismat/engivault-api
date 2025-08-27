@@ -38,7 +38,9 @@ export interface BEPResult {
  * @param curve Array of {q, h} points
  * @returns Function that takes flow rate and returns head
  */
-export function interpolateCurve(curve: { q: number; h: number }[]): (q: number) => number {
+export function interpolateCurve(
+  curve: { q: number; h: number }[]
+): (q: number) => number {
   if (curve.length < 2) {
     throw new Error('Curve must have at least 2 points');
   }
@@ -155,7 +157,9 @@ export function bepc(q: number, h: number, curve: PumpCurve): BEPResult {
   let method: 'efficiency' | 'midpoint';
 
   // Check if efficiency data is available
-  const hasEfficiency = curve.points.some(point => point.efficiency !== undefined);
+  const hasEfficiency = curve.points.some(
+    point => point.efficiency !== undefined
+  );
 
   if (hasEfficiency) {
     // Find point with maximum efficiency
@@ -201,9 +205,19 @@ export function bepc(q: number, h: number, curve: PumpCurve): BEPResult {
 export function bepDistance(
   opPoint: { q: number; h: number },
   curve: PumpCurve
-): BEPResult & { warnings: Array<{ type: string; message: string; severity: 'low' | 'medium' | 'high' }> } {
+): BEPResult & {
+  warnings: Array<{
+    type: string;
+    message: string;
+    severity: 'low' | 'medium' | 'high';
+  }>;
+} {
   const bepResult = bepc(opPoint.q, opPoint.h, curve);
-  const warnings: Array<{ type: string; message: string; severity: 'low' | 'medium' | 'high' }> = [];
+  const warnings: Array<{
+    type: string;
+    message: string;
+    severity: 'low' | 'medium' | 'high';
+  }> = [];
 
   // Calculate normalized distance (as percentage of BEP flow rate)
   const normalizedDistance = bepResult.distance / bepResult.bepPoint.q;
@@ -212,58 +226,69 @@ export function bepDistance(
   if (normalizedDistance > 0.5) {
     warnings.push({
       type: 'bep_distance',
-      message: 'Operating point is far from BEP (>50% of BEP flow). This may cause reduced efficiency and increased wear.',
-      severity: 'high'
+      message:
+        'Operating point is far from BEP (>50% of BEP flow). This may cause reduced efficiency and increased wear.',
+      severity: 'high',
     });
   } else if (normalizedDistance > 0.3) {
     warnings.push({
       type: 'bep_distance',
-      message: 'Operating point is moderately far from BEP (30-50% of BEP flow). Consider operating closer to BEP for better efficiency.',
-      severity: 'medium'
+      message:
+        'Operating point is moderately far from BEP (30-50% of BEP flow). Consider operating closer to BEP for better efficiency.',
+      severity: 'medium',
     });
   } else if (normalizedDistance > 0.15) {
     warnings.push({
       type: 'bep_distance',
-      message: 'Operating point is slightly off BEP (15-30% of BEP flow). Monitor efficiency and consider optimization.',
-      severity: 'low'
+      message:
+        'Operating point is slightly off BEP (15-30% of BEP flow). Monitor efficiency and consider optimization.',
+      severity: 'low',
     });
   }
 
   // Check if operating point is outside curve range
   const minFlow = Math.min(...curve.points.map(p => p.q));
   const maxFlow = Math.max(...curve.points.map(p => p.q));
-  
+
   if (opPoint.q < minFlow || opPoint.q > maxFlow) {
     warnings.push({
       type: 'curve_range',
-      message: 'Operating point is outside the pump curve range. This may cause unstable operation or damage.',
-      severity: 'high'
+      message:
+        'Operating point is outside the pump curve range. This may cause unstable operation or damage.',
+      severity: 'high',
     });
   }
 
   // Check for low efficiency if efficiency data is available
-  if (bepResult.method === 'efficiency' && bepResult.bepPoint.efficiency !== undefined) {
-    const currentEfficiency = interpolateCurve(curve.points.map(p => ({ q: p.q, h: p.efficiency || 0 })))(opPoint.q);
+  if (
+    bepResult.method === 'efficiency' &&
+    bepResult.bepPoint.efficiency !== undefined
+  ) {
+    const currentEfficiency = interpolateCurve(
+      curve.points.map(p => ({ q: p.q, h: p.efficiency || 0 }))
+    )(opPoint.q);
     const efficiencyRatio = currentEfficiency / bepResult.bepPoint.efficiency;
-    
+
     if (efficiencyRatio < 0.7) {
       warnings.push({
         type: 'efficiency',
-        message: 'Current efficiency is significantly below BEP efficiency (<70%). Consider operating closer to BEP.',
-        severity: 'high'
+        message:
+          'Current efficiency is significantly below BEP efficiency (<70%). Consider operating closer to BEP.',
+        severity: 'high',
       });
     } else if (efficiencyRatio < 0.85) {
       warnings.push({
         type: 'efficiency',
-        message: 'Current efficiency is below BEP efficiency (70-85%). Optimization may improve performance.',
-        severity: 'medium'
+        message:
+          'Current efficiency is below BEP efficiency (70-85%). Optimization may improve performance.',
+        severity: 'medium',
       });
     }
   }
 
   return {
     ...bepResult,
-    warnings
+    warnings,
   };
 }
 
@@ -275,7 +300,12 @@ export function bepDistance(
  * @param rho Fluid density (kg/m³)
  * @returns Power (W)
  */
-export function calculatePumpPower(q: number, h: number, efficiency: number, rho: number = 1000): number {
+export function calculatePumpPower(
+  q: number,
+  h: number,
+  efficiency: number,
+  rho: number = 1000
+): number {
   if (efficiency <= 0 || efficiency > 1) {
     throw new Error('Efficiency must be between 0 and 1');
   }
@@ -344,7 +374,10 @@ export function findOperatingPoint(
  * @param curve Pump curve to validate
  * @returns Validation result
  */
-export function validatePumpCurve(curve: PumpCurve): { isValid: boolean; errors: string[] } {
+export function validatePumpCurve(curve: PumpCurve): {
+  isValid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
 
   if (!curve.points || curve.points.length === 0) {
@@ -365,7 +398,10 @@ export function validatePumpCurve(curve: PumpCurve): { isValid: boolean; errors:
     if (point.h < 0) {
       errors.push(`Point ${i}: Head cannot be negative`);
     }
-    if (point.efficiency !== undefined && (point.efficiency < 0 || point.efficiency > 1)) {
+    if (
+      point.efficiency !== undefined &&
+      (point.efficiency < 0 || point.efficiency > 1)
+    ) {
       errors.push(`Point ${i}: Efficiency must be between 0 and 1`);
     }
   }

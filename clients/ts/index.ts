@@ -13,6 +13,7 @@ export type { def_2 } from './models/def_2';
 export type { def_3 } from './models/def_3';
 
 export { DefaultService } from './services/DefaultService';
+export { DemoService } from './services/DemoService';
 export { DynamicsService } from './services/DynamicsService';
 export { FlowFittingsService } from './services/FlowFittingsService';
 export { GasService } from './services/GasService';

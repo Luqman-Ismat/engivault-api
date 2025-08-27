@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { 
-  initializeMetrics, 
-  getMetrics, 
+import {
+  initializeMetrics,
+  getMetrics,
   resetMetrics,
   recordRequestMetrics,
   recordCalculationMetrics,
   recordTranscriptMetrics,
-  recordBatchProcessingMetrics
+  recordBatchProcessingMetrics,
 } from './metrics';
 
 describe('Metrics', () => {

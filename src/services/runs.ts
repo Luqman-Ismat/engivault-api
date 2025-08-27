@@ -29,13 +29,16 @@ class TranscriptService {
   /**
    * Create a new transcript
    */
-  createTranscript(id: string, transcript: Omit<Transcript, 'id' | 'timestamp'>): Transcript {
+  createTranscript(
+    id: string,
+    transcript: Omit<Transcript, 'id' | 'timestamp'>
+  ): Transcript {
     const fullTranscript: Transcript = {
       ...transcript,
       id,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    
+
     this.transcripts.set(id, fullTranscript);
     return fullTranscript;
   }
@@ -88,8 +91,8 @@ class TranscriptService {
    * Check if transcript capture is enabled for a request
    */
   isTranscriptEnabled(request: FastifyRequest): boolean {
-    const headerValue = Object.entries(request.headers).find(([key]) => 
-      key.toLowerCase() === 'x-engivault-transcript'
+    const headerValue = Object.entries(request.headers).find(
+      ([key]) => key.toLowerCase() === 'x-engivault-transcript'
     )?.[1];
     return headerValue === 'on';
   }
@@ -101,7 +104,11 @@ class TranscriptService {
     request: FastifyRequest,
     response: any,
     processingTime: number,
-    warnings: Array<{ type: string; message: string; severity: 'low' | 'medium' | 'high' }> = [],
+    warnings: Array<{
+      type: string;
+      message: string;
+      severity: 'low' | 'medium' | 'high';
+    }> = [],
     intermediateValues: Record<string, any> = {},
     selectedEquations: string[] = []
   ): Transcript | null {
@@ -123,9 +130,9 @@ class TranscriptService {
         calculationMethod: this.determineCalculationMethod(request.url),
         units: this.extractUnits(request.body),
         userAgent: request.headers['user-agent'],
-        contentType: request.headers['content-type']
+        contentType: request.headers['content-type'],
       },
-      result: response
+      result: response,
     };
 
     return this.createTranscript(id, transcript);
@@ -136,10 +143,10 @@ class TranscriptService {
    */
   private normalizeInputs(input: any): any {
     if (!input) return null;
-    
+
     // Deep clone to avoid reference issues
     const normalized = JSON.parse(JSON.stringify(input));
-    
+
     // Remove sensitive or unnecessary fields
     if (normalized.items) {
       normalized.items = normalized.items.map((item: any) => {
@@ -148,7 +155,7 @@ class TranscriptService {
         return clean;
       });
     }
-    
+
     return normalized;
   }
 
@@ -194,7 +201,7 @@ class TranscriptService {
    */
   private extractUnits(input: any): Record<string, string> {
     const units: Record<string, string> = {};
-    
+
     if (!input) return units;
 
     const extractFromObject = (obj: any, prefix = '') => {

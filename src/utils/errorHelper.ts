@@ -8,7 +8,12 @@ export interface ValidationError {
 }
 
 export interface ErrorHint {
-  type: 'endpoint_suggestion' | 'parameter_fix' | 'assumption_violation' | 'unit_conversion' | 'range_guidance';
+  type:
+    | 'endpoint_suggestion'
+    | 'parameter_fix'
+    | 'assumption_violation'
+    | 'unit_conversion'
+    | 'range_guidance';
   message: string;
   suggestedEndpoint?: string;
   suggestedValue?: any;
@@ -45,7 +50,10 @@ export class ErrorHelper {
   /**
    * Adds Mach number violation hint for gas flow calculations
    */
-  static addMachViolationHint(mach: number, hints: ErrorHint[] = []): ErrorHint[] {
+  static addMachViolationHint(
+    mach: number,
+    hints: ErrorHint[] = []
+  ): ErrorHint[] {
     if (mach > 0.3) {
       hints.push({
         type: 'assumption_violation',
@@ -60,7 +68,10 @@ export class ErrorHelper {
   /**
    * Adds Reynolds number violation hint for flow regime
    */
-  static addReynoldsViolationHint(reynolds: number, hints: ErrorHint[] = []): ErrorHint[] {
+  static addReynoldsViolationHint(
+    reynolds: number,
+    hints: ErrorHint[] = []
+  ): ErrorHint[] {
     if (reynolds < 2300) {
       hints.push({
         type: 'assumption_violation',
@@ -80,7 +91,10 @@ export class ErrorHelper {
   /**
    * Adds relative roughness violation hint
    */
-  static addRoughnessViolationHint(relativeRoughness: number, hints: ErrorHint[] = []): ErrorHint[] {
+  static addRoughnessViolationHint(
+    relativeRoughness: number,
+    hints: ErrorHint[] = []
+  ): ErrorHint[] {
     if (relativeRoughness > 0.05) {
       hints.push({
         type: 'assumption_violation',
@@ -94,7 +108,10 @@ export class ErrorHelper {
   /**
    * Adds pipe diameter range violation hint
    */
-  static addDiameterViolationHint(diameter: number, hints: ErrorHint[] = []): ErrorHint[] {
+  static addDiameterViolationHint(
+    diameter: number,
+    hints: ErrorHint[] = []
+  ): ErrorHint[] {
     if (diameter < 0.01) {
       hints.push({
         type: 'assumption_violation',
@@ -114,7 +131,10 @@ export class ErrorHelper {
   /**
    * Adds velocity range violation hint
    */
-  static addVelocityViolationHint(velocity: number, hints: ErrorHint[] = []): ErrorHint[] {
+  static addVelocityViolationHint(
+    velocity: number,
+    hints: ErrorHint[] = []
+  ): ErrorHint[] {
     if (velocity < 0.1) {
       hints.push({
         type: 'assumption_violation',
@@ -135,7 +155,11 @@ export class ErrorHelper {
   /**
    * Adds NPSH violation hint
    */
-  static addNPSHViolationHint(npsha: number, npshr: number, hints: ErrorHint[] = []): ErrorHint[] {
+  static addNPSHViolationHint(
+    npsha: number,
+    npshr: number,
+    hints: ErrorHint[] = []
+  ): ErrorHint[] {
     if (npsha < npshr) {
       hints.push({
         type: 'assumption_violation',
@@ -155,7 +179,10 @@ export class ErrorHelper {
   /**
    * Adds BEP distance violation hint
    */
-  static addBEPViolationHint(bepDistance: number, hints: ErrorHint[] = []): ErrorHint[] {
+  static addBEPViolationHint(
+    bepDistance: number,
+    hints: ErrorHint[] = []
+  ): ErrorHint[] {
     if (bepDistance > 0.2) {
       hints.push({
         type: 'assumption_violation',

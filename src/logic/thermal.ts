@@ -74,16 +74,23 @@ const WATER_PROPERTIES = {
  * @param temperature - Temperature (K)
  * @returns Water properties { density, viscosity }
  */
-export function waterProps(temperature: number): { density: number; viscosity: number } {
+export function waterProps(temperature: number): {
+  density: number;
+  viscosity: number;
+} {
   if (temperature < 273.15 || temperature > 373.15) {
-    throw new Error('Temperature must be between 273.15K (0°C) and 373.15K (100°C) for water properties');
+    throw new Error(
+      'Temperature must be between 273.15K (0°C) and 373.15K (100°C) for water properties'
+    );
   }
-  
+
   // Find the closest temperature in our lookup table
-  const temperatures = Object.keys(WATER_PROPERTIES).map(Number).sort((a, b) => a - b);
+  const temperatures = Object.keys(WATER_PROPERTIES)
+    .map(Number)
+    .sort((a, b) => a - b);
   let closestTemp = temperatures[0];
   let minDiff = Math.abs(temperature - closestTemp);
-  
+
   for (const temp of temperatures) {
     const diff = Math.abs(temperature - temp);
     if (diff < minDiff) {
@@ -91,7 +98,7 @@ export function waterProps(temperature: number): { density: number; viscosity: n
       closestTemp = temp;
     }
   }
-  
+
   return WATER_PROPERTIES[closestTemp as keyof typeof WATER_PROPERTIES];
 }
 
@@ -110,15 +117,21 @@ export function temperatureDependentViscosity(
   currentTemperature: number,
   activationEnergy: number = 15000 // J/mol (typical for water)
 ): number {
-  if (baseViscosity <= 0 || referenceTemperature <= 0 || currentTemperature <= 0) {
+  if (
+    baseViscosity <= 0 ||
+    referenceTemperature <= 0 ||
+    currentTemperature <= 0
+  ) {
     throw new Error('All parameters must be positive');
   }
-  
+
   const R = 8.314; // J/(mol·K) - Universal gas constant
-  
+
   // Arrhenius equation for temperature-dependent viscosity
-  const viscosityRatio = Math.exp((activationEnergy / R) * (1 / currentTemperature - 1 / referenceTemperature));
-  
+  const viscosityRatio = Math.exp(
+    (activationEnergy / R) * (1 / currentTemperature - 1 / referenceTemperature)
+  );
+
   return baseViscosity * viscosityRatio;
 }
 
@@ -128,11 +141,14 @@ export function temperatureDependentViscosity(
  * @param outletTemperature - Outlet temperature (K)
  * @returns Average temperature (K)
  */
-export function calculateAverageTemperature(inletTemperature: number, outletTemperature: number): number {
+export function calculateAverageTemperature(
+  inletTemperature: number,
+  outletTemperature: number
+): number {
   if (inletTemperature <= 0 || outletTemperature <= 0) {
     throw new Error('Temperatures must be positive');
   }
-  
+
   // Use arithmetic mean for simplicity
   // For more accuracy, could use logarithmic mean for heat transfer applications
   return (inletTemperature + outletTemperature) / 2;
@@ -156,33 +172,39 @@ export function estimateOutletTemperature(
   ambientTemperature: number = 293.15,
   heatTransferCoefficient: number = 10
 ): number {
-  if (inletTemperature <= 0 || flowRate <= 0 || pipeDiameter <= 0 || pipeLength <= 0) {
+  if (
+    inletTemperature <= 0 ||
+    flowRate <= 0 ||
+    pipeDiameter <= 0 ||
+    pipeLength <= 0
+  ) {
     throw new Error('All parameters must be positive');
   }
-  
+
   // Simplified heat transfer calculation
   // Q = h * A * ΔT_avg
   // where A = π * D * L (pipe surface area)
   const pipeArea = Math.PI * pipeDiameter * pipeLength;
   const temperatureDifference = inletTemperature - ambientTemperature;
-  
+
   // Heat loss rate (W)
-  const heatLossRate = heatTransferCoefficient * pipeArea * temperatureDifference * 0.5; // Factor of 0.5 for average ΔT
-  
+  const heatLossRate =
+    heatTransferCoefficient * pipeArea * temperatureDifference * 0.5; // Factor of 0.5 for average ΔT
+
   // Water specific heat capacity (J/(kg·K))
   const specificHeatCapacity = 4186;
-  
+
   // Water density (kg/m³) - use average of inlet and ambient
   const waterDensity = 1000; // Simplified
-  
+
   // Mass flow rate (kg/s)
   const massFlowRate = flowRate * waterDensity;
-  
+
   // Temperature drop due to heat loss
   const temperatureDrop = heatLossRate / (massFlowRate * specificHeatCapacity);
-  
+
   const outletTemperature = inletTemperature - temperatureDrop;
-  
+
   // Ensure outlet temperature doesn't go below ambient
   return Math.max(outletTemperature, ambientTemperature);
 }
@@ -192,9 +214,11 @@ export function estimateOutletTemperature(
  * @param input - Input parameters for viscosity-adjusted pressure drop calculation
  * @returns Viscosity-adjusted pressure drop result
  */
-export function iterateViscosityAdjustedDrop(input: ViscosityAdjustedDropInput): ViscosityAdjustedDropResult {
+export function iterateViscosityAdjustedDrop(
+  input: ViscosityAdjustedDropInput
+): ViscosityAdjustedDropResult {
   const warnings: (string | Warning)[] = [];
-  
+
   // Convert input parameters to SI units
   const flowRate = convert(input.flowRate, 'm³/s').value;
   const length = convert(input.length, 'm').value;
@@ -203,36 +227,47 @@ export function iterateViscosityAdjustedDrop(input: ViscosityAdjustedDropInput):
   const inletTemperature = convert(input.inletTemperature, 'K').value;
   const baseDensity = convert(input.fluid.density, 'kg/m³').value;
   const baseViscosity = convert(input.fluid.viscosity, 'Pa·s').value;
-  const referenceTemperature = convert(input.fluid.referenceTemperature, 'K').value;
-  
+  const referenceTemperature = convert(
+    input.fluid.referenceTemperature,
+    'K'
+  ).value;
+
   // Set default values
   const maxIterations = input.maxIterations ?? 50;
   const convergenceTolerance = input.convergenceTolerance ?? 1e-6;
-  
+
   // Validate inputs
   if (flowRate <= 0 || length <= 0 || diameter <= 0 || roughness < 0) {
-    throw new Error('Flow rate, length, and diameter must be positive, roughness must be non-negative');
+    throw new Error(
+      'Flow rate, length, and diameter must be positive, roughness must be non-negative'
+    );
   }
-  
-  if (inletTemperature <= 0 || baseDensity <= 0 || baseViscosity <= 0 || referenceTemperature <= 0) {
+
+  if (
+    inletTemperature <= 0 ||
+    baseDensity <= 0 ||
+    baseViscosity <= 0 ||
+    referenceTemperature <= 0
+  ) {
     throw new Error('All fluid properties and temperatures must be positive');
   }
-  
+
   // Calculate initial outlet temperature if not provided
-  let outletTemperature = input.outletTemperature 
+  let outletTemperature = input.outletTemperature
     ? convert(input.outletTemperature, 'K').value
     : estimateOutletTemperature(inletTemperature, flowRate, diameter, length);
-  
+
   // Ensure outlet temperature is reasonable
   if (outletTemperature <= 0) {
     outletTemperature = inletTemperature * 0.95; // 5% drop as fallback
     warnings.push({
       type: 'warning',
-      message: 'Calculated outlet temperature was invalid, using 5% drop from inlet',
-      severity: 'medium'
+      message:
+        'Calculated outlet temperature was invalid, using 5% drop from inlet',
+      severity: 'medium',
     });
   }
-  
+
   // Initialize convergence tracking
   const convergenceHistory: Array<{
     iteration: number;
@@ -242,16 +277,19 @@ export function iterateViscosityAdjustedDrop(input: ViscosityAdjustedDropInput):
     reynoldsNumber: number;
     frictionFactor: number;
   }> = [];
-  
+
   let previousPressureDrop = 0;
   let converged = false;
   let iterations = 0;
-  
+
   // Iterative calculation
   for (iterations = 0; iterations < maxIterations; iterations++) {
     // Calculate average temperature
-    const averageTemperature = calculateAverageTemperature(inletTemperature, outletTemperature);
-    
+    const averageTemperature = calculateAverageTemperature(
+      inletTemperature,
+      outletTemperature
+    );
+
     // Calculate temperature-dependent viscosity
     let averageViscosity: number;
     if (input.fluid.viscosityTemperatureCoefficient) {
@@ -260,7 +298,9 @@ export function iterateViscosityAdjustedDrop(input: ViscosityAdjustedDropInput):
         baseViscosity,
         referenceTemperature,
         averageTemperature,
-        input.fluid.viscosityTemperatureCoefficient * 8.314 * referenceTemperature // Convert to activation energy
+        input.fluid.viscosityTemperatureCoefficient *
+          8.314 *
+          referenceTemperature // Convert to activation energy
       );
     } else {
       // Use water properties if available
@@ -272,30 +312,37 @@ export function iterateViscosityAdjustedDrop(input: ViscosityAdjustedDropInput):
         averageViscosity = baseViscosity;
       }
     }
-    
-      // Calculate temperature-dependent density (simplified)
-  let averageDensity = baseDensity;
-  try {
-    const waterPropsResult = waterProps(averageTemperature);
-    averageDensity = waterPropsResult.density;
-  } catch {
-    // Use base density if water properties not available
-  }
-    
+
+    // Calculate temperature-dependent density (simplified)
+    let averageDensity = baseDensity;
+    try {
+      const waterPropsResult = waterProps(averageTemperature);
+      averageDensity = waterPropsResult.density;
+    } catch {
+      // Use base density if water properties not available
+    }
+
     // Calculate flow velocity
     const pipeArea = (Math.PI * Math.pow(diameter, 2)) / 4;
     const velocity = flowRate / pipeArea;
-    
+
     // Calculate Reynolds number
-    const reynoldsNumber = reynolds(averageDensity, velocity, diameter, averageViscosity);
-    
+    const reynoldsNumber = reynolds(
+      averageDensity,
+      velocity,
+      diameter,
+      averageViscosity
+    );
+
     // Calculate friction factor
     const relativeRoughness = roughness / diameter;
     const frictionFactor = churchillF(reynoldsNumber, relativeRoughness);
-    
+
     // Calculate pressure drop using Darcy-Weisbach equation
-    const pressureDrop = (frictionFactor * length * averageDensity * Math.pow(velocity, 2)) / (2 * diameter);
-    
+    const pressureDrop =
+      (frictionFactor * length * averageDensity * Math.pow(velocity, 2)) /
+      (2 * diameter);
+
     // Record convergence history
     convergenceHistory.push({
       iteration: iterations + 1,
@@ -303,54 +350,58 @@ export function iterateViscosityAdjustedDrop(input: ViscosityAdjustedDropInput):
       averageTemperature,
       averageViscosity,
       reynoldsNumber,
-      frictionFactor
+      frictionFactor,
     });
-    
+
     // Check convergence
     if (iterations > 0) {
       const pressureDropChange = Math.abs(pressureDrop - previousPressureDrop);
       const relativeChange = pressureDropChange / Math.max(pressureDrop, 1e-6);
-      
+
       if (relativeChange < convergenceTolerance) {
         converged = true;
         break;
       }
     }
-    
+
     previousPressureDrop = pressureDrop;
-    
+
     // Update outlet temperature based on new pressure drop (only if not provided)
     if (!input.outletTemperature) {
       // This is a simplified approach - in reality, temperature change would depend on heat transfer
       const temperatureDrop = pressureDrop / (averageDensity * 4186 * 100); // Simplified energy balance
       outletTemperature = inletTemperature - temperatureDrop;
-      
+
       // Ensure outlet temperature stays reasonable
       outletTemperature = Math.max(outletTemperature, inletTemperature * 0.8);
     }
   }
-  
+
   // Add warnings
   if (!converged) {
     warnings.push({
       type: 'warning',
       message: `Calculation did not converge within ${maxIterations} iterations`,
-      severity: 'high'
+      severity: 'high',
     });
   }
-  
+
   if (iterations > maxIterations * 0.8) {
     warnings.push({
       type: 'warning',
-      message: 'Calculation required many iterations, consider adjusting parameters',
-      severity: 'medium'
+      message:
+        'Calculation required many iterations, consider adjusting parameters',
+      severity: 'medium',
     });
   }
-  
+
   // Calculate final properties
-  const finalAverageTemperature = calculateAverageTemperature(inletTemperature, outletTemperature);
+  const finalAverageTemperature = calculateAverageTemperature(
+    inletTemperature,
+    outletTemperature
+  );
   let finalAverageViscosity: number;
-  
+
   if (input.fluid.viscosityTemperatureCoefficient) {
     finalAverageViscosity = temperatureDependentViscosity(
       baseViscosity,
@@ -366,11 +417,11 @@ export function iterateViscosityAdjustedDrop(input: ViscosityAdjustedDropInput):
       finalAverageViscosity = baseViscosity;
     }
   }
-  
+
   // Calculate inlet and outlet viscosities
   let inletViscosity = baseViscosity;
   let outletViscosity = baseViscosity;
-  
+
   if (input.fluid.viscosityTemperatureCoefficient) {
     inletViscosity = temperatureDependentViscosity(
       baseViscosity,
@@ -394,11 +445,11 @@ export function iterateViscosityAdjustedDrop(input: ViscosityAdjustedDropInput):
       // Use base viscosity if water properties not available
     }
   }
-  
+
   // Calculate final velocity and Reynolds number
   const pipeArea = (Math.PI * Math.pow(diameter, 2)) / 4;
   const finalVelocity = flowRate / pipeArea;
-  
+
   let finalAverageDensity = baseDensity;
   try {
     const waterPropsResult = waterProps(finalAverageTemperature);
@@ -406,13 +457,21 @@ export function iterateViscosityAdjustedDrop(input: ViscosityAdjustedDropInput):
   } catch {
     // Use base density if water properties not available
   }
-  
-  const finalReynoldsNumber = reynolds(finalAverageDensity, finalVelocity, diameter, finalAverageViscosity);
-  const finalFrictionFactor = churchillF(finalReynoldsNumber, roughness / diameter);
-  
+
+  const finalReynoldsNumber = reynolds(
+    finalAverageDensity,
+    finalVelocity,
+    diameter,
+    finalAverageViscosity
+  );
+  const finalFrictionFactor = churchillF(
+    finalReynoldsNumber,
+    roughness / diameter
+  );
+
   // Calculate pressure drop percentage
-  const pressureDropPercent = (previousPressureDrop / (101325)) * 100; // Relative to atmospheric pressure
-  
+  const pressureDropPercent = (previousPressureDrop / 101325) * 100; // Relative to atmospheric pressure
+
   return {
     inletTemperature: { value: inletTemperature, unit: 'K' },
     outletTemperature: { value: outletTemperature, unit: 'K' },
@@ -432,10 +491,15 @@ export function iterateViscosityAdjustedDrop(input: ViscosityAdjustedDropInput):
       input,
       calculations: {
         convergenceHistory: convergenceHistory || [],
-        finalTolerance: converged && convergenceHistory && convergenceHistory.length > 1 
-          ? Math.abs(previousPressureDrop - (convergenceHistory[convergenceHistory.length - 2]?.pressureDrop ?? 0)) / Math.max(previousPressureDrop, 1e-6) 
-          : 0
-      }
-    }
+        finalTolerance:
+          converged && convergenceHistory && convergenceHistory.length > 1
+            ? Math.abs(
+                previousPressureDrop -
+                  (convergenceHistory[convergenceHistory.length - 2]
+                    ?.pressureDrop ?? 0)
+              ) / Math.max(previousPressureDrop, 1e-6)
+            : 0,
+      },
+    },
   };
 }

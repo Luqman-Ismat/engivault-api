@@ -62,7 +62,7 @@ export function combinePumps(
     const pumpCurve: PumpCurve = {
       points: pump.curve.map(p => ({ q: p.q, h: p.h })),
     };
-    
+
     const scaled = scaleByAffinity(pumpCurve, speed);
     return {
       id: pump.id,
@@ -75,7 +75,9 @@ export function combinePumps(
   switch (arrangement) {
     case 'single':
       if (curves.length > 1) {
-        warnings.push('Multiple pumps specified for single arrangement, using first pump only');
+        warnings.push(
+          'Multiple pumps specified for single arrangement, using first pump only'
+        );
       }
       aggregateCurve = scaledCurves[0]!.interpolator;
       break;
@@ -86,10 +88,12 @@ export function combinePumps(
         // For parallel pumps, we need to find the head at which total flow equals q
         // Use bisection to find the head that gives the desired total flow
         let hMin = 0;
-        let hMax = Math.max(...scaledCurves.map(pump => {
-          // Find shutoff head (flow = 0)
-          return pump.interpolator(0);
-        }));
+        let hMax = Math.max(
+          ...scaledCurves.map(pump => {
+            // Find shutoff head (flow = 0)
+            return pump.interpolator(0);
+          })
+        );
 
         const tolerance = 1e-6;
         let iterations = 0;
@@ -97,7 +101,7 @@ export function combinePumps(
 
         while (iterations < maxIterations) {
           const h = (hMin + hMax) / 2;
-          
+
           // Calculate total flow at this head
           let totalQ = 0;
           for (const pump of scaledCurves) {
@@ -219,7 +223,13 @@ export function solveIntersection(
   systemCurve: (q: number) => number,
   qMin: number = 0,
   qMax: number = 1
-): { q: number; h: number; iterations: number; residual: number; convergence: boolean } {
+): {
+  q: number;
+  h: number;
+  iterations: number;
+  residual: number;
+  convergence: boolean;
+} {
   if (qMin >= qMax) {
     throw new Error('qMin must be less than qMax');
   }
@@ -241,7 +251,7 @@ export function solveIntersection(
   if (fa * fb > 0) {
     // Try to find a valid bracket by expanding the search
     const expansionFactor = 2;
-    
+
     while (fa * fb > 0 && iterations < 20) {
       if (Math.abs(fa) < Math.abs(fb)) {
         a = Math.max(0, a - (b - a) * expansionFactor);
@@ -352,8 +362,14 @@ export function calculateOperatingPoint(
   const systemCurve = (q: number) => systemHead(q, system);
 
   // Find operating point
-  const qMax = Math.max(...pumps.flatMap(p => p.curve.map(point => point.q))) * 2;
-  const result = solveIntersection(combination.aggregateCurve, systemCurve, 0, qMax);
+  const qMax =
+    Math.max(...pumps.flatMap(p => p.curve.map(point => point.q))) * 2;
+  const result = solveIntersection(
+    combination.aggregateCurve,
+    systemCurve,
+    0,
+    qMax
+  );
 
   // Calculate heads
   const pumpHead = combination.aggregateCurve(result.q);
@@ -361,11 +377,15 @@ export function calculateOperatingPoint(
 
   // Add warnings for convergence issues
   if (!result.convergence) {
-    warnings.push(`Operating point calculation did not converge (residual: ${result.residual.toFixed(6)})`);
+    warnings.push(
+      `Operating point calculation did not converge (residual: ${result.residual.toFixed(6)})`
+    );
   }
 
   if (result.iterations > 50) {
-    warnings.push(`Operating point calculation required many iterations (${result.iterations})`);
+    warnings.push(
+      `Operating point calculation required many iterations (${result.iterations})`
+    );
   }
 
   // Check for operating point validity

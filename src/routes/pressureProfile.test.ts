@@ -23,34 +23,33 @@ describe('Pressure Profile API Routes', () => {
             diameter: { value: 0.1, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: 5, unit: 'm' },
-            flow: { value: 0.01, unit: 'm³/s' }
-          }
+            flow: { value: 0.01, unit: 'm³/s' },
+          },
         ],
         fluid: {
           name: 'water',
-          temperature: { value: 20, unit: 'C' }
-        }
+          temperature: { value: 20, unit: 'C' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
 
-      
       expect(result.nodes).toHaveLength(2);
       expect(result.nodes[0].cumulativeLength.value).toBe(0);
       expect(result.nodes[0].elevation.value).toBe(0);
       expect(result.nodes[0].pressure.value).toBe(0);
-      
+
       expect(result.nodes[1].cumulativeLength.value).toBe(100);
       expect(result.nodes[1].elevation.value).toBe(5);
       expect(result.nodes[1].pressure.value).toBeLessThan(0);
-      
+
       expect(result.totalLength.value).toBe(100);
       expect(result.totalPressureDrop.value).toBeGreaterThan(0);
       expect(result.warnings).toBeInstanceOf(Array);
@@ -64,31 +63,31 @@ describe('Pressure Profile API Routes', () => {
             diameter: { value: 0.1, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: 2, unit: 'm' },
-            flow: { value: 0.01, unit: 'm³/s' }
+            flow: { value: 0.01, unit: 'm³/s' },
           },
           {
             length: { value: 75, unit: 'm' },
             diameter: { value: 0.08, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: -1, unit: 'm' },
-            flow: { value: 0.01, unit: 'm³/s' }
-          }
+            flow: { value: 0.01, unit: 'm³/s' },
+          },
         ],
         fluid: {
           name: 'water',
-          temperature: { value: 20, unit: 'C' }
-        }
+          temperature: { value: 20, unit: 'C' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.nodes).toHaveLength(3);
       expect(result.nodes[1].cumulativeLength.value).toBe(50);
       expect(result.nodes[1].elevation.value).toBe(2);
@@ -106,24 +105,24 @@ describe('Pressure Profile API Routes', () => {
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: 0, unit: 'm' },
             kLocal: [0.5, 1.2],
-            flow: { value: 0.01, unit: 'm³/s' }
-          }
+            flow: { value: 0.01, unit: 'm³/s' },
+          },
         ],
         fluid: {
           name: 'water',
-          temperature: { value: 20, unit: 'C' }
-        }
+          temperature: { value: 20, unit: 'C' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.nodes[1].pressure.value).toBeLessThan(0);
       expect(result.totalPressureDrop.value).toBeGreaterThan(0);
     });
@@ -136,31 +135,31 @@ describe('Pressure Profile API Routes', () => {
             diameter: { value: 0.1, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: 10, unit: 'm' },
-            flow: { value: 0.01, unit: 'm³/s' }
+            flow: { value: 0.01, unit: 'm³/s' },
           },
           {
             length: { value: 100, unit: 'm' },
             diameter: { value: 0.1, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: -15, unit: 'm' },
-            flow: { value: 0.01, unit: 'm³/s' }
-          }
+            flow: { value: 0.01, unit: 'm³/s' },
+          },
         ],
         fluid: {
           name: 'water',
-          temperature: { value: 20, unit: 'C' }
-        }
+          temperature: { value: 20, unit: 'C' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.nodes[1].elevation.value).toBe(10);
       expect(result.nodes[2].elevation.value).toBe(-5);
     });
@@ -173,24 +172,24 @@ describe('Pressure Profile API Routes', () => {
             diameter: { value: 0.1, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: 5, unit: 'm' },
-            flow: { value: 0.1, unit: 'm³/s' }
-          }
+            flow: { value: 0.1, unit: 'm³/s' },
+          },
         ],
         fluid: {
           name: 'air',
-          temperature: { value: 25, unit: 'C' }
-        }
+          temperature: { value: 25, unit: 'C' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.nodes).toHaveLength(2);
       expect(result.totalLength.value).toBe(100);
       expect(result.totalPressureDrop.value).toBeGreaterThan(0);
@@ -204,25 +203,25 @@ describe('Pressure Profile API Routes', () => {
             diameter: { value: 0.1, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: 0, unit: 'm' },
-            flow: { value: 0.01, unit: 'm³/s' }
-          }
+            flow: { value: 0.01, unit: 'm³/s' },
+          },
         ],
         fluid: {
           temperature: { value: 20, unit: 'C' },
           density: { value: 998, unit: 'kg/m³' },
-          viscosity: { value: 0.001, unit: 'Pa·s' }
-        }
+          viscosity: { value: 0.001, unit: 'Pa·s' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.nodes).toHaveLength(2);
       expect(result.totalLength.value).toBe(100);
     });
@@ -232,14 +231,14 @@ describe('Pressure Profile API Routes', () => {
         segments: [],
         fluid: {
           name: 'water',
-          temperature: { value: 20, unit: 'C' }
-        }
+          temperature: { value: 20, unit: 'C' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(400);
@@ -255,19 +254,19 @@ describe('Pressure Profile API Routes', () => {
             length: { value: -100, unit: 'm' },
             diameter: { value: 0.1, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
-            elevationDelta: { value: 0, unit: 'm' }
-          }
+            elevationDelta: { value: 0, unit: 'm' },
+          },
         ],
         fluid: {
           name: 'water',
-          temperature: { value: 20, unit: 'C' }
-        }
+          temperature: { value: 20, unit: 'C' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(400);
@@ -283,18 +282,18 @@ describe('Pressure Profile API Routes', () => {
             diameter: { value: 0.1, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: 0, unit: 'm' },
-            flow: { value: 0.01, unit: 'm³/s' }
-          }
+            flow: { value: 0.01, unit: 'm³/s' },
+          },
         ],
         fluid: {
-          temperature: { value: 20, unit: 'C' }
-        }
+          temperature: { value: 20, unit: 'C' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(500);
@@ -310,26 +309,26 @@ describe('Pressure Profile API Routes', () => {
             diameter: { value: 0.1, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: 0, unit: 'm' },
-            flow: { value: 0.01, unit: 'm³/s' }
+            flow: { value: 0.01, unit: 'm³/s' },
           },
           {
             length: { value: 100, unit: 'm' },
             diameter: { value: 0.1, unit: 'm' },
             roughness: { value: 0.000045, unit: 'm' },
             elevationDelta: { value: 0, unit: 'm' },
-            flow: { value: 0.02, unit: 'm³/s' }
-          }
+            flow: { value: 0.02, unit: 'm³/s' },
+          },
         ],
         fluid: {
           name: 'water',
-          temperature: { value: 20, unit: 'C' }
-        }
+          temperature: { value: 20, unit: 'C' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(500);
@@ -342,14 +341,14 @@ describe('Pressure Profile API Routes', () => {
         segments: 'invalid',
         fluid: {
           name: 'water',
-          temperature: { value: 20, unit: 'C' }
-        }
+          temperature: { value: 20, unit: 'C' },
+        },
       };
 
       const response = await fastify.inject({
         method: 'POST',
         url: '/api/v1/hydraulics/pressure-profile',
-        payload: requestBody
+        payload: requestBody,
       });
 
       expect(response.statusCode).toBe(400);

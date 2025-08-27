@@ -147,7 +147,9 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
         } else {
           // Get density from fluid properties
           if (!fluid.name) {
-            throw new Error('Fluid name is required when density is not provided');
+            throw new Error(
+              'Fluid name is required when density is not provided'
+            );
           }
           const fluidProps = getFluidDefaults(fluid.name, temperature);
           rho = fluidProps.density.value;
@@ -180,7 +182,9 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
           type: fitting.type,
           count: fitting.count,
           ...(fitting.k !== undefined && { k: fitting.k }),
-          ...(fitting.nominalSize !== undefined && { nominalSize: fitting.nominalSize }),
+          ...(fitting.nominalSize !== undefined && {
+            nominalSize: fitting.nominalSize,
+          }),
           ...(fitting.schedule !== undefined && { schedule: fitting.schedule }),
         }));
 

@@ -16,7 +16,7 @@ describe('Hydraulics Routes', () => {
   describe('POST /api/v1/hydraulics/size-pipe', () => {
     const waterAt20C = {
       density: { value: 998, unit: 'kg/m³' },
-      viscosity: { value: 0.001002, unit: 'Pa·s' }
+      viscosity: { value: 0.001002, unit: 'Pa·s' },
     };
 
     it('should size pipe for target velocity', async () => {
@@ -28,13 +28,13 @@ describe('Hydraulics Routes', () => {
           target: 'velocity',
           value: { value: 2, unit: 'm/s' },
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.diameter.value).toBeCloseTo(0.252, 3);
       expect(result.velocity.value).toBeCloseTo(2, 2);
       expect(result.pressureDrop.value).toBeGreaterThan(0);
@@ -52,17 +52,19 @@ describe('Hydraulics Routes', () => {
           target: 'dP',
           value: { value: 10000, unit: 'Pa' },
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.diameter.value).toBeGreaterThan(0);
       expect(result.pressureDrop.value).toBeGreaterThan(0);
       expect(result.velocity.value).toBeGreaterThan(0);
-      expect(result.metadata.calculations.method).toBe('Pressure drop-based sizing');
+      expect(result.metadata.calculations.method).toBe(
+        'Pressure drop-based sizing'
+      );
     });
 
     it('should handle different velocity units', async () => {
@@ -74,13 +76,13 @@ describe('Hydraulics Routes', () => {
           target: 'velocity',
           value: { value: 6.56, unit: 'ft/s' }, // 2 m/s in ft/s
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.diameter.value).toBeCloseTo(0.252, 3);
       expect(result.velocity.value).toBeCloseTo(2, 2);
     });
@@ -94,13 +96,13 @@ describe('Hydraulics Routes', () => {
           target: 'dP',
           value: { value: 10, unit: 'kPa' }, // 10000 Pa
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.pressureDrop.value).toBeGreaterThan(0);
     });
 
@@ -114,13 +116,13 @@ describe('Hydraulics Routes', () => {
           value: { value: 2, unit: 'm/s' },
           roughness: { value: 0.000001, unit: 'm' }, // Very smooth pipe
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
-      
+
       expect(result.diameter.value).toBeGreaterThan(0);
       expect(result.pressureDrop.value).toBeGreaterThan(0);
     });
@@ -134,8 +136,8 @@ describe('Hydraulics Routes', () => {
           target: 'velocity',
           value: { value: 2, unit: 'invalid_unit' },
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -152,8 +154,8 @@ describe('Hydraulics Routes', () => {
           target: 'dP',
           value: { value: 10000, unit: 'invalid_unit' },
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -170,8 +172,8 @@ describe('Hydraulics Routes', () => {
           target: 'velocity',
           value: { value: 2, unit: 'm/s' },
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -188,8 +190,8 @@ describe('Hydraulics Routes', () => {
           target: 'velocity',
           value: { value: -2, unit: 'm/s' },
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -206,8 +208,8 @@ describe('Hydraulics Routes', () => {
           target: 'velocity',
           value: { value: 2, unit: 'm/s' },
           fluid: waterAt20C,
-          length: { value: -100, unit: 'm' }
-        }
+          length: { value: -100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -223,9 +225,12 @@ describe('Hydraulics Routes', () => {
           flow: { value: 0.1, unit: 'm³/s' },
           target: 'velocity',
           value: { value: 2, unit: 'm/s' },
-          fluid: { density: { value: -998, unit: 'kg/m³' }, viscosity: { value: 0.001002, unit: 'Pa·s' } },
-          length: { value: 100, unit: 'm' }
-        }
+          fluid: {
+            density: { value: -998, unit: 'kg/m³' },
+            viscosity: { value: 0.001002, unit: 'Pa·s' },
+          },
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -241,9 +246,12 @@ describe('Hydraulics Routes', () => {
           flow: { value: 0.1, unit: 'm³/s' },
           target: 'velocity',
           value: { value: 2, unit: 'm/s' },
-          fluid: { density: { value: 998, unit: 'kg/m³' }, viscosity: { value: -0.001002, unit: 'Pa·s' } },
-          length: { value: 100, unit: 'm' }
-        }
+          fluid: {
+            density: { value: 998, unit: 'kg/m³' },
+            viscosity: { value: -0.001002, unit: 'Pa·s' },
+          },
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -260,8 +268,8 @@ describe('Hydraulics Routes', () => {
           target: 'velocity',
           // Missing value field
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -276,8 +284,8 @@ describe('Hydraulics Routes', () => {
           target: 'invalid_target',
           value: { value: 2, unit: 'm/s' },
           fluid: waterAt20C,
-          length: { value: 100, unit: 'm' }
-        }
+          length: { value: 100, unit: 'm' },
+        },
       });
 
       expect(response.statusCode).toBe(400);

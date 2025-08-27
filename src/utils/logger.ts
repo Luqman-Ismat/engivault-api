@@ -35,7 +35,7 @@ const PII_FIELDS = [
   'secret',
   'key',
   'private',
-  'sensitive'
+  'sensitive',
 ];
 
 // Create base logger
@@ -47,11 +47,13 @@ export function createLogger(config: LogConfig) {
       res: pino.stdSerializers.res,
       err: pino.stdSerializers.err,
     },
-    redact: config.redactPII ? {
-      paths: PII_FIELDS,
-      censor: '[REDACTED]',
-      remove: false
-    } : undefined,
+    redact: config.redactPII
+      ? {
+          paths: PII_FIELDS,
+          censor: '[REDACTED]',
+          remove: false,
+        }
+      : undefined,
   };
 
   if (config.prettyPrint) {
@@ -92,16 +94,16 @@ export function sanitizeRequestData(data: any, redactPII: boolean): any {
 
   if (typeof data === 'object') {
     const sanitized = { ...data };
-    
+
     for (const field of PII_FIELDS) {
       if (field in sanitized) {
         sanitized[field] = '[REDACTED]';
       }
     }
-    
+
     return sanitized;
   }
-  
+
   return data;
 }
 

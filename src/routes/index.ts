@@ -48,9 +48,9 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
                   rss: { type: 'number' },
                   heapTotal: { type: 'number' },
                   heapUsed: { type: 'number' },
-                  external: { type: 'number' }
-                }
-              }
+                  external: { type: 'number' },
+                },
+              },
             },
             required: ['status', 'timestamp', 'uptime', 'version', 'memory'],
           },
@@ -68,8 +68,8 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
           rss: memUsage.rss,
           heapTotal: memUsage.heapTotal,
           heapUsed: memUsage.heapUsed,
-          external: memUsage.external
-        }
+          external: memUsage.external,
+        },
       };
     }
   );

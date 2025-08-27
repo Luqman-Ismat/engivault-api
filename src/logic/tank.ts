@@ -101,7 +101,7 @@ export function calculateOrificeFlow(
   if (head < 0) {
     return 0; // No flow if head is negative
   }
-  
+
   const g = 9.81; // m/s²
   return coefficient * area * Math.sqrt(2 * g * head);
 }
@@ -119,10 +119,10 @@ export function interpolateInflowCurve(
   if (curve.length === 0) {
     return 0;
   }
-  
+
   // Sort curve by time
   const sortedCurve = [...curve].sort((a, b) => a.time - b.time);
-  
+
   // Handle extrapolation
   if (time <= sortedCurve[0].time) {
     return convert(sortedCurve[0].flow, 'm³/s').value;
@@ -130,7 +130,7 @@ export function interpolateInflowCurve(
   if (time >= sortedCurve[sortedCurve.length - 1].time) {
     return convert(sortedCurve[sortedCurve.length - 1].flow, 'm³/s').value;
   }
-  
+
   // Find the segment containing time
   let i = 0;
   for (i = 0; i < sortedCurve.length - 1; i++) {
@@ -138,12 +138,12 @@ export function interpolateInflowCurve(
       break;
     }
   }
-  
+
   const t0 = sortedCurve[i].time;
   const q0 = convert(sortedCurve[i].flow, 'm³/s').value;
   const t1 = sortedCurve[i + 1].time;
   const q1 = convert(sortedCurve[i + 1].flow, 'm³/s').value;
-  
+
   // Linear interpolation
   const t = (time - t0) / (t1 - t0);
   return q0 + t * (q1 - q0);
@@ -162,10 +162,10 @@ export function interpolatePumpCurve(
   if (curve.length === 0) {
     return 0;
   }
-  
+
   // Sort curve by head (descending for pump curve)
   const sortedCurve = [...curve].sort((a, b) => b.head - a.head);
-  
+
   // Handle extrapolation
   if (head >= sortedCurve[0].head) {
     return convert(sortedCurve[0].flow, 'm³/s').value;
@@ -173,7 +173,7 @@ export function interpolatePumpCurve(
   if (head <= sortedCurve[sortedCurve.length - 1].head) {
     return convert(sortedCurve[sortedCurve.length - 1].flow, 'm³/s').value;
   }
-  
+
   // Find the segment containing head
   let i = 0;
   for (i = 0; i < sortedCurve.length - 1; i++) {
@@ -181,12 +181,12 @@ export function interpolatePumpCurve(
       break;
     }
   }
-  
+
   const h0 = sortedCurve[i].head;
   const q0 = convert(sortedCurve[i].flow, 'm³/s').value;
   const h1 = sortedCurve[i + 1].head;
   const q1 = convert(sortedCurve[i + 1].flow, 'm³/s').value;
-  
+
   // Linear interpolation
   const t = (head - h0) / (h1 - h0);
   return q0 + t * (q1 - q0);
@@ -215,7 +215,7 @@ export function calculateOutflow(
         orificeArea,
         level
       );
-      
+
     case 'pump':
       if (!outflow.pump) {
         throw new Error('Pump configuration required for pump outflow');
@@ -224,13 +224,15 @@ export function calculateOutflow(
         return 0;
       }
       return interpolatePumpCurve(outflow.pump.curve, level);
-      
+
     case 'constant':
       if (!outflow.constant) {
-        throw new Error('Constant flow configuration required for constant outflow');
+        throw new Error(
+          'Constant flow configuration required for constant outflow'
+        );
       }
       return convert(outflow.constant.flow, 'm³/s').value;
-      
+
     default:
       throw new Error(`Unknown outflow type: ${outflow.type}`);
   }
@@ -251,11 +253,11 @@ export function determinePumpState(
   if (outflow.type !== 'pump' || !outflow.pump?.onOffControl) {
     return currentPumpState;
   }
-  
+
   const { highLevel, lowLevel } = outflow.pump.onOffControl;
   const highLevelValue = convert(highLevel, 'm').value;
   const lowLevelValue = convert(lowLevel, 'm').value;
-  
+
   if (currentPumpState) {
     // Pump is on - turn off if level drops below low level
     return level > lowLevelValue;
@@ -272,21 +274,21 @@ export function determinePumpState(
  */
 export function simulateTank(input: TankSimulationInput): TankSimulationResult {
   const warnings: (string | Warning)[] = [];
-  
+
   // Convert input parameters to SI units
   const tankArea = convert(input.tank.area, 'm²').value;
-  const initialLevel = input.tank.initialLevel 
-    ? convert(input.tank.initialLevel, 'm').value 
+  const initialLevel = input.tank.initialLevel
+    ? convert(input.tank.initialLevel, 'm').value
     : 0;
-  const maxLevel = input.tank.maxLevel 
-    ? convert(input.tank.maxLevel, 'm').value 
+  const maxLevel = input.tank.maxLevel
+    ? convert(input.tank.maxLevel, 'm').value
     : Infinity;
-  const minLevel = input.tank.minLevel 
-    ? convert(input.tank.minLevel, 'm').value 
+  const minLevel = input.tank.minLevel
+    ? convert(input.tank.minLevel, 'm').value
     : 0;
   const endTime = convert(input.simulation.endTime, 's').value;
   const timeStep = convert(input.simulation.timeStep, 's').value;
-  
+
   // Validate inputs
   if (tankArea <= 0) {
     throw new Error('Tank area must be positive');
@@ -303,19 +305,19 @@ export function simulateTank(input: TankSimulationInput): TankSimulationResult {
   if (initialLevel < minLevel || initialLevel > maxLevel) {
     throw new Error('Initial level must be within tank bounds');
   }
-  
+
   // Initialize simulation
   const timeSeries: TimeSeriesPoint[] = [];
   let currentLevel = initialLevel;
   let pumpOn = true; // Default to on, will be corrected by determinePumpState
-  
+
   // Calculate number of steps
   const totalSteps = Math.ceil(endTime / timeStep);
-  
+
   // Run simulation
   for (let step = 0; step <= totalSteps; step++) {
     const time = step * timeStep;
-    
+
     // Calculate inflow
     let inflow = 0;
     switch (input.inflow.type) {
@@ -334,72 +336,74 @@ export function simulateTank(input: TankSimulationInput): TankSimulationResult {
         warnings.push('Function-based inflow not yet implemented');
         break;
     }
-    
+
     // Determine pump state
     pumpOn = determinePumpState(input.outflow, currentLevel, pumpOn);
-    
+
     // Calculate outflow
     const outflow = calculateOutflow(input.outflow, currentLevel, pumpOn);
-    
+
     // Record current state
     timeSeries.push({
       time,
       level: currentLevel,
       inflow,
       outflow,
-      pumpOn
+      pumpOn,
     });
-    
+
     // Update level for next step (except for last step)
     if (step < totalSteps) {
       const netFlow = inflow - outflow;
       const levelChange = (netFlow * timeStep) / tankArea;
       currentLevel += levelChange;
-      
+
       // Apply bounds
       currentLevel = Math.max(minLevel, Math.min(maxLevel, currentLevel));
     }
   }
-  
+
   // Calculate summary statistics
   const levels = timeSeries.map(point => point.level);
   const inflows = timeSeries.map(point => point.inflow);
   const outflows = timeSeries.map(point => point.outflow);
-  
+
   const finalLevel = levels[levels.length - 1];
   const maxLevelReached = Math.max(...levels);
   const minLevelReached = Math.min(...levels);
-  const averageInflow = inflows.reduce((sum, flow) => sum + flow, 0) / inflows.length;
-  const averageOutflow = outflows.reduce((sum, flow) => sum + flow, 0) / outflows.length;
-  
+  const averageInflow =
+    inflows.reduce((sum, flow) => sum + flow, 0) / inflows.length;
+  const averageOutflow =
+    outflows.reduce((sum, flow) => sum + flow, 0) / outflows.length;
+
   const overflow = maxLevelReached >= maxLevel;
   const empty = minLevelReached <= minLevel;
-  
+
   // Add warnings
   if (overflow) {
     warnings.push({
       type: 'warning',
       message: 'Tank overflow detected during simulation',
-      severity: 'high'
+      severity: 'high',
     });
   }
-  
+
   if (empty) {
     warnings.push({
       type: 'warning',
       message: 'Tank empty condition detected during simulation',
-      severity: 'high'
+      severity: 'high',
     });
   }
-  
+
   if (timeStep > endTime / 100) {
     warnings.push({
       type: 'warning',
       message: 'Time step may be too large for accurate simulation',
-      severity: 'medium'
+      severity: 'medium',
     });
   }
-  
+
   return {
     timeSeries,
     summary: {
@@ -409,15 +413,15 @@ export function simulateTank(input: TankSimulationInput): TankSimulationResult {
       averageInflow,
       averageOutflow,
       overflow,
-      empty
+      empty,
     },
     warnings,
     metadata: {
       input,
       calculations: {
         totalSteps,
-        simulationTime: endTime
-      }
-    }
+        simulationTime: endTime,
+      },
+    },
   };
 }

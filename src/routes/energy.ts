@@ -33,14 +33,16 @@ const zEnergyResponse = z.object({
   totalEnergy: zQuantity,
   totalCost: zQuantity,
   averagePower: zQuantity,
-  loadProfile: z.array(z.object({
-    hours: z.number(),
-    Qset: zQuantity,
-    speed: z.number().optional(),
-    power: zQuantity,
-    energy: zQuantity,
-    cost: zQuantity,
-  })),
+  loadProfile: z.array(
+    z.object({
+      hours: z.number(),
+      Qset: zQuantity,
+      speed: z.number().optional(),
+      power: zQuantity,
+      energy: zQuantity,
+      cost: zQuantity,
+    })
+  ),
   efficiency: z.object({
     averagePumpEfficiency: z.number(),
     averageMotorEfficiency: z.number(),
@@ -60,7 +62,8 @@ export default async function energyRoutes(fastify: FastifyInstance) {
     '/api/v1/pumps/energy',
     {
       schema: {
-        description: 'Calculate annual energy consumption and cost for pump system',
+        description:
+          'Calculate annual energy consumption and cost for pump system',
         tags: ['Pumps'],
         body: {
           type: 'object',
@@ -70,7 +73,10 @@ export default async function energyRoutes(fastify: FastifyInstance) {
               properties: {
                 density: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 name: { type: 'string' },
@@ -88,7 +94,10 @@ export default async function energyRoutes(fastify: FastifyInstance) {
                   hours: { type: 'number', minimum: 0 },
                   Qset: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   speed: { type: 'number', minimum: 0, maximum: 1 },
@@ -108,11 +117,21 @@ export default async function energyRoutes(fastify: FastifyInstance) {
             },
             head: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
           },
-          required: ['fluid', 'pumpEfficiency', 'motorEfficiency', 'loadProfile', 'tariff', 'head'],
+          required: [
+            'fluid',
+            'pumpEfficiency',
+            'motorEfficiency',
+            'loadProfile',
+            'tariff',
+            'head',
+          ],
         },
         response: {
           200: {
@@ -120,17 +139,26 @@ export default async function energyRoutes(fastify: FastifyInstance) {
             properties: {
               totalEnergy: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               totalCost: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               averagePower: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               loadProfile: {
@@ -141,23 +169,35 @@ export default async function energyRoutes(fastify: FastifyInstance) {
                     hours: { type: 'number' },
                     Qset: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                     speed: { type: 'number' },
                     power: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                     energy: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                     cost: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                   },
@@ -172,7 +212,11 @@ export default async function energyRoutes(fastify: FastifyInstance) {
                   averageVfdEfficiency: { type: 'number' },
                   averageTotalEfficiency: { type: 'number' },
                 },
-                required: ['averagePumpEfficiency', 'averageMotorEfficiency', 'averageTotalEfficiency'],
+                required: [
+                  'averagePumpEfficiency',
+                  'averageMotorEfficiency',
+                  'averageTotalEfficiency',
+                ],
               },
               warnings: { type: 'array', items: { type: 'string' } },
               metadata: {
@@ -193,7 +237,15 @@ export default async function energyRoutes(fastify: FastifyInstance) {
                 required: ['tariff', 'totalHours', 'operatingPoints'],
               },
             },
-            required: ['totalEnergy', 'totalCost', 'averagePower', 'loadProfile', 'efficiency', 'warnings', 'metadata'],
+            required: [
+              'totalEnergy',
+              'totalCost',
+              'averagePower',
+              'loadProfile',
+              'efficiency',
+              'warnings',
+              'metadata',
+            ],
           },
           400: {
             type: 'object',
@@ -218,10 +270,10 @@ export default async function energyRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         const body = zEnergyRequest.parse(request.body);
-        
+
         // Validate inputs
         const validation = validateEnergyInputs(body);
-        
+
         if (!validation.isValid) {
           return reply.status(400).send({
             error: 'Invalid input parameters',
@@ -234,7 +286,7 @@ export default async function energyRoutes(fastify: FastifyInstance) {
         const result = calculatePumpEnergy(body);
 
         // Convert warnings to strings for API response
-        const stringWarnings = result.warnings.map(warning => 
+        const stringWarnings = result.warnings.map(warning =>
           typeof warning === 'string' ? warning : warning.message
         );
 
@@ -276,7 +328,10 @@ export default async function energyRoutes(fastify: FastifyInstance) {
                           hours: { type: 'number' },
                           Qset: {
                             type: 'object',
-                            properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                            properties: {
+                              value: { type: 'number' },
+                              unit: { type: 'string' },
+                            },
                             required: ['value', 'unit'],
                           },
                           speed: { type: 'number' },
@@ -413,7 +468,7 @@ export default async function energyRoutes(fastify: FastifyInstance) {
           },
           {
             name: 'Commercial',
-            rate: 0.10,
+            rate: 0.1,
             description: 'Typical commercial electricity rate',
             region: 'US Average',
           },
@@ -425,7 +480,7 @@ export default async function energyRoutes(fastify: FastifyInstance) {
           },
           {
             name: 'High Rate',
-            rate: 0.20,
+            rate: 0.2,
             description: 'High electricity rate (e.g., California, Hawaii)',
             region: 'High Cost Areas',
           },

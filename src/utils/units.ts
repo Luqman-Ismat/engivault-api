@@ -37,7 +37,7 @@ const UNIT_CONVERSIONS: Record<string, UnitConversion> = {
 
   // Volume
   'm³': { factor: 1, offset: 0 },
-  'L': { factor: 0.001, offset: 0 },
+  L: { factor: 0.001, offset: 0 },
   gal: { factor: 0.00378541, offset: 0 },
   'ft³': { factor: 0.0283168, offset: 0 },
 
@@ -120,7 +120,7 @@ const UNIT_CATEGORIES: Record<string, string> = {
 
   // Volume
   'm³': 'volume',
-  'L': 'volume',
+  L: 'volume',
   gal: 'volume',
   'ft³': 'volume',
 

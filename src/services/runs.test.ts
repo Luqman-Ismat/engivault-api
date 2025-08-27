@@ -15,14 +15,20 @@ describe('Transcript Service', () => {
         normalizedInputs: { test: 'data' },
         selectedEquations: ['equation1', 'equation2'],
         intermediateValues: { step1: 10, step2: 20 },
-        warnings: [{ type: 'warning', message: 'test warning', severity: 'low' as const }],
+        warnings: [
+          {
+            type: 'warning',
+            message: 'test warning',
+            severity: 'low' as const,
+          },
+        ],
         meta: {
           processingTime: 100,
           inputValidation: true,
           calculationMethod: 'test-method',
-          units: { length: 'm' }
+          units: { length: 'm' },
         },
-        result: { success: true }
+        result: { success: true },
       };
 
       const id = transcriptService.generateId();
@@ -64,9 +70,9 @@ describe('Transcript Service', () => {
           processingTime: 50,
           inputValidation: true,
           calculationMethod: 'test1',
-          units: {}
+          units: {},
         },
-        result: {}
+        result: {},
       });
 
       transcriptService.createTranscript(id2, {
@@ -80,9 +86,9 @@ describe('Transcript Service', () => {
           processingTime: 100,
           inputValidation: true,
           calculationMethod: 'test2',
-          units: {}
+          units: {},
         },
-        result: {}
+        result: {},
       });
 
       const ids = transcriptService.listTranscriptIds();
@@ -104,13 +110,13 @@ describe('Transcript Service', () => {
           processingTime: 50,
           inputValidation: true,
           calculationMethod: 'test',
-          units: {}
+          units: {},
         },
-        result: {}
+        result: {},
       });
 
       expect(transcriptService.getCount()).toBe(1);
-      
+
       const deleted = transcriptService.deleteTranscript(id);
       expect(deleted).toBe(true);
       expect(transcriptService.getCount()).toBe(0);
@@ -132,9 +138,9 @@ describe('Transcript Service', () => {
           processingTime: 50,
           inputValidation: true,
           calculationMethod: 'test1',
-          units: {}
+          units: {},
         },
-        result: {}
+        result: {},
       });
 
       transcriptService.createTranscript(id2, {
@@ -148,13 +154,13 @@ describe('Transcript Service', () => {
           processingTime: 100,
           inputValidation: true,
           calculationMethod: 'test2',
-          units: {}
+          units: {},
         },
-        result: {}
+        result: {},
       });
 
       expect(transcriptService.getCount()).toBe(2);
-      
+
       transcriptService.clearAll();
       expect(transcriptService.getCount()).toBe(0);
       expect(transcriptService.getTranscript(id1)).toBeUndefined();
@@ -166,23 +172,29 @@ describe('Transcript Service', () => {
     it('should detect transcript header correctly', () => {
       const requestWithHeader = {
         headers: {
-          'x-engivault-transcript': 'on'
-        }
+          'x-engivault-transcript': 'on',
+        },
       } as any;
 
       const requestWithoutHeader = {
-        headers: {}
+        headers: {},
       } as any;
 
       const requestWithWrongValue = {
         headers: {
-          'x-engivault-transcript': 'off'
-        }
+          'x-engivault-transcript': 'off',
+        },
       } as any;
 
-      expect(transcriptService.isTranscriptEnabled(requestWithHeader)).toBe(true);
-      expect(transcriptService.isTranscriptEnabled(requestWithoutHeader)).toBe(false);
-      expect(transcriptService.isTranscriptEnabled(requestWithWrongValue)).toBe(false);
+      expect(transcriptService.isTranscriptEnabled(requestWithHeader)).toBe(
+        true
+      );
+      expect(transcriptService.isTranscriptEnabled(requestWithoutHeader)).toBe(
+        false
+      );
+      expect(transcriptService.isTranscriptEnabled(requestWithWrongValue)).toBe(
+        false
+      );
     });
   });
 
@@ -192,7 +204,7 @@ describe('Transcript Service', () => {
         url: '/api/v1/operations/fill-drain-time',
         method: 'POST',
         body: { test: 'data' },
-        headers: { 'x-engivault-transcript': 'on' }
+        headers: { 'x-engivault-transcript': 'on' },
       } as any;
 
       const transcript = transcriptService.createFromRequest(
@@ -213,7 +225,7 @@ describe('Transcript Service', () => {
         url: '/api/v1/pumps/bep-check',
         method: 'POST',
         body: { test: 'data' },
-        headers: { 'x-engivault-transcript': 'on' }
+        headers: { 'x-engivault-transcript': 'on' },
       } as any;
 
       const transcript = transcriptService.createFromRequest(
@@ -226,7 +238,9 @@ describe('Transcript Service', () => {
       );
 
       expect(transcript).not.toBeNull();
-      expect(transcript!.meta.calculationMethod).toBe('bep-distance-calculation');
+      expect(transcript!.meta.calculationMethod).toBe(
+        'bep-distance-calculation'
+      );
     });
 
     it('should detect unknown calculation method', () => {
@@ -234,7 +248,7 @@ describe('Transcript Service', () => {
         url: '/api/v1/unknown-endpoint',
         method: 'POST',
         body: { test: 'data' },
-        headers: { 'x-engivault-transcript': 'on' }
+        headers: { 'x-engivault-transcript': 'on' },
       } as any;
 
       const transcript = transcriptService.createFromRequest(
@@ -259,13 +273,13 @@ describe('Transcript Service', () => {
         body: {
           tank: {
             volume: { value: 100, unit: 'm³' },
-            diameter: { value: 5, unit: 'm' }
+            diameter: { value: 5, unit: 'm' },
           },
           flowRate: {
-            value: { value: 0.1, unit: 'm³/s' }
-          }
+            value: { value: 0.1, unit: 'm³/s' },
+          },
         },
-        headers: { 'x-engivault-transcript': 'on' }
+        headers: { 'x-engivault-transcript': 'on' },
       } as any;
 
       const transcript = transcriptService.createFromRequest(
@@ -281,11 +295,11 @@ describe('Transcript Service', () => {
       expect(transcript!.normalizedInputs).toEqual({
         tank: {
           volume: { value: 100, unit: 'm³' },
-          diameter: { value: 5, unit: 'm' }
+          diameter: { value: 5, unit: 'm' },
         },
         flowRate: {
-          value: { value: 0.1, unit: 'm³/s' }
-        }
+          value: { value: 0.1, unit: 'm³/s' },
+        },
       });
     });
 
@@ -296,10 +310,10 @@ describe('Transcript Service', () => {
         body: {
           items: [
             { tank: { volume: { value: 100, unit: 'm³' } } },
-            { tank: { volume: { value: 200, unit: 'm³' } } }
-          ]
+            { tank: { volume: { value: 200, unit: 'm³' } } },
+          ],
         },
-        headers: { 'x-engivault-transcript': 'on' }
+        headers: { 'x-engivault-transcript': 'on' },
       } as any;
 
       const transcript = transcriptService.createFromRequest(
@@ -326,13 +340,13 @@ describe('Transcript Service', () => {
         body: {
           tank: {
             volume: { value: 100, unit: 'm³' },
-            diameter: { value: 5, unit: 'm' }
+            diameter: { value: 5, unit: 'm' },
           },
           flowRate: {
-            value: { value: 0.1, unit: 'm³/s' }
-          }
+            value: { value: 0.1, unit: 'm³/s' },
+          },
         },
-        headers: { 'x-engivault-transcript': 'on' }
+        headers: { 'x-engivault-transcript': 'on' },
       } as any;
 
       const transcript = transcriptService.createFromRequest(
@@ -348,7 +362,7 @@ describe('Transcript Service', () => {
       expect(transcript!.meta.units).toEqual({
         'tank.volume': 'm³',
         'tank.diameter': 'm',
-        'flowRate.value': 'm³/s'
+        'flowRate.value': 'm³/s',
       });
     });
   });
@@ -359,11 +373,13 @@ describe('Transcript Service', () => {
         url: '/api/v1/operations/fill-drain-time',
         method: 'POST',
         body: { test: 'data' },
-        headers: { 'x-engivault-transcript': 'on' }
+        headers: { 'x-engivault-transcript': 'on' },
       } as any;
 
       const response = { totalTime: { value: 100, unit: 's' } };
-      const warnings = [{ type: 'warning', message: 'test', severity: 'low' as const }];
+      const warnings = [
+        { type: 'warning', message: 'test', severity: 'low' as const },
+      ];
       const intermediates = { step1: 10, step2: 20 };
       const equations = ['equation1', 'equation2'];
 
@@ -392,7 +408,7 @@ describe('Transcript Service', () => {
         url: '/api/v1/operations/fill-drain-time',
         method: 'POST',
         body: { test: 'data' },
-        headers: {}
+        headers: {},
       } as any;
 
       const transcript = transcriptService.createFromRequest(
@@ -412,7 +428,7 @@ describe('Transcript Service', () => {
         url: '/api/v1/test',
         method: 'POST',
         body: null,
-        headers: { 'x-engivault-transcript': 'on' }
+        headers: { 'x-engivault-transcript': 'on' },
       } as any;
 
       const transcript = transcriptService.createFromRequest(

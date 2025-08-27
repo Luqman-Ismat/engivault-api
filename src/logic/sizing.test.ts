@@ -4,12 +4,12 @@ import { sizePipeForTarget } from './sizing';
 describe('Pipe Sizing Module', () => {
   const waterAt20C = {
     density: { value: 998, unit: 'kg/m³' },
-    viscosity: { value: 0.001002, unit: 'Pa·s' }
+    viscosity: { value: 0.001002, unit: 'Pa·s' },
   };
 
   const oilAt20C = {
     density: { value: 850, unit: 'kg/m³' },
-    viscosity: { value: 0.01, unit: 'Pa·s' }
+    viscosity: { value: 0.01, unit: 'Pa·s' },
   };
 
   describe('sizePipeForTarget - Velocity Target', () => {
@@ -19,7 +19,7 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 2, unit: 'm/s' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
@@ -39,7 +39,7 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 6.56, unit: 'ft/s' }, // 2 m/s in ft/s
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
@@ -54,12 +54,12 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 5, unit: 'm/s' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
 
-      const highVelocityWarning = result.warnings.find(w => 
+      const highVelocityWarning = result.warnings.find(w =>
         w.message.includes('High velocity detected')
       );
       expect(highVelocityWarning).toBeDefined();
@@ -71,13 +71,13 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 0.5, unit: 'm/s' },
         fluid: oilAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
 
       expect(result.reynoldsNumber).toBeLessThan(2300);
-      const laminarWarning = result.warnings.find(w => 
+      const laminarWarning = result.warnings.find(w =>
         w.message.includes('laminar')
       );
       expect(laminarWarning).toBeDefined();
@@ -91,7 +91,7 @@ describe('Pipe Sizing Module', () => {
         target: 'dP' as const,
         value: { value: 10000, unit: 'Pa' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
@@ -101,7 +101,9 @@ describe('Pipe Sizing Module', () => {
       expect(result.velocity.value).toBeGreaterThan(0);
       expect(result.reynoldsNumber).toBeGreaterThan(0);
       expect(result.frictionFactor).toBeGreaterThan(0);
-      expect(result.metadata.calculations.method).toBe('Pressure drop-based sizing');
+      expect(result.metadata.calculations.method).toBe(
+        'Pressure drop-based sizing'
+      );
     });
 
     it('should handle different pressure units', () => {
@@ -110,7 +112,7 @@ describe('Pipe Sizing Module', () => {
         target: 'dP' as const,
         value: { value: 10, unit: 'kPa' }, // 10000 Pa
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
@@ -124,7 +126,7 @@ describe('Pipe Sizing Module', () => {
         target: 'dP' as const,
         value: { value: 100, unit: 'Pa' },
         fluid: waterAt20C,
-        length: { value: 50, unit: 'm' }
+        length: { value: 50, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
@@ -139,7 +141,7 @@ describe('Pipe Sizing Module', () => {
         target: 'dP' as const,
         value: { value: 100000, unit: 'Pa' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
@@ -156,10 +158,12 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 2, unit: 'm/s' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
-      expect(() => sizePipeForTarget(input)).toThrow('Flow rate must be positive');
+      expect(() => sizePipeForTarget(input)).toThrow(
+        'Flow rate must be positive'
+      );
     });
 
     it('should throw error for negative target value', () => {
@@ -168,10 +172,12 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: -2, unit: 'm/s' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
-      expect(() => sizePipeForTarget(input)).toThrow('Target value must be positive');
+      expect(() => sizePipeForTarget(input)).toThrow(
+        'Target value must be positive'
+      );
     });
 
     it('should throw error for negative length', () => {
@@ -180,10 +186,12 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 2, unit: 'm/s' },
         fluid: waterAt20C,
-        length: { value: -100, unit: 'm' }
+        length: { value: -100, unit: 'm' },
       };
 
-      expect(() => sizePipeForTarget(input)).toThrow('Pipe length must be positive');
+      expect(() => sizePipeForTarget(input)).toThrow(
+        'Pipe length must be positive'
+      );
     });
 
     it('should throw error for negative density', () => {
@@ -191,11 +199,16 @@ describe('Pipe Sizing Module', () => {
         flow: { value: 0.1, unit: 'm³/s' },
         target: 'velocity' as const,
         value: { value: 2, unit: 'm/s' },
-        fluid: { density: { value: -998, unit: 'kg/m³' }, viscosity: { value: 0.001002, unit: 'Pa·s' } },
-        length: { value: 100, unit: 'm' }
+        fluid: {
+          density: { value: -998, unit: 'kg/m³' },
+          viscosity: { value: 0.001002, unit: 'Pa·s' },
+        },
+        length: { value: 100, unit: 'm' },
       };
 
-      expect(() => sizePipeForTarget(input)).toThrow('Fluid density must be positive');
+      expect(() => sizePipeForTarget(input)).toThrow(
+        'Fluid density must be positive'
+      );
     });
 
     it('should throw error for negative viscosity', () => {
@@ -203,11 +216,16 @@ describe('Pipe Sizing Module', () => {
         flow: { value: 0.1, unit: 'm³/s' },
         target: 'velocity' as const,
         value: { value: 2, unit: 'm/s' },
-        fluid: { density: { value: 998, unit: 'kg/m³' }, viscosity: { value: -0.001002, unit: 'Pa·s' } },
-        length: { value: 100, unit: 'm' }
+        fluid: {
+          density: { value: 998, unit: 'kg/m³' },
+          viscosity: { value: -0.001002, unit: 'Pa·s' },
+        },
+        length: { value: 100, unit: 'm' },
       };
 
-      expect(() => sizePipeForTarget(input)).toThrow('Fluid viscosity must be positive');
+      expect(() => sizePipeForTarget(input)).toThrow(
+        'Fluid viscosity must be positive'
+      );
     });
   });
 
@@ -218,7 +236,7 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 2, unit: 'm/s' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
@@ -234,7 +252,7 @@ describe('Pipe Sizing Module', () => {
         value: { value: 2, unit: 'm/s' },
         roughness: { value: 0.000001, unit: 'm' }, // Very smooth pipe
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
@@ -251,7 +269,7 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 2, unit: 'm/s' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
@@ -267,7 +285,7 @@ describe('Pipe Sizing Module', () => {
         target: 'dP' as const,
         value: { value: 10000, unit: 'Pa' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const result = sizePipeForTarget(input);
@@ -286,7 +304,7 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 2, unit: 'm/s' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const velocityResult = sizePipeForTarget(velocityInput);
@@ -297,13 +315,16 @@ describe('Pipe Sizing Module', () => {
         target: 'dP' as const,
         value: { value: velocityResult.pressureDrop.value, unit: 'Pa' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const pressureResult = sizePipeForTarget(pressureInput);
 
       // Should get similar diameters
-      expect(pressureResult.diameter.value).toBeCloseTo(velocityResult.diameter.value, 3);
+      expect(pressureResult.diameter.value).toBeCloseTo(
+        velocityResult.diameter.value,
+        3
+      );
     });
 
     it('should show reasonable diameter scaling with flow rate', () => {
@@ -312,7 +333,7 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 2, unit: 'm/s' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const largeFlow = {
@@ -320,14 +341,16 @@ describe('Pipe Sizing Module', () => {
         target: 'velocity' as const,
         value: { value: 2, unit: 'm/s' },
         fluid: waterAt20C,
-        length: { value: 100, unit: 'm' }
+        length: { value: 100, unit: 'm' },
       };
 
       const smallResult = sizePipeForTarget(smallFlow);
       const largeResult = sizePipeForTarget(largeFlow);
 
       // Larger flow should require larger diameter for same velocity
-      expect(largeResult.diameter.value).toBeGreaterThan(smallResult.diameter.value);
+      expect(largeResult.diameter.value).toBeGreaterThan(
+        smallResult.diameter.value
+      );
     });
   });
 });

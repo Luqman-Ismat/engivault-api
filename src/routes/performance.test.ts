@@ -20,9 +20,9 @@ describe('Performance Integration Tests', () => {
           { q: 20, h: 80 },
           { q: 30, h: 70 },
           { q: 40, h: 60 },
-          { q: 50, h: 50 }
+          { q: 50, h: 50 },
         ],
-        model: 'quadratic'
+        model: 'quadratic',
       };
 
       // Make multiple requests rapidly
@@ -30,7 +30,7 @@ describe('Performance Integration Tests', () => {
         app.inject({
           method: 'POST',
           url: '/api/v1/curves/fit',
-          payload
+          payload,
         })
       );
 
@@ -45,7 +45,7 @@ describe('Performance Integration Tests', () => {
       for (let i = 100; i < 105; i++) {
         expect(responses[i].statusCode).toBe(429);
         expect(JSON.parse(responses[i].payload)).toMatchObject({
-          error: 'Too Many Requests'
+          error: 'Too Many Requests',
         });
       }
     });
@@ -55,7 +55,7 @@ describe('Performance Integration Tests', () => {
       const healthPromises = Array.from({ length: 200 }, () =>
         app.inject({
           method: 'GET',
-          url: '/health'
+          url: '/health',
         })
       );
 
@@ -75,10 +75,10 @@ describe('Performance Integration Tests', () => {
           points: [
             { q: 10, h: 90 },
             { q: 20, h: 80 },
-            { q: 30, h: 70 }
+            { q: 30, h: 70 },
           ],
-          model: 'quadratic'
-        }
+          model: 'quadratic',
+        },
       });
 
       expect(response.statusCode).toBe(200);
@@ -94,9 +94,9 @@ describe('Performance Integration Tests', () => {
       const largePayload = {
         points: Array.from({ length: 100 }, (_, i) => ({
           q: i * 10,
-          h: 100 - i * 0.5
+          h: 100 - i * 0.5,
         })),
-        model: 'cubic'
+        model: 'cubic',
       };
 
       const response = await app.inject({
@@ -104,13 +104,15 @@ describe('Performance Integration Tests', () => {
         url: '/api/v1/curves/fit',
         payload: largePayload,
         headers: {
-          'accept-encoding': 'gzip, deflate'
-        }
+          'accept-encoding': 'gzip, deflate',
+        },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.headers['content-encoding']).toBeDefined();
-      expect(['gzip', 'deflate']).toContain(response.headers['content-encoding']);
+      expect(['gzip', 'deflate']).toContain(
+        response.headers['content-encoding']
+      );
     });
 
     it('should not compress small responses', async () => {
@@ -118,9 +120,9 @@ describe('Performance Integration Tests', () => {
         points: [
           { q: 10, h: 90 },
           { q: 20, h: 80 },
-          { q: 30, h: 70 }
+          { q: 30, h: 70 },
         ],
-        model: 'quadratic'
+        model: 'quadratic',
       };
 
       const response = await app.inject({
@@ -128,8 +130,8 @@ describe('Performance Integration Tests', () => {
         url: '/api/v1/curves/fit',
         payload: smallPayload,
         headers: {
-          'accept-encoding': 'gzip, deflate'
-        }
+          'accept-encoding': 'gzip, deflate',
+        },
       });
 
       expect(response.statusCode).toBe(200);
@@ -140,9 +142,9 @@ describe('Performance Integration Tests', () => {
       const largePayload = {
         points: Array.from({ length: 50 }, (_, i) => ({
           q: i * 10,
-          h: 100 - i * 0.5
+          h: 100 - i * 0.5,
         })),
-        model: 'quadratic'
+        model: 'quadratic',
       };
 
       // Request with gzip only
@@ -151,8 +153,8 @@ describe('Performance Integration Tests', () => {
         url: '/api/v1/curves/fit',
         payload: largePayload,
         headers: {
-          'accept-encoding': 'gzip'
-        }
+          'accept-encoding': 'gzip',
+        },
       });
 
       expect(gzipResponse.statusCode).toBe(200);
@@ -164,8 +166,8 @@ describe('Performance Integration Tests', () => {
         url: '/api/v1/curves/fit',
         payload: largePayload,
         headers: {
-          'accept-encoding': 'deflate'
-        }
+          'accept-encoding': 'deflate',
+        },
       });
 
       expect(deflateResponse.statusCode).toBe(200);
@@ -177,7 +179,7 @@ describe('Performance Integration Tests', () => {
     it('should add cache headers to GET requests', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/health'
+        url: '/health',
       });
 
       expect(response.statusCode).toBe(200);
@@ -189,7 +191,7 @@ describe('Performance Integration Tests', () => {
       // First request to get ETag
       const firstResponse = await app.inject({
         method: 'GET',
-        url: '/health'
+        url: '/health',
       });
 
       const etag = firstResponse.headers['etag'];
@@ -199,8 +201,8 @@ describe('Performance Integration Tests', () => {
         method: 'GET',
         url: '/health',
         headers: {
-          'if-none-match': etag
-        }
+          'if-none-match': etag,
+        },
       });
 
       expect(secondResponse.statusCode).toBe(304);
@@ -214,10 +216,10 @@ describe('Performance Integration Tests', () => {
           points: [
             { q: 10, h: 90 },
             { q: 20, h: 80 },
-            { q: 30, h: 70 }
+            { q: 30, h: 70 },
           ],
-          model: 'quadratic'
-        }
+          model: 'quadratic',
+        },
       });
 
       expect(response.statusCode).toBe(200);
@@ -235,31 +237,31 @@ describe('Performance Integration Tests', () => {
           points: [
             { q: 10, h: 90 },
             { q: 20, h: 80 },
-            { q: 30, h: 70 }
+            { q: 30, h: 70 },
           ],
-          model: 'quadratic'
-        }
+          model: 'quadratic',
+        },
       });
 
       expect(response.statusCode).toBe(200);
-      
+
       // Check for rate limit headers
       expect(response.headers['x-ratelimit-limit']).toBeDefined();
       expect(response.headers['x-ratelimit-remaining']).toBeDefined();
-      
+
       // Check for timing headers (if added by middleware)
       expect(response.headers['x-response-time']).toBeDefined();
     });
 
     it('should handle large payloads efficiently', async () => {
       const startTime = Date.now();
-      
+
       const largePayload = {
         points: Array.from({ length: 200 }, (_, i) => ({
           q: i * 5,
-          h: 100 - i * 0.25
+          h: 100 - i * 0.25,
         })),
-        model: 'cubic'
+        model: 'cubic',
       };
 
       const response = await app.inject({
@@ -267,8 +269,8 @@ describe('Performance Integration Tests', () => {
         url: '/api/v1/curves/fit',
         payload: largePayload,
         headers: {
-          'accept-encoding': 'gzip'
-        }
+          'accept-encoding': 'gzip',
+        },
       });
 
       const endTime = Date.now();
@@ -286,23 +288,23 @@ describe('Performance Integration Tests', () => {
         points: [
           { q: 10, h: 90 },
           { q: 20, h: 80 },
-          { q: 30, h: 70 }
+          { q: 30, h: 70 },
         ],
-        model: 'quadratic'
+        model: 'quadratic',
       };
 
       // First request
       const firstResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/curves/fit',
-        payload
+        payload,
       });
 
       // Second identical request
       const secondResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/curves/fit',
-        payload
+        payload,
       });
 
       expect(firstResponse.statusCode).toBe(200);
@@ -321,30 +323,30 @@ describe('Performance Integration Tests', () => {
         points: [
           { q: 10, h: 90 },
           { q: 20, h: 80 },
-          { q: 30, h: 70 }
+          { q: 30, h: 70 },
         ],
-        model: 'quadratic'
+        model: 'quadratic',
       };
 
       const payload2 = {
         points: [
           { q: 10, h: 95 },
           { q: 20, h: 85 },
-          { q: 30, h: 75 }
+          { q: 30, h: 75 },
         ],
-        model: 'quadratic'
+        model: 'quadratic',
       };
 
       const response1 = await app.inject({
         method: 'POST',
         url: '/api/v1/curves/fit',
-        payload: payload1
+        payload: payload1,
       });
 
       const response2 = await app.inject({
         method: 'POST',
         url: '/api/v1/curves/fit',
-        payload: payload2
+        payload: payload2,
       });
 
       expect(response1.statusCode).toBe(200);

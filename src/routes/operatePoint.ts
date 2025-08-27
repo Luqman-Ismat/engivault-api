@@ -1,7 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { zQuantity } from '@/schemas/common';
-import { calculateOperatingPoint, validateOperatingPointInputs } from '@/logic/operatePoint';
+import {
+  calculateOperatingPoint,
+  validateOperatingPointInputs,
+} from '@/logic/operatePoint';
 import { handleError } from '@/utils/errorHandler';
 
 const zPumpCurvePoint = z.object({
@@ -47,7 +50,8 @@ export default async function operatePointRoutes(fastify: FastifyInstance) {
     '/api/v1/pumps/operate',
     {
       schema: {
-        description: 'Calculate pump operating point for given arrangement and system',
+        description:
+          'Calculate pump operating point for given arrangement and system',
         tags: ['Pumps'],
         body: {
           type: 'object',
@@ -102,22 +106,34 @@ export default async function operatePointRoutes(fastify: FastifyInstance) {
             properties: {
               flow: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               head: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               pumpHead: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               systemHead: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               meta: {
@@ -132,7 +148,14 @@ export default async function operatePointRoutes(fastify: FastifyInstance) {
               },
               warnings: { type: 'array', items: { type: 'string' } },
             },
-            required: ['flow', 'head', 'pumpHead', 'systemHead', 'meta', 'warnings'],
+            required: [
+              'flow',
+              'head',
+              'pumpHead',
+              'systemHead',
+              'meta',
+              'warnings',
+            ],
           },
           400: {
             type: 'object',
@@ -157,14 +180,14 @@ export default async function operatePointRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         const body = zOperatingPointRequest.parse(request.body);
-        
+
         // Validate inputs
         const validation = validateOperatingPointInputs(
           body.pumps,
           body.arrangement,
           body.system
         );
-        
+
         if (!validation.isValid) {
           return reply.status(400).send({
             error: 'Invalid input parameters',
@@ -182,7 +205,7 @@ export default async function operatePointRoutes(fastify: FastifyInstance) {
         );
 
         // Convert warnings to strings for API response
-        const stringWarnings = result.warnings.map(warning => 
+        const stringWarnings = result.warnings.map(warning =>
           typeof warning === 'string' ? warning : warning.message
         );
 
@@ -238,12 +261,14 @@ export default async function operatePointRoutes(fastify: FastifyInstance) {
           {
             type: 'parallel',
             description: 'Pumps in parallel',
-            characteristics: 'Same head, flows add up (Q_total = Q1 + Q2 + ...)',
+            characteristics:
+              'Same head, flows add up (Q_total = Q1 + Q2 + ...)',
           },
           {
             type: 'series',
             description: 'Pumps in series',
-            characteristics: 'Same flow, heads add up (H_total = H1 + H2 + ...)',
+            characteristics:
+              'Same flow, heads add up (H_total = H1 + H2 + ...)',
           },
         ],
       });

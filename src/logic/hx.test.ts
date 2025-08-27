@@ -4,7 +4,7 @@ import {
   getStandardRoughness,
   calculateHXScalingFactors,
   HXGeometry,
-  HXPressureDropInput
+  HXPressureDropInput,
 } from './hx';
 
 describe('Heat Exchanger Module', () => {
@@ -28,7 +28,7 @@ describe('Heat Exchanger Module', () => {
   describe('getStandardRoughness', () => {
     it('should return standard roughness values', () => {
       const roughness = getStandardRoughness();
-      
+
       expect(roughness['drawn-tube']).toBe(0.0000015);
       expect(roughness['commercial-steel']).toBe(0.000045);
       expect(roughness['galvanized-steel']).toBe(0.00015);
@@ -41,7 +41,7 @@ describe('Heat Exchanger Module', () => {
   describe('calculateHXScalingFactors', () => {
     it('should calculate scaling factors correctly', () => {
       const scalingFactors = calculateHXScalingFactors(baseGeometry);
-      
+
       expect(scalingFactors.tubeAreaScaling).toBe(100 * 3.0); // numberOfTubes * tubeLength
       expect(scalingFactors.shellAreaScaling).toBe(Math.pow(0.3, 2)); // shellDiameter^2
       expect(scalingFactors.velocityScaling).toBe(1 / (100 * 3.0)); // 1 / tubeAreaScaling
@@ -54,21 +54,25 @@ describe('Heat Exchanger Module', () => {
         numberOfTubes: 50,
         tubeLength: { value: 1.5, unit: 'm' },
       };
-      
+
       const largeGeometry: HXGeometry = {
         ...baseGeometry,
         numberOfTubes: 200,
         tubeLength: { value: 6.0, unit: 'm' },
       };
-      
+
       const smallScaling = calculateHXScalingFactors(smallGeometry);
       const largeScaling = calculateHXScalingFactors(largeGeometry);
-      
+
       // Larger geometry should have larger area scaling
-      expect(largeScaling.tubeAreaScaling).toBeGreaterThan(smallScaling.tubeAreaScaling);
-      
+      expect(largeScaling.tubeAreaScaling).toBeGreaterThan(
+        smallScaling.tubeAreaScaling
+      );
+
       // Larger geometry should have smaller velocity scaling (inverse relationship)
-      expect(largeScaling.velocityScaling).toBeLessThan(smallScaling.velocityScaling);
+      expect(largeScaling.velocityScaling).toBeLessThan(
+        smallScaling.velocityScaling
+      );
     });
   });
 
@@ -81,21 +85,29 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const result = hxPressureDrop(input);
-      
+
       expect(result.pressureDrop.value).toBeGreaterThan(0);
       expect(result.pressureDropPercent).toBeGreaterThan(0);
       expect(result.velocity.value).toBeGreaterThan(0);
       expect(result.reynoldsNumber).toBeGreaterThan(0);
       expect(result.frictionFactor).toBeGreaterThan(0);
       expect(result.flowArea.value).toBeGreaterThan(0);
-      expect(result.equivalentDiameter.value).toBe(baseGeometry.tubeDiameter.value);
-      expect(result.flowLength.value).toBeGreaterThan(baseGeometry.tubeLength.value * 2); // Includes return bends
+      expect(result.equivalentDiameter.value).toBe(
+        baseGeometry.tubeDiameter.value
+      );
+      expect(result.flowLength.value).toBeGreaterThan(
+        baseGeometry.tubeLength.value * 2
+      ); // Includes return bends
       expect(result.numberOfCrossings).toBe(0); // Not applicable for tube side
       expect(result.baffleSpacing.value).toBe(0); // Not applicable for tube side
-      expect(result.metadata.calculations.correlation).toContain('Darcy-Weisbach');
-      expect(['laminar', 'turbulent', 'transition']).toContain(result.metadata.calculations.flowRegime);
+      expect(result.metadata.calculations.correlation).toContain(
+        'Darcy-Weisbach'
+      );
+      expect(['laminar', 'turbulent', 'transition']).toContain(
+        result.metadata.calculations.flowRegime
+      );
     });
 
     it('should handle single pass configuration', () => {
@@ -106,9 +118,9 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const result = hxPressureDrop(input);
-      
+
       expect(result.flowLength.value).toBe(baseGeometry.tubeLength.value); // No return bends for single pass
       expect(result.pressureDrop.value).toBeGreaterThan(0);
     });
@@ -121,10 +133,12 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const result = hxPressureDrop(input);
-      
-      expect(result.flowLength.value).toBeGreaterThan(baseGeometry.tubeLength.value * 4); // Includes return bends
+
+      expect(result.flowLength.value).toBeGreaterThan(
+        baseGeometry.tubeLength.value * 4
+      ); // Includes return bends
       expect(result.pressureDrop.value).toBeGreaterThan(0);
     });
 
@@ -136,9 +150,9 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const result = hxPressureDrop(input);
-      
+
       expect(result.reynoldsNumber).toBeLessThan(2300);
       expect(result.metadata.calculations.flowRegime).toBe('laminar');
     });
@@ -151,9 +165,9 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const result = hxPressureDrop(input);
-      
+
       expect(result.reynoldsNumber).toBeGreaterThan(4000);
       expect(result.metadata.calculations.flowRegime).toBe('turbulent');
     });
@@ -167,11 +181,13 @@ describe('Heat Exchanger Module', () => {
         fluidProperties: baseFluidProperties,
         roughness: { value: 0.000045, unit: 'm' }, // Commercial steel
       };
-      
+
       const result = hxPressureDrop(input);
-      
+
       expect(result.pressureDrop.value).toBeGreaterThan(0);
-      expect(result.metadata.calculations.parameters.relativeRoughness).toBe(0.000045 / baseGeometry.tubeDiameter.value);
+      expect(result.metadata.calculations.parameters.relativeRoughness).toBe(
+        0.000045 / baseGeometry.tubeDiameter.value
+      );
     });
 
     it('should generate warnings for extreme conditions', () => {
@@ -182,9 +198,9 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const result = hxPressureDrop(input);
-      
+
       expect(result.velocity.value).toBeGreaterThan(3); // Should trigger velocity warning
       expect(result.warnings.length).toBeGreaterThan(0);
     });
@@ -199,9 +215,9 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'shell',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const result = hxPressureDrop(input);
-      
+
       expect(result.pressureDrop.value).toBeGreaterThan(0);
       expect(result.pressureDropPercent).toBeGreaterThan(0);
       expect(result.velocity.value).toBeGreaterThan(0);
@@ -212,8 +228,12 @@ describe('Heat Exchanger Module', () => {
       expect(result.flowLength.value).toBe(baseGeometry.tubeLength.value);
       expect(result.numberOfCrossings).toBeGreaterThan(0);
       expect(result.baffleSpacing.value).toBe(baseGeometry.baffleSpacing.value);
-      expect(result.metadata.calculations.correlation).toContain('Bell-Delaware');
-      expect(['laminar', 'turbulent', 'transition']).toContain(result.metadata.calculations.flowRegime);
+      expect(result.metadata.calculations.correlation).toContain(
+        'Bell-Delaware'
+      );
+      expect(['laminar', 'turbulent', 'transition']).toContain(
+        result.metadata.calculations.flowRegime
+      );
     });
 
     it('should handle different tube layouts', () => {
@@ -224,7 +244,7 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'shell',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const squareInput: HXPressureDropInput = {
         geometry: { ...baseGeometry, tubeLayout: 'square' },
         passes: 2,
@@ -232,12 +252,16 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'shell',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const triangularResult = hxPressureDrop(triangularInput);
       const squareResult = hxPressureDrop(squareInput);
-      
-      expect(triangularResult.equivalentDiameter.value).not.toBe(squareResult.equivalentDiameter.value);
-      expect(triangularResult.pressureDrop.value).not.toBe(squareResult.pressureDrop.value);
+
+      expect(triangularResult.equivalentDiameter.value).not.toBe(
+        squareResult.equivalentDiameter.value
+      );
+      expect(triangularResult.pressureDrop.value).not.toBe(
+        squareResult.pressureDrop.value
+      );
     });
 
     it('should handle different baffle spacing', () => {
@@ -245,12 +269,12 @@ describe('Heat Exchanger Module', () => {
         ...baseGeometry,
         baffleSpacing: { value: 0.1, unit: 'm' }, // Tight baffle spacing
       };
-      
+
       const looseBaffleGeometry: HXGeometry = {
         ...baseGeometry,
         baffleSpacing: { value: 0.5, unit: 'm' }, // Loose baffle spacing
       };
-      
+
       const tightInput: HXPressureDropInput = {
         geometry: tightBaffleGeometry,
         passes: 2,
@@ -258,7 +282,7 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'shell',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const looseInput: HXPressureDropInput = {
         geometry: looseBaffleGeometry,
         passes: 2,
@@ -266,12 +290,16 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'shell',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const tightResult = hxPressureDrop(tightInput);
       const looseResult = hxPressureDrop(looseInput);
-      
-      expect(tightResult.numberOfCrossings).toBeGreaterThan(looseResult.numberOfCrossings);
-      expect(tightResult.pressureDrop.value).toBeGreaterThan(looseResult.pressureDrop.value);
+
+      expect(tightResult.numberOfCrossings).toBeGreaterThan(
+        looseResult.numberOfCrossings
+      );
+      expect(tightResult.pressureDrop.value).toBeGreaterThan(
+        looseResult.pressureDrop.value
+      );
     });
 
     it('should generate warnings for shell side concerns', () => {
@@ -282,9 +310,9 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'shell',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const result = hxPressureDrop(input);
-      
+
       expect(result.velocity.value).toBeGreaterThan(2); // Should trigger velocity warning
       expect(result.warnings.length).toBeGreaterThan(0);
     });
@@ -296,12 +324,12 @@ describe('Heat Exchanger Module', () => {
         ...baseGeometry,
         tubeDiameter: { value: 0.01, unit: 'm' }, // Smaller tubes
       };
-      
+
       const largeTubeGeometry: HXGeometry = {
         ...baseGeometry,
         tubeDiameter: { value: 0.025, unit: 'm' }, // Larger tubes
       };
-      
+
       const input: HXPressureDropInput = {
         geometry: baseGeometry,
         passes: 2,
@@ -309,15 +337,17 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const smallInput = { ...input, geometry: smallTubeGeometry };
       const largeInput = { ...input, geometry: largeTubeGeometry };
-      
+
       const smallResult = hxPressureDrop(smallInput);
       const largeResult = hxPressureDrop(largeInput);
-      
+
       // Smaller tubes should have higher pressure drop
-      expect(smallResult.pressureDrop.value).toBeGreaterThan(largeResult.pressureDrop.value);
+      expect(smallResult.pressureDrop.value).toBeGreaterThan(
+        largeResult.pressureDrop.value
+      );
     });
 
     it('should show pressure drop scaling with tube length', () => {
@@ -325,12 +355,12 @@ describe('Heat Exchanger Module', () => {
         ...baseGeometry,
         tubeLength: { value: 1.0, unit: 'm' }, // Shorter tubes
       };
-      
+
       const longTubeGeometry: HXGeometry = {
         ...baseGeometry,
         tubeLength: { value: 5.0, unit: 'm' }, // Longer tubes
       };
-      
+
       const input: HXPressureDropInput = {
         geometry: baseGeometry,
         passes: 2,
@@ -338,15 +368,17 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const shortInput = { ...input, geometry: shortTubeGeometry };
       const longInput = { ...input, geometry: longTubeGeometry };
-      
+
       const shortResult = hxPressureDrop(shortInput);
       const longResult = hxPressureDrop(longInput);
-      
+
       // Longer tubes should have higher pressure drop
-      expect(longResult.pressureDrop.value).toBeGreaterThan(shortResult.pressureDrop.value);
+      expect(longResult.pressureDrop.value).toBeGreaterThan(
+        shortResult.pressureDrop.value
+      );
     });
 
     it('should show pressure drop scaling with number of tubes', () => {
@@ -354,12 +386,12 @@ describe('Heat Exchanger Module', () => {
         ...baseGeometry,
         numberOfTubes: 50, // Fewer tubes
       };
-      
+
       const manyTubesGeometry: HXGeometry = {
         ...baseGeometry,
         numberOfTubes: 200, // More tubes
       };
-      
+
       const input: HXPressureDropInput = {
         geometry: baseGeometry,
         passes: 2,
@@ -367,13 +399,13 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const fewInput = { ...input, geometry: fewTubesGeometry };
       const manyInput = { ...input, geometry: manyTubesGeometry };
-      
+
       const fewResult = hxPressureDrop(fewInput);
       const manyResult = hxPressureDrop(manyInput);
-      
+
       // Flow areas should be the same (based on single tube diameter)
       expect(fewResult.flowArea.value).toBe(manyResult.flowArea.value);
     });
@@ -383,12 +415,12 @@ describe('Heat Exchanger Module', () => {
         ...baseGeometry,
         shellDiameter: { value: 0.2, unit: 'm' }, // Smaller shell
       };
-      
+
       const largeShellGeometry: HXGeometry = {
         ...baseGeometry,
         shellDiameter: { value: 0.5, unit: 'm' }, // Larger shell
       };
-      
+
       const input: HXPressureDropInput = {
         geometry: baseGeometry,
         passes: 2,
@@ -396,13 +428,13 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'shell',
         fluidProperties: baseFluidProperties,
       };
-      
+
       const smallInput = { ...input, geometry: smallShellGeometry };
       const largeInput = { ...input, geometry: largeShellGeometry };
-      
+
       const smallResult = hxPressureDrop(smallInput);
       const largeResult = hxPressureDrop(largeInput);
-      
+
       // Different shell sizes should have different flow areas
       expect(smallResult.flowArea.value).not.toBe(largeResult.flowArea.value);
     });
@@ -414,7 +446,7 @@ describe('Heat Exchanger Module', () => {
         ...baseGeometry,
         tubeDiameter: { value: 0, unit: 'm' }, // Invalid diameter
       };
-      
+
       const input: HXPressureDropInput = {
         geometry: invalidGeometry,
         passes: 2,
@@ -422,8 +454,10 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
-      expect(() => hxPressureDrop(input)).toThrow('Tube diameter, length, and number of tubes must be positive');
+
+      expect(() => hxPressureDrop(input)).toThrow(
+        'Tube diameter, length, and number of tubes must be positive'
+      );
     });
 
     it('should throw error for invalid fluid properties', () => {
@@ -437,8 +471,10 @@ describe('Heat Exchanger Module', () => {
           viscosity: { value: 1.002e-3, unit: 'Pa·s' },
         },
       };
-      
-      expect(() => hxPressureDrop(input)).toThrow('Mass flux, density, and viscosity must be positive');
+
+      expect(() => hxPressureDrop(input)).toThrow(
+        'Mass flux, density, and viscosity must be positive'
+      );
     });
 
     it('should throw error for invalid passes', () => {
@@ -449,8 +485,10 @@ describe('Heat Exchanger Module', () => {
         fluidSide: 'tube',
         fluidProperties: baseFluidProperties,
       };
-      
-      expect(() => hxPressureDrop(input)).toThrow('Number of passes must be positive');
+
+      expect(() => hxPressureDrop(input)).toThrow(
+        'Number of passes must be positive'
+      );
     });
   });
 });

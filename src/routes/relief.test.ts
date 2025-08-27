@@ -35,7 +35,9 @@ describe('Relief Valve API Routes', () => {
       expect(result.requiredArea.value).toBeGreaterThan(0);
       expect(result.flowRegime).toBe('liquid');
       expect(result.warnings).toBeInstanceOf(Array);
-      expect(result.metadata.calculations.assumptions).toContain('Incompressible liquid flow');
+      expect(result.metadata.calculations.assumptions).toContain(
+        'Incompressible liquid flow'
+      );
     });
 
     it('should size choked gas relief valve successfully', async () => {
@@ -63,7 +65,9 @@ describe('Relief Valve API Routes', () => {
       expect(result.flowRegime).toBe('choked-gas');
       expect(result.criticalPressureRatio).toBeCloseTo(0.528, 3);
       expect(result.backPressureCorrection).toBe(1.0);
-      expect(result.metadata.calculations.assumptions).toContain('Isentropic gas flow');
+      expect(result.metadata.calculations.assumptions).toContain(
+        'Isentropic gas flow'
+      );
     });
 
     it('should size non-choked gas relief valve successfully', async () => {
@@ -172,9 +176,19 @@ describe('Relief Valve API Routes', () => {
       expect(response.statusCode).toBe(200);
       const result = JSON.parse(response.payload);
 
-      expect(result.warnings.some((w: string) => w.includes('Low pressure drop'))).toBe(true);
-      expect(result.warnings.some((w: string) => w.includes('Specific gravity above 2.0'))).toBe(true);
-      expect(result.warnings.some((w: string) => w.includes('Low discharge coefficient'))).toBe(true);
+      expect(
+        result.warnings.some((w: string) => w.includes('Low pressure drop'))
+      ).toBe(true);
+      expect(
+        result.warnings.some((w: string) =>
+          w.includes('Specific gravity above 2.0')
+        )
+      ).toBe(true);
+      expect(
+        result.warnings.some((w: string) =>
+          w.includes('Low discharge coefficient')
+        )
+      ).toBe(true);
     });
 
     it('should return validation error for missing gas parameters', async () => {
@@ -194,7 +208,9 @@ describe('Relief Valve API Routes', () => {
       expect(response.statusCode).toBe(400);
       const result = JSON.parse(response.payload);
       expect(result.error).toBe('Invalid input parameters');
-      expect(result.details).toContain('Molecular weight must be provided and positive for gas flow');
+      expect(result.details).toContain(
+        'Molecular weight must be provided and positive for gas flow'
+      );
     });
 
     it('should return validation error for invalid pressure relationship', async () => {
@@ -216,7 +232,9 @@ describe('Relief Valve API Routes', () => {
       expect(response.statusCode).toBe(400);
       const result = JSON.parse(response.payload);
       expect(result.error).toBe('Invalid input parameters');
-      expect(result.details).toContain('Back pressure must be less than upstream pressure');
+      expect(result.details).toContain(
+        'Back pressure must be less than upstream pressure'
+      );
     });
 
     it('should return validation error for negative flow rate', async () => {
@@ -331,4 +349,3 @@ describe('Relief Valve API Routes', () => {
     });
   });
 });
-

@@ -20,9 +20,9 @@ describe('Valve Logic', () => {
       const Q = 50; // gpm
       const deltaP = 10; // psi
       const SG = 1.0; // water
-      
+
       const cv = requiredCvLiquid(Q, deltaP, SG);
-      
+
       // Manual calculation: Cv = Q * sqrt(SG / ΔP)
       // Cv = 50 * sqrt(1.0 / 10) = 50 * 0.316 = 15.81
       expect(cv).toBeCloseTo(15.81, 2);
@@ -32,9 +32,9 @@ describe('Valve Logic', () => {
       const Q = 50; // gpm
       const deltaP = 10; // psi
       const SG = 1.5; // heavier fluid
-      
+
       const cv = requiredCvLiquid(Q, deltaP, SG);
-      
+
       // Manual calculation: Cv = 50 * sqrt(1.5 / 10) = 50 * 0.387 = 19.36
       expect(cv).toBeCloseTo(19.36, 2);
     });
@@ -43,35 +43,47 @@ describe('Valve Logic', () => {
       const Q = 50; // gpm
       const deltaP = 25; // psi (higher pressure drop)
       const SG = 1.0; // water
-      
+
       const cv = requiredCvLiquid(Q, deltaP, SG);
-      
+
       // Manual calculation: Cv = 50 * sqrt(1.0 / 25) = 50 * 0.2 = 10.0
       expect(cv).toBeCloseTo(10.0, 1);
     });
 
     it('should throw error for zero pressure drop', () => {
-      expect(() => requiredCvLiquid(50, 0, 1.0)).toThrow('Pressure drop must be positive');
+      expect(() => requiredCvLiquid(50, 0, 1.0)).toThrow(
+        'Pressure drop must be positive'
+      );
     });
 
     it('should throw error for negative pressure drop', () => {
-      expect(() => requiredCvLiquid(50, -10, 1.0)).toThrow('Pressure drop must be positive');
+      expect(() => requiredCvLiquid(50, -10, 1.0)).toThrow(
+        'Pressure drop must be positive'
+      );
     });
 
     it('should throw error for zero specific gravity', () => {
-      expect(() => requiredCvLiquid(50, 10, 0)).toThrow('Specific gravity must be positive');
+      expect(() => requiredCvLiquid(50, 10, 0)).toThrow(
+        'Specific gravity must be positive'
+      );
     });
 
     it('should throw error for negative specific gravity', () => {
-      expect(() => requiredCvLiquid(50, 10, -1.0)).toThrow('Specific gravity must be positive');
+      expect(() => requiredCvLiquid(50, 10, -1.0)).toThrow(
+        'Specific gravity must be positive'
+      );
     });
 
     it('should throw error for zero flow rate', () => {
-      expect(() => requiredCvLiquid(0, 10, 1.0)).toThrow('Flow rate must be positive');
+      expect(() => requiredCvLiquid(0, 10, 1.0)).toThrow(
+        'Flow rate must be positive'
+      );
     });
 
     it('should throw error for negative flow rate', () => {
-      expect(() => requiredCvLiquid(-50, 10, 1.0)).toThrow('Flow rate must be positive');
+      expect(() => requiredCvLiquid(-50, 10, 1.0)).toThrow(
+        'Flow rate must be positive'
+      );
     });
   });
 
@@ -79,7 +91,7 @@ describe('Valve Logic', () => {
     it('should convert Cv to Kv correctly', () => {
       const cv = 15.81;
       const kv = cvToKv(cv);
-      
+
       // Manual calculation: Kv = Cv / 1.156 = 15.81 / 1.156 = 13.68
       expect(kv).toBeCloseTo(13.68, 2);
     });
@@ -87,7 +99,7 @@ describe('Valve Logic', () => {
     it('should convert Kv to Cv correctly', () => {
       const kv = 13.68;
       const cv = kvToCv(kv);
-      
+
       // Manual calculation: Cv = Kv * 1.156 = 13.68 * 1.156 = 15.81
       expect(cv).toBeCloseTo(15.81, 2);
     });
@@ -96,7 +108,7 @@ describe('Valve Logic', () => {
       const originalCv = 25.5;
       const kv = cvToKv(originalCv);
       const convertedCv = kvToCv(kv);
-      
+
       expect(convertedCv).toBeCloseTo(originalCv, 10);
     });
   });
@@ -106,9 +118,9 @@ describe('Valve Logic', () => {
       const FL = 0.9;
       const P1 = 101325; // Pa (1 atm)
       const Pv = 2330; // Pa (water vapor pressure at 20°C)
-      
+
       const criticalDeltaP = criticalPressureDrop(FL, P1, Pv);
-      
+
       // Manual calculation: ΔPc = FL² * (P1 - Pv)
       // ΔPc = 0.9² * (101325 - 2330) = 0.81 * 98995 = 80186 Pa
       expect(criticalDeltaP).toBeCloseTo(80186, 0);
@@ -118,25 +130,35 @@ describe('Valve Logic', () => {
       const FL = 0.9;
       const P1 = 101325; // Pa
       const Pv = 0; // Pa
-      
+
       const criticalDeltaP = criticalPressureDrop(FL, P1, Pv);
-      
+
       // Manual calculation: ΔPc = 0.9² * (101325 - 0) = 0.81 * 101325 = 82073 Pa
       expect(criticalDeltaP).toBeCloseTo(82073, 0);
     });
 
     it('should throw error for invalid FL', () => {
-      expect(() => criticalPressureDrop(0, 101325, 0)).toThrow('Pressure recovery factor must be between 0 and 1');
-      expect(() => criticalPressureDrop(1.1, 101325, 0)).toThrow('Pressure recovery factor must be between 0 and 1');
+      expect(() => criticalPressureDrop(0, 101325, 0)).toThrow(
+        'Pressure recovery factor must be between 0 and 1'
+      );
+      expect(() => criticalPressureDrop(1.1, 101325, 0)).toThrow(
+        'Pressure recovery factor must be between 0 and 1'
+      );
     });
 
     it('should throw error for invalid upstream pressure', () => {
-      expect(() => criticalPressureDrop(0.9, 0, 0)).toThrow('Upstream pressure must be positive');
-      expect(() => criticalPressureDrop(0.9, -101325, 0)).toThrow('Upstream pressure must be positive');
+      expect(() => criticalPressureDrop(0.9, 0, 0)).toThrow(
+        'Upstream pressure must be positive'
+      );
+      expect(() => criticalPressureDrop(0.9, -101325, 0)).toThrow(
+        'Upstream pressure must be positive'
+      );
     });
 
     it('should throw error for negative vapor pressure', () => {
-      expect(() => criticalPressureDrop(0.9, 101325, -1000)).toThrow('Vapor pressure cannot be negative');
+      expect(() => criticalPressureDrop(0.9, 101325, -1000)).toThrow(
+        'Vapor pressure cannot be negative'
+      );
     });
   });
 
@@ -144,9 +166,9 @@ describe('Valve Logic', () => {
     it('should identify choked flow correctly', () => {
       const actualDeltaP = 90000; // Pa
       const criticalDeltaP = 80000; // Pa
-      
+
       const result = checkChokedFlow(actualDeltaP, criticalDeltaP);
-      
+
       // Ratio = 90000 / 80000 = 1.125 > 1.0, so choked
       expect(result.isChoked).toBe(true);
       expect(result.likelihood).toBe('high');
@@ -155,9 +177,9 @@ describe('Valve Logic', () => {
     it('should identify high likelihood of choked flow', () => {
       const actualDeltaP = 70000; // Pa
       const criticalDeltaP = 80000; // Pa
-      
+
       const result = checkChokedFlow(actualDeltaP, criticalDeltaP);
-      
+
       // Ratio = 70000 / 80000 = 0.875 > 0.8, so high likelihood
       expect(result.isChoked).toBe(false);
       expect(result.likelihood).toBe('high');
@@ -166,9 +188,9 @@ describe('Valve Logic', () => {
     it('should identify medium likelihood of choked flow', () => {
       const actualDeltaP = 60000; // Pa
       const criticalDeltaP = 80000; // Pa
-      
+
       const result = checkChokedFlow(actualDeltaP, criticalDeltaP);
-      
+
       // Ratio = 60000 / 80000 = 0.75 > 0.6, so medium likelihood
       expect(result.isChoked).toBe(false);
       expect(result.likelihood).toBe('medium');
@@ -177,9 +199,9 @@ describe('Valve Logic', () => {
     it('should identify low likelihood of choked flow', () => {
       const actualDeltaP = 50000; // Pa
       const criticalDeltaP = 80000; // Pa
-      
+
       const result = checkChokedFlow(actualDeltaP, criticalDeltaP);
-      
+
       // Ratio = 50000 / 80000 = 0.625 > 0.6, so medium likelihood
       expect(result.isChoked).toBe(false);
       expect(result.likelihood).toBe('medium');
@@ -188,18 +210,27 @@ describe('Valve Logic', () => {
     it('should identify no likelihood of choked flow', () => {
       const actualDeltaP = 30000; // Pa
       const criticalDeltaP = 80000; // Pa
-      
+
       const result = checkChokedFlow(actualDeltaP, criticalDeltaP);
-      
+
       // Ratio = 30000 / 80000 = 0.375 < 0.4, so no likelihood
       expect(result.isChoked).toBe(false);
       expect(result.likelihood).toBe('none');
     });
 
     it('should handle zero or negative values', () => {
-      expect(checkChokedFlow(0, 80000)).toEqual({ isChoked: false, likelihood: 'none' });
-      expect(checkChokedFlow(50000, 0)).toEqual({ isChoked: false, likelihood: 'none' });
-      expect(checkChokedFlow(-1000, 80000)).toEqual({ isChoked: false, likelihood: 'none' });
+      expect(checkChokedFlow(0, 80000)).toEqual({
+        isChoked: false,
+        likelihood: 'none',
+      });
+      expect(checkChokedFlow(50000, 0)).toEqual({
+        isChoked: false,
+        likelihood: 'none',
+      });
+      expect(checkChokedFlow(-1000, 80000)).toEqual({
+        isChoked: false,
+        likelihood: 'none',
+      });
     });
   });
 
@@ -207,9 +238,9 @@ describe('Valve Logic', () => {
     it('should calculate valve authority correctly', () => {
       const valveDeltaP = 10; // psi
       const systemDeltaP = 20; // psi
-      
+
       const authority = calculateValveAuthority(valveDeltaP, systemDeltaP);
-      
+
       // Manual calculation: Authority = 10 / (10 + 10) = 10 / 20 = 0.5
       expect(authority).toBe(0.5);
     });
@@ -217,9 +248,9 @@ describe('Valve Logic', () => {
     it('should calculate high valve authority', () => {
       const valveDeltaP = 18; // psi
       const systemDeltaP = 20; // psi
-      
+
       const authority = calculateValveAuthority(valveDeltaP, systemDeltaP);
-      
+
       // Manual calculation: Authority = 18 / (18 + 2) = 18 / 20 = 0.9
       expect(authority).toBe(0.9);
     });
@@ -227,23 +258,29 @@ describe('Valve Logic', () => {
     it('should calculate low valve authority', () => {
       const valveDeltaP = 2; // psi
       const systemDeltaP = 20; // psi
-      
+
       const authority = calculateValveAuthority(valveDeltaP, systemDeltaP);
-      
+
       // Manual calculation: Authority = 2 / (2 + 18) = 2 / 20 = 0.1
       expect(authority).toBe(0.1);
     });
 
     it('should throw error for zero valve pressure drop', () => {
-      expect(() => calculateValveAuthority(0, 20)).toThrow('Valve pressure drop must be positive');
+      expect(() => calculateValveAuthority(0, 20)).toThrow(
+        'Valve pressure drop must be positive'
+      );
     });
 
     it('should throw error for zero system pressure drop', () => {
-      expect(() => calculateValveAuthority(10, 0)).toThrow('System pressure drop must be positive');
+      expect(() => calculateValveAuthority(10, 0)).toThrow(
+        'System pressure drop must be positive'
+      );
     });
 
     it('should throw error when valve pressure drop exceeds system pressure drop', () => {
-      expect(() => calculateValveAuthority(25, 20)).toThrow('Valve pressure drop cannot exceed system pressure drop');
+      expect(() => calculateValveAuthority(25, 20)).toThrow(
+        'Valve pressure drop cannot exceed system pressure drop'
+      );
     });
   });
 
@@ -277,7 +314,7 @@ describe('Valve Logic', () => {
     it('should calculate water vapor pressure at 20°C', () => {
       const T = 293.15; // K (20°C)
       const Pv = getVaporPressure('water', T);
-      
+
       // Expected: ~2330 Pa at 20°C
       expect(Pv).toBeCloseTo(2330, 0);
     });
@@ -285,7 +322,7 @@ describe('Valve Logic', () => {
     it('should calculate water vapor pressure at 100°C', () => {
       const T = 373.15; // K (100°C)
       const Pv = getVaporPressure('water', T);
-      
+
       // Expected: ~101336 Pa at 100°C (atmospheric pressure)
       expect(Pv).toBeCloseTo(101336, 0);
     });
@@ -293,7 +330,7 @@ describe('Valve Logic', () => {
     it('should calculate ethanol vapor pressure at 25°C', () => {
       const T = 298.15; // K (25°C)
       const Pv = getVaporPressure('ethanol', T);
-      
+
       // Should be positive and reasonable
       expect(Pv).toBeGreaterThan(0);
       expect(Pv).toBeLessThan(10000); // Less than 10 kPa at 25°C
@@ -322,7 +359,7 @@ describe('Valve Logic', () => {
 
     it('should size valve correctly for basic input', () => {
       const result = sizeValve(sampleInput);
-      
+
       expect(result.cv.value).toBeCloseTo(15.81, 2);
       expect(result.cv.unit).toBe('gpm/psi^0.5');
       expect(result.kv.value).toBeCloseTo(13.68, 2);
@@ -339,9 +376,9 @@ describe('Valve Logic', () => {
         upstreamPressure: { value: 101325, unit: 'Pa' },
         downstreamPressure: { value: 101325, unit: 'Pa' },
       };
-      
+
       const result = sizeValve(inputWithPressures);
-      
+
       expect(result.valveAuthority).toBeGreaterThan(0);
       expect(result.valveAuthority).toBeLessThan(1);
     });
@@ -353,11 +390,13 @@ describe('Valve Logic', () => {
         fluidName: 'water',
         temperature: { value: 293.15, unit: 'K' },
       };
-      
+
       const result = sizeValve(inputWithChokedAnalysis);
-      
+
       expect(result.chokedFlow.criticalPressureDrop.value).toBeGreaterThan(0);
-      expect(result.chokedFlow.actualPressureDrop).toEqual(sampleInput.pressureDrop);
+      expect(result.chokedFlow.actualPressureDrop).toEqual(
+        sampleInput.pressureDrop
+      );
     });
 
     it('should generate warnings for low valve authority', () => {
@@ -367,11 +406,15 @@ describe('Valve Logic', () => {
         downstreamPressure: { value: 90000, unit: 'Pa' }, // Different pressures
         pressureDrop: { value: 0.1, unit: 'psi' }, // Very low pressure drop
       };
-      
+
       const result = sizeValve(inputWithLowAuthority);
-      
+
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => typeof w === 'string' && w.includes('authority'))).toBe(true);
+      expect(
+        result.warnings.some(
+          w => typeof w === 'string' && w.includes('authority')
+        )
+      ).toBe(true);
     });
 
     it('should generate warnings for high pressure drop', () => {
@@ -379,11 +422,15 @@ describe('Valve Logic', () => {
         ...sampleInput,
         pressureDrop: { value: 150, unit: 'psi' }, // Very high pressure drop
       };
-      
+
       const result = sizeValve(inputWithHighPressureDrop);
-      
+
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => typeof w === 'string' && w.includes('pressure drop'))).toBe(true);
+      expect(
+        result.warnings.some(
+          w => typeof w === 'string' && w.includes('pressure drop')
+        )
+      ).toBe(true);
     });
 
     it('should generate warnings for extreme specific gravity', () => {
@@ -391,12 +438,15 @@ describe('Valve Logic', () => {
         ...sampleInput,
         specificGravity: 2.5, // Very high specific gravity
       };
-      
+
       const result = sizeValve(inputWithHighSG);
-      
 
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => typeof w === 'string' && w.includes('Specific gravity'))).toBe(true);
+      expect(
+        result.warnings.some(
+          w => typeof w === 'string' && w.includes('Specific gravity')
+        )
+      ).toBe(true);
     });
 
     it('should throw error for negative specific gravity', () => {
@@ -404,8 +454,10 @@ describe('Valve Logic', () => {
         ...sampleInput,
         specificGravity: -1.0,
       };
-      
-      expect(() => sizeValve(invalidInput)).toThrow('Specific gravity must be positive');
+
+      expect(() => sizeValve(invalidInput)).toThrow(
+        'Specific gravity must be positive'
+      );
     });
   });
 
@@ -419,7 +471,7 @@ describe('Valve Logic', () => {
 
     it('should validate correct inputs', () => {
       const result = validateValveSizingInputs(validInput);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
@@ -429,9 +481,9 @@ describe('Valve Logic', () => {
         ...validInput,
         flow: { value: -50, unit: 'gpm' },
       };
-      
+
       const result = validateValveSizingInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Flow rate must be positive');
     });
@@ -441,9 +493,9 @@ describe('Valve Logic', () => {
         ...validInput,
         pressureDrop: { value: -10, unit: 'psi' },
       };
-      
+
       const result = validateValveSizingInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Pressure drop must be positive');
     });
@@ -453,9 +505,9 @@ describe('Valve Logic', () => {
         ...validInput,
         specificGravity: -1.0,
       };
-      
+
       const result = validateValveSizingInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Specific gravity must be positive');
     });
@@ -465,9 +517,9 @@ describe('Valve Logic', () => {
         ...validInput,
         trimCharacteristic: { type: '' as any },
       };
-      
+
       const result = validateValveSizingInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Trim characteristic type is required');
     });
@@ -477,11 +529,13 @@ describe('Valve Logic', () => {
         ...validInput,
         pressureRecoveryFactor: 1.5,
       };
-      
+
       const result = validateValveSizingInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Pressure recovery factor must be between 0 and 1');
+      expect(result.errors).toContain(
+        'Pressure recovery factor must be between 0 and 1'
+      );
     });
 
     it('should reject invalid pressure relationship', () => {
@@ -490,11 +544,13 @@ describe('Valve Logic', () => {
         upstreamPressure: { value: 100000, unit: 'Pa' },
         downstreamPressure: { value: 110000, unit: 'Pa' }, // Downstream > upstream
       };
-      
+
       const result = validateValveSizingInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Upstream pressure must be greater than downstream pressure');
+      expect(result.errors).toContain(
+        'Upstream pressure must be greater than downstream pressure'
+      );
     });
 
     it('should reject excessive pressure drop', () => {
@@ -504,11 +560,13 @@ describe('Valve Logic', () => {
         downstreamPressure: { value: 90000, unit: 'Pa' },
         pressureDrop: { value: 15000, unit: 'Pa' }, // Exceeds actual pressure drop
       };
-      
+
       const result = validateValveSizingInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Specified pressure drop cannot exceed actual pressure drop');
+      expect(result.errors).toContain(
+        'Specified pressure drop cannot exceed actual pressure drop'
+      );
     });
 
     it('should reject out-of-range temperature', () => {
@@ -516,11 +574,13 @@ describe('Valve Logic', () => {
         ...validInput,
         temperature: { value: 100, unit: 'K' }, // Too cold
       };
-      
+
       const result = validateValveSizingInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Temperature should be between 200K and 600K');
+      expect(result.errors).toContain(
+        'Temperature should be between 200K and 600K'
+      );
     });
   });
 });

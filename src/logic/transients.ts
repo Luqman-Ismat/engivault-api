@@ -48,28 +48,28 @@ const DEFAULT_WATER_DENSITY = 998; // kg/m³
 const PIPE_MATERIALS = {
   steel: {
     elasticModulus: 200e9, // Pa
-    name: 'Steel'
+    name: 'Steel',
   },
   'stainless-steel': {
     elasticModulus: 193e9, // Pa
-    name: 'Stainless Steel'
+    name: 'Stainless Steel',
   },
   'ductile-iron': {
     elasticModulus: 170e9, // Pa
-    name: 'Ductile Iron'
+    name: 'Ductile Iron',
   },
   pvc: {
     elasticModulus: 3.3e9, // Pa
-    name: 'PVC'
+    name: 'PVC',
   },
   hdpe: {
     elasticModulus: 0.9e9, // Pa
-    name: 'HDPE'
+    name: 'HDPE',
   },
   pe: {
     elasticModulus: 0.8e9, // Pa
-    name: 'PE'
-  }
+    name: 'PE',
+  },
 } as const;
 
 /**
@@ -81,7 +81,7 @@ const PIPE_MATERIALS = {
  * - E = pipe elastic modulus (Pa)
  * - D = pipe diameter (m)
  * - e = pipe wall thickness (m)
- * 
+ *
  * @param fluidDensity - Fluid density (kg/m³)
  * @param fluidBulkModulus - Fluid bulk modulus (Pa)
  * @param pipeElasticModulus - Pipe elastic modulus (Pa)
@@ -99,31 +99,33 @@ export function calculateWaveSpeed(
   if (fluidDensity <= 0) {
     throw new Error('Fluid density must be positive');
   }
-  
+
   if (fluidBulkModulus <= 0) {
     throw new Error('Fluid bulk modulus must be positive');
   }
-  
+
   if (pipeElasticModulus <= 0) {
     throw new Error('Pipe elastic modulus must be positive');
   }
-  
+
   if (pipeDiameter <= 0) {
     throw new Error('Pipe diameter must be positive');
   }
-  
+
   if (wallThickness <= 0) {
     throw new Error('Wall thickness must be positive');
   }
-  
+
   if (wallThickness >= pipeDiameter / 2) {
     throw new Error('Wall thickness must be less than pipe radius');
   }
-  
+
   // Calculate wave speed using elastic theory
   const term1 = Math.sqrt(fluidBulkModulus / fluidDensity);
-  const term2 = Math.sqrt(1 + (fluidBulkModulus / pipeElasticModulus) * (pipeDiameter / wallThickness));
-  
+  const term2 = Math.sqrt(
+    1 + (fluidBulkModulus / pipeElasticModulus) * (pipeDiameter / wallThickness)
+  );
+
   return term1 / term2;
 }
 
@@ -134,7 +136,7 @@ export function calculateWaveSpeed(
  * - ρ = fluid density (kg/m³)
  * - a = wave speed (m/s)
  * - ΔV = velocity change (m/s)
- * 
+ *
  * @param fluidDensity - Fluid density (kg/m³)
  * @param waveSpeed - Wave speed (m/s)
  * @param velocityChange - Velocity change (m/s)
@@ -148,11 +150,11 @@ export function pressureSurge(
   if (fluidDensity <= 0) {
     throw new Error('Fluid density must be positive');
   }
-  
+
   if (waveSpeed <= 0) {
     throw new Error('Wave speed must be positive');
   }
-  
+
   return fluidDensity * waveSpeed * velocityChange;
 }
 
@@ -163,29 +165,33 @@ export function pressureSurge(
  */
 export function joukowskySurge(input: JoukowskyInput): JoukowskyResult {
   const warnings: (string | Warning)[] = [];
-  
+
   // Convert fluid properties to SI units
   const fluidDensity = convert(input.fluid.density, 'kg/m³').value;
-  const fluidBulkModulus = input.fluid.bulkModulus 
-    ? convert(input.fluid.bulkModulus, 'Pa').value 
+  const fluidBulkModulus = input.fluid.bulkModulus
+    ? convert(input.fluid.bulkModulus, 'Pa').value
     : DEFAULT_WATER_BULK_MODULUS;
-  
+
   // Convert velocity change to SI units
   const velocityChange = convert(input.velocityChange, 'm/s').value;
-  
+
   let waveSpeed: number;
-  
+
   // Determine wave speed
   if (input.pipe.waveSpeed) {
     // Use provided wave speed
     waveSpeed = convert(input.pipe.waveSpeed, 'm/s').value;
     warnings.push('Using provided wave speed - pipe properties ignored');
-  } else if (input.pipe.elasticModulus && input.pipe.wallThickness && input.pipe.diameter) {
+  } else if (
+    input.pipe.elasticModulus &&
+    input.pipe.wallThickness &&
+    input.pipe.diameter
+  ) {
     // Calculate wave speed from pipe properties
     const pipeElasticModulus = convert(input.pipe.elasticModulus, 'Pa').value;
     const wallThickness = convert(input.pipe.wallThickness, 'm').value;
     const pipeDiameter = convert(input.pipe.diameter, 'm').value;
-    
+
     waveSpeed = calculateWaveSpeed(
       fluidDensity,
       fluidBulkModulus,
@@ -194,12 +200,14 @@ export function joukowskySurge(input: JoukowskyInput): JoukowskyResult {
       wallThickness
     );
   } else {
-    throw new Error('Either wave speed or complete pipe properties (elastic modulus, wall thickness, diameter) must be provided');
+    throw new Error(
+      'Either wave speed or complete pipe properties (elastic modulus, wall thickness, diameter) must be provided'
+    );
   }
-  
+
   // Calculate pressure surge
   const surgePressure = pressureSurge(fluidDensity, waveSpeed, velocityChange);
-  
+
   // Prepare result
   const result: JoukowskyResult = {
     pressureSurge: { value: surgePressure, unit: 'Pa' },
@@ -210,55 +218,55 @@ export function joukowskySurge(input: JoukowskyInput): JoukowskyResult {
       calculations: {
         fluidDensity,
         velocityChange,
-        waveSpeed
-      }
-    }
+        waveSpeed,
+      },
+    },
   };
-  
+
   // Add pipe rating comparison if provided
   if (input.pipeRating) {
     const pipeRating = convert(input.pipeRating, 'Pa').value;
     const safetyFactor = Math.abs(surgePressure) / pipeRating;
     const isWithinRating = Math.abs(surgePressure) <= pipeRating;
-    
+
     result.comparison = {
       pipeRating: { value: pipeRating, unit: 'Pa' },
       safetyFactor,
-      isWithinRating
+      isWithinRating,
     };
-    
+
     if (!isWithinRating) {
       warnings.push({
         type: 'warning',
         message: `Pressure surge (${Math.abs(surgePressure).toFixed(0)} Pa) exceeds pipe rating (${pipeRating.toFixed(0)} Pa)`,
-        severity: 'high'
+        severity: 'high',
       });
     } else if (safetyFactor > 0.8) {
       warnings.push({
         type: 'warning',
         message: `Pressure surge is ${(safetyFactor * 100).toFixed(1)}% of pipe rating - consider safety margin`,
-        severity: 'medium'
+        severity: 'medium',
       });
     }
   }
-  
+
   // Add validation warnings
   if (Math.abs(velocityChange) > 10) {
     warnings.push({
       type: 'warning',
       message: 'Large velocity change detected - verify input values',
-      severity: 'medium'
+      severity: 'medium',
     });
   }
-  
+
   if (waveSpeed > 1500) {
     warnings.push({
       type: 'warning',
       message: 'Unusually high wave speed detected - verify pipe properties',
-      severity: 'medium'
+      severity: 'medium',
     });
   }
-  
+
   return result;
 }
 

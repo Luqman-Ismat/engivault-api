@@ -69,7 +69,9 @@ describe('Valve API', () => {
       const result = JSON.parse(response.payload);
 
       expect(result.chokedFlow.criticalPressureDrop.value).toBeGreaterThan(0);
-      expect(result.chokedFlow.actualPressureDrop).toEqual(validRequest.pressureDrop);
+      expect(result.chokedFlow.actualPressureDrop).toEqual(
+        validRequest.pressureDrop
+      );
     });
 
     it('should calculate valve authority when pressures provided', async () => {
@@ -94,8 +96,13 @@ describe('Valve API', () => {
     });
 
     it('should handle different trim characteristics', async () => {
-      const trimTypes = ['linear', 'equal-percentage', 'quick-opening', 'modified-parabolic'];
-      
+      const trimTypes = [
+        'linear',
+        'equal-percentage',
+        'quick-opening',
+        'modified-parabolic',
+      ];
+
       for (const trimType of trimTypes) {
         const requestWithTrim = {
           ...validRequest,
@@ -118,7 +125,7 @@ describe('Valve API', () => {
 
     it('should handle different specific gravities', async () => {
       const specificGravities = [0.8, 1.0, 1.2, 1.5];
-      
+
       for (const sg of specificGravities) {
         const requestWithSG = {
           ...validRequest,
@@ -142,7 +149,7 @@ describe('Valve API', () => {
 
     it('should handle different pressure drops', async () => {
       const pressureDrops = [5, 10, 25, 50];
-      
+
       for (const deltaP of pressureDrops) {
         const requestWithDeltaP = {
           ...validRequest,
@@ -182,7 +189,9 @@ describe('Valve API', () => {
       const result = JSON.parse(response.payload);
 
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some((w: string) => w.includes('authority'))).toBe(true);
+      expect(result.warnings.some((w: string) => w.includes('authority'))).toBe(
+        true
+      );
     });
 
     it('should generate warnings for high pressure drop', async () => {
@@ -201,7 +210,9 @@ describe('Valve API', () => {
       const result = JSON.parse(response.payload);
 
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some((w: string) => w.includes('pressure drop'))).toBe(true);
+      expect(
+        result.warnings.some((w: string) => w.includes('pressure drop'))
+      ).toBe(true);
     });
 
     it('should return validation error for negative flow rate', async () => {
@@ -319,7 +330,9 @@ describe('Valve API', () => {
       const result = JSON.parse(response.payload);
 
       expect(result.error).toBe('Invalid input parameters');
-      expect(result.details).toContain('Upstream pressure must be greater than downstream pressure');
+      expect(result.details).toContain(
+        'Upstream pressure must be greater than downstream pressure'
+      );
     });
 
     it('should return validation error for out-of-range temperature', async () => {
@@ -338,7 +351,9 @@ describe('Valve API', () => {
       const result = JSON.parse(response.payload);
 
       expect(result.error).toBe('Invalid input parameters');
-      expect(result.details).toContain('Temperature should be between 200K and 600K');
+      expect(result.details).toContain(
+        'Temperature should be between 200K and 600K'
+      );
     });
   });
 

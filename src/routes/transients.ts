@@ -26,11 +26,13 @@ const zJoukowskyRequest = z.object({
 const zJoukowskyResponse = z.object({
   pressureSurge: zQuantity,
   waveSpeed: zQuantity,
-  comparison: z.object({
-    pipeRating: zQuantity,
-    safetyFactor: z.number(),
-    isWithinRating: z.boolean(),
-  }).optional(),
+  comparison: z
+    .object({
+      pipeRating: zQuantity,
+      safetyFactor: z.number(),
+      isWithinRating: z.boolean(),
+    })
+    .optional(),
   warnings: z.array(z.string()),
   metadata: z.object({
     input: zJoukowskyRequest,
@@ -57,12 +59,18 @@ export default async function transientRoutes(fastify: FastifyInstance) {
               properties: {
                 density: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 bulkModulus: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
               },
@@ -73,34 +81,52 @@ export default async function transientRoutes(fastify: FastifyInstance) {
               properties: {
                 elasticModulus: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 wallThickness: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 diameter: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 waveSpeed: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
               },
             },
             velocityChange: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             pipeRating: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
           },
@@ -112,12 +138,18 @@ export default async function transientRoutes(fastify: FastifyInstance) {
             properties: {
               pressureSurge: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               waveSpeed: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               comparison: {
@@ -125,7 +157,10 @@ export default async function transientRoutes(fastify: FastifyInstance) {
                 properties: {
                   pipeRating: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   safetyFactor: { type: 'number' },
@@ -175,33 +210,38 @@ export default async function transientRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         const input = zJoukowskyRequest.parse(request.body);
-        
+
         // Validate that either wave speed or complete pipe properties are provided
         const hasWaveSpeed = !!input.pipe.waveSpeed;
-        const hasCompletePipeProps = !!(input.pipe.elasticModulus && input.pipe.wallThickness && input.pipe.diameter);
-        
+        const hasCompletePipeProps = !!(
+          input.pipe.elasticModulus &&
+          input.pipe.wallThickness &&
+          input.pipe.diameter
+        );
+
         if (!hasWaveSpeed && !hasCompletePipeProps) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Either wave speed or complete pipe properties (elastic modulus, wall thickness, diameter) must be provided'
+            message:
+              'Either wave speed or complete pipe properties (elastic modulus, wall thickness, diameter) must be provided',
           });
         }
-        
+
         // Validate pipe properties if provided
         if (input.pipe.diameter && input.pipe.wallThickness) {
           const diameter = input.pipe.diameter.value;
           const wallThickness = input.pipe.wallThickness.value;
-          
+
           if (wallThickness >= diameter / 2) {
             return reply.status(400).send({
               error: 'ValidationError',
-              message: 'Wall thickness must be less than pipe radius'
+              message: 'Wall thickness must be less than pipe radius',
             });
           }
         }
-        
+
         const result = joukowskySurge(input);
-        
+
         return reply.send(result);
       } catch (error) {
         return handleError(error, reply);

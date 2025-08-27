@@ -30,32 +30,32 @@ export async function processBatchOrSingle<T, R>(
   calculator: CalculatorFunction<T, R>,
   reply: FastifyReply
 ): Promise<BatchResponse<T, R> | SingleResponse<R>> {
-  
   // Check if this is a batch request
   if (payload && Array.isArray(payload.items)) {
     const batchRequest = payload as BatchRequest<T>;
     const results: R[] = [];
     const errors: Array<{ index: number; error: string }> = [];
-    
+
     // Process each item in the batch
     for (let i = 0; i < batchRequest.items.length; i++) {
       try {
         const result = calculator(batchRequest.items[i]);
         results.push(result);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         errors.push({
           index: i,
-          error: errorMessage
+          error: errorMessage,
         });
         // Add null to results to maintain index alignment
         results.push(null as any);
       }
     }
-    
+
     return {
       results,
-      errors
+      errors,
     };
   } else {
     // Single item request - process normally
@@ -76,11 +76,13 @@ export async function processBatchOrSingle<T, R>(
  * @returns True if it's a valid batch request
  */
 export function isBatchRequest(payload: any): payload is BatchRequest<any> {
-  return payload !== null && 
-         payload !== undefined &&
-         typeof payload === 'object' && 
-         Array.isArray(payload.items) && 
-         payload.items.length > 0;
+  return (
+    payload !== null &&
+    payload !== undefined &&
+    typeof payload === 'object' &&
+    Array.isArray(payload.items) &&
+    payload.items.length > 0
+  );
 }
 
 /**
@@ -89,8 +91,10 @@ export function isBatchRequest(payload: any): payload is BatchRequest<any> {
  * @returns True if it's a single request
  */
 export function isSingleRequest(payload: any): boolean {
-  return payload !== null && 
-         payload !== undefined &&
-         typeof payload === 'object' && 
-         !Array.isArray(payload.items);
+  return (
+    payload !== null &&
+    payload !== undefined &&
+    typeof payload === 'object' &&
+    !Array.isArray(payload.items)
+  );
 }

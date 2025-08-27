@@ -29,7 +29,11 @@ export class CalculationError extends Error {
   }
 }
 
-export function handleError(error: unknown, reply: FastifyReply, hints?: ErrorHint[]): void {
+export function handleError(
+  error: unknown,
+  reply: FastifyReply,
+  hints?: ErrorHint[]
+): void {
   if (error instanceof z.ZodError) {
     const enhancedError = ErrorHelper.createError(
       'Validation error',

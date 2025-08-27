@@ -1,7 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { zQuantity } from '../schemas/common';
-import { sizeReliefValve, validateReliefValveInputs, type ReliefValveInput } from '../logic/relief';
+import {
+  sizeReliefValve,
+  validateReliefValveInputs,
+  type ReliefValveInput,
+} from '../logic/relief';
 import { handleError } from '../utils/errorHandler';
 
 // Zod schemas for relief valve sizing
@@ -24,11 +28,16 @@ const zReliefValveResponse = z.object({
   flowRegime: z.enum(['liquid', 'choked-gas', 'non-choked-gas']),
   criticalPressureRatio: z.number().optional(),
   backPressureCorrection: z.number().optional(),
-  warnings: z.array(z.union([z.string(), z.object({
-    code: z.string(),
-    message: z.string(),
-    context: z.record(z.any()).optional(),
-  })])),
+  warnings: z.array(
+    z.union([
+      z.string(),
+      z.object({
+        code: z.string(),
+        message: z.string(),
+        context: z.record(z.any()).optional(),
+      }),
+    ])
+  ),
   metadata: z.object({
     input: zReliefValveInput,
     calculations: z.object({
@@ -95,12 +104,32 @@ const reliefValveExamples = [
 
 // Common discharge coefficients
 const dischargeCoefficients = [
-  { type: 'Conventional Spring Loaded', value: 0.65, description: 'Standard API 526 conventional valve' },
-  { type: 'Balanced Bellows', value: 0.65, description: 'Balanced bellows design for back pressure compensation' },
-  { type: 'Pilot Operated', value: 0.70, description: 'Pilot-operated relief valve with higher capacity' },
+  {
+    type: 'Conventional Spring Loaded',
+    value: 0.65,
+    description: 'Standard API 526 conventional valve',
+  },
+  {
+    type: 'Balanced Bellows',
+    value: 0.65,
+    description: 'Balanced bellows design for back pressure compensation',
+  },
+  {
+    type: 'Pilot Operated',
+    value: 0.7,
+    description: 'Pilot-operated relief valve with higher capacity',
+  },
   { type: 'Rupture Disk', value: 0.62, description: 'Rupture disk device' },
-  { type: 'Liquid Service', value: 0.65, description: 'Standard for liquid applications' },
-  { type: 'Gas Service', value: 0.65, description: 'Standard for gas applications' },
+  {
+    type: 'Liquid Service',
+    value: 0.65,
+    description: 'Standard for liquid applications',
+  },
+  {
+    type: 'Gas Service',
+    value: 0.65,
+    description: 'Standard for gas applications',
+  },
 ];
 
 // Common fluid properties
@@ -151,109 +180,130 @@ const fluidProperties = [
 
 export default async function reliefRoutes(fastify: FastifyInstance) {
   // POST /api/v1/safety/relief-size
-  fastify.post('/api/v1/safety/relief-size', {
-    schema: {
-      description: 'Size relief valve for given conditions',
-      tags: ['Safety'],
-      body: zReliefValveInput,
-      response: {
-        200: zReliefValveResponse,
-        400: z.object({
-          error: z.string(),
-          code: z.string(),
-          details: z.array(z.string()).optional(),
-        }),
-        422: z.object({
-          error: z.string(),
-          code: z.string(),
-          details: z.array(z.string()).optional(),
-        }),
-        500: z.object({
-          error: z.string(),
-          code: z.string(),
-        }),
+  fastify.post(
+    '/api/v1/safety/relief-size',
+    {
+      schema: {
+        description: 'Size relief valve for given conditions',
+        tags: ['Safety'],
+        body: zReliefValveInput,
+        response: {
+          200: zReliefValveResponse,
+          400: z.object({
+            error: z.string(),
+            code: z.string(),
+            details: z.array(z.string()).optional(),
+          }),
+          422: z.object({
+            error: z.string(),
+            code: z.string(),
+            details: z.array(z.string()).optional(),
+          }),
+          500: z.object({
+            error: z.string(),
+            code: z.string(),
+          }),
+        },
       },
     },
-  }, async (request, reply) => {
-    try {
-      const input = request.body as ReliefValveInput;
-      
-      // Validate inputs
-      const validation = validateReliefValveInputs(input);
-      if (!validation.isValid) {
-        return reply.status(400).send({
-          error: 'Invalid input parameters',
-          code: 'VALIDATION_ERROR',
-          details: validation.errors,
-        });
+    async (request, reply) => {
+      try {
+        const input = request.body as ReliefValveInput;
+
+        // Validate inputs
+        const validation = validateReliefValveInputs(input);
+        if (!validation.isValid) {
+          return reply.status(400).send({
+            error: 'Invalid input parameters',
+            code: 'VALIDATION_ERROR',
+            details: validation.errors,
+          });
+        }
+
+        // Size relief valve
+        const result = sizeReliefValve(input);
+
+        return reply.send(result);
+      } catch (error) {
+        return handleError(error, reply);
       }
-      
-      // Size relief valve
-      const result = sizeReliefValve(input);
-      
-      return reply.send(result);
-    } catch (error) {
-      return handleError(error, reply);
     }
-  });
+  );
 
   // GET /api/v1/safety/relief-examples
-  fastify.get('/api/v1/safety/relief-examples', {
-    schema: {
-      description: 'Get example relief valve sizing scenarios',
-      tags: ['Safety'],
-      response: {
-        200: z.object({
-          examples: z.array(z.object({
-            name: z.string(),
-            description: z.string(),
-            input: zReliefValveInput,
-          })),
-        }),
+  fastify.get(
+    '/api/v1/safety/relief-examples',
+    {
+      schema: {
+        description: 'Get example relief valve sizing scenarios',
+        tags: ['Safety'],
+        response: {
+          200: z.object({
+            examples: z.array(
+              z.object({
+                name: z.string(),
+                description: z.string(),
+                input: zReliefValveInput,
+              })
+            ),
+          }),
+        },
       },
     },
-  }, async (request, reply) => {
-    return reply.send({ examples: reliefValveExamples });
-  });
+    async (request, reply) => {
+      return reply.send({ examples: reliefValveExamples });
+    }
+  );
 
   // GET /api/v1/safety/discharge-coefficients
-  fastify.get('/api/v1/safety/discharge-coefficients', {
-    schema: {
-      description: 'Get common discharge coefficients for relief valves',
-      tags: ['Safety'],
-      response: {
-        200: z.object({
-          coefficients: z.array(z.object({
-            type: z.string(),
-            value: z.number(),
-            description: z.string(),
-          })),
-        }),
+  fastify.get(
+    '/api/v1/safety/discharge-coefficients',
+    {
+      schema: {
+        description: 'Get common discharge coefficients for relief valves',
+        tags: ['Safety'],
+        response: {
+          200: z.object({
+            coefficients: z.array(
+              z.object({
+                type: z.string(),
+                value: z.number(),
+                description: z.string(),
+              })
+            ),
+          }),
+        },
       },
     },
-  }, async (request, reply) => {
-    return reply.send({ coefficients: dischargeCoefficients });
-  });
+    async (request, reply) => {
+      return reply.send({ coefficients: dischargeCoefficients });
+    }
+  );
 
   // GET /api/v1/safety/fluid-properties
-  fastify.get('/api/v1/safety/fluid-properties', {
-    schema: {
-      description: 'Get common fluid properties for relief valve sizing',
-      tags: ['Safety'],
-      response: {
-        200: z.object({
-          fluids: z.array(z.object({
-            name: z.string(),
-            type: z.enum(['liquid', 'gas']),
-            specificGravity: z.number().nullable(),
-            molecularWeight: z.number().nullable(),
-            specificHeatRatio: z.number().nullable(),
-          })),
-        }),
+  fastify.get(
+    '/api/v1/safety/fluid-properties',
+    {
+      schema: {
+        description: 'Get common fluid properties for relief valve sizing',
+        tags: ['Safety'],
+        response: {
+          200: z.object({
+            fluids: z.array(
+              z.object({
+                name: z.string(),
+                type: z.enum(['liquid', 'gas']),
+                specificGravity: z.number().nullable(),
+                molecularWeight: z.number().nullable(),
+                specificHeatRatio: z.number().nullable(),
+              })
+            ),
+          }),
+        },
       },
     },
-  }, async (request, reply) => {
-    return reply.send({ fluids: fluidProperties });
-  });
+    async (request, reply) => {
+      return reply.send({ fluids: fluidProperties });
+    }
+  );
 }
-

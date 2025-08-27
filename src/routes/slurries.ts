@@ -98,12 +98,18 @@ export default async function slurryRoutes(fastify: FastifyInstance) {
                   properties: {
                     density: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                     viscosity: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                   },
@@ -114,49 +120,72 @@ export default async function slurryRoutes(fastify: FastifyInstance) {
                   properties: {
                     density: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
                     diameter: {
                       type: 'object',
-                      properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                      properties: {
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                      },
                       required: ['value', 'unit'],
                     },
-                    shape: { 
-                      type: 'string', 
-                      enum: ['spherical', 'angular', 'flat'] 
+                    shape: {
+                      type: 'string',
+                      enum: ['spherical', 'angular', 'flat'],
                     },
                   },
                   required: ['density', 'diameter'],
                 },
                 concentration: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
-                concentrationType: { 
-                  type: 'string', 
-                  enum: ['volume', 'weight'] 
+                concentrationType: {
+                  type: 'string',
+                  enum: ['volume', 'weight'],
                 },
               },
-              required: ['carrierFluid', 'particles', 'concentration', 'concentrationType'],
+              required: [
+                'carrierFluid',
+                'particles',
+                'concentration',
+                'concentrationType',
+              ],
             },
             pipe: {
               type: 'object',
               properties: {
                 diameter: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 length: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
                 roughness: {
                   type: 'object',
-                  properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                  },
                   required: ['value', 'unit'],
                 },
               },
@@ -164,7 +193,10 @@ export default async function slurryRoutes(fastify: FastifyInstance) {
             },
             velocity: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
           },
@@ -176,12 +208,18 @@ export default async function slurryRoutes(fastify: FastifyInstance) {
             properties: {
               headloss: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               pressureDrop: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               frictionFactor: { type: 'number' },
@@ -202,13 +240,28 @@ export default async function slurryRoutes(fastify: FastifyInstance) {
                       settlingVelocity: { type: 'number' },
                       concentration: { type: 'number' },
                     },
-                    required: ['reynoldsNumber', 'carrierFrictionFactor', 'settlingVelocity', 'concentration'],
+                    required: [
+                      'reynoldsNumber',
+                      'carrierFrictionFactor',
+                      'settlingVelocity',
+                      'concentration',
+                    ],
                   },
                 },
                 required: ['input', 'calculations'],
               },
             },
-            required: ['headloss', 'pressureDrop', 'frictionFactor', 'relativeRoughness', 'durandFactor', 'froudeNumber', 'concentrationEffect', 'warnings', 'metadata'],
+            required: [
+              'headloss',
+              'pressureDrop',
+              'frictionFactor',
+              'relativeRoughness',
+              'durandFactor',
+              'froudeNumber',
+              'concentrationEffect',
+              'warnings',
+              'metadata',
+            ],
           },
           400: {
             type: 'object',
@@ -232,54 +285,62 @@ export default async function slurryRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         const input = zSlurryFlowRequest.parse(request.body);
-        
+
         // Validate particle density vs carrier fluid density
         const particleDensity = input.slurry.particles.density.value;
         const carrierDensity = input.slurry.carrierFluid.density.value;
-        
+
         if (particleDensity <= carrierDensity) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Particle density must be greater than carrier fluid density for settling'
+            message:
+              'Particle density must be greater than carrier fluid density for settling',
           });
         }
-        
+
         // Validate concentration range
         const concentration = input.slurry.concentration.value;
         if (concentration <= 0 || concentration >= 1) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Concentration must be between 0 and 1'
+            message: 'Concentration must be between 0 and 1',
           });
         }
-        
+
         // Validate velocity
         if (input.velocity.value <= 0) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Flow velocity must be positive'
+            message: 'Flow velocity must be positive',
           });
         }
-        
+
         // Validate pipe geometry
-        if (input.pipe.diameter.value <= 0 || input.pipe.length.value <= 0 || input.pipe.roughness.value < 0) {
+        if (
+          input.pipe.diameter.value <= 0 ||
+          input.pipe.length.value <= 0 ||
+          input.pipe.roughness.value < 0
+        ) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Pipe diameter and length must be positive, roughness must be non-negative'
+            message:
+              'Pipe diameter and length must be positive, roughness must be non-negative',
           });
         }
-        
+
         // Check particle-to-pipe diameter ratio
-        const particleToPipeRatio = input.slurry.particles.diameter.value / input.pipe.diameter.value;
+        const particleToPipeRatio =
+          input.slurry.particles.diameter.value / input.pipe.diameter.value;
         if (particleToPipeRatio > 0.1) {
           return reply.status(400).send({
             error: 'ValidationError',
-            message: 'Particle diameter should be less than 10% of pipe diameter for Durand correlation'
+            message:
+              'Particle diameter should be less than 10% of pipe diameter for Durand correlation',
           });
         }
-        
+
         const result = calculateSlurryHeadloss(input);
-        
+
         return reply.send(result);
       } catch (error) {
         return handleError(error, reply);

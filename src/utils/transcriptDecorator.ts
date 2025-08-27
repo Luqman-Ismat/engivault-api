@@ -4,7 +4,11 @@ import { transcriptService } from '@/services/runs';
 export interface TranscriptCaptureOptions {
   selectedEquations?: string[];
   intermediateValues?: Record<string, any>;
-  warnings?: Array<{ type: string; message: string; severity: 'low' | 'medium' | 'high' }>;
+  warnings?: Array<{
+    type: string;
+    message: string;
+    severity: 'low' | 'medium' | 'high';
+  }>;
 }
 
 /**
@@ -16,14 +20,14 @@ export function withTranscriptCapture<T = any>(
 ) {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<T> => {
     const startTime = Date.now();
-    
+
     try {
       // Execute the original handler
       const result = await handler(request, reply);
-      
+
       // Calculate processing time
       const processingTime = Date.now() - startTime;
-      
+
       // Capture transcript if enabled
       const transcript = transcriptService.createFromRequest(
         request,
@@ -33,17 +37,17 @@ export function withTranscriptCapture<T = any>(
         options.intermediateValues || {},
         options.selectedEquations || []
       );
-      
+
       // Add transcript ID to response headers if transcript was created
       if (transcript) {
         reply.header('X-EngiVault-Transcript-ID', transcript.id);
       }
-      
+
       return result;
     } catch (error) {
       // Calculate processing time even for errors
       const processingTime = Date.now() - startTime;
-      
+
       // Capture transcript for errors too if enabled
       const transcript = transcriptService.createFromRequest(
         request,
@@ -53,12 +57,12 @@ export function withTranscriptCapture<T = any>(
         options.intermediateValues || {},
         options.selectedEquations || []
       );
-      
+
       // Add transcript ID to response headers if transcript was created
       if (transcript) {
         reply.header('X-EngiVault-Transcript-ID', transcript.id);
       }
-      
+
       // Re-throw the error
       throw error;
     }
@@ -72,14 +76,18 @@ export function createTranscriptOptions(
   calculationType: string,
   equations: string[] = [],
   intermediates: Record<string, any> = {},
-  warnings: Array<{ type: string; message: string; severity: 'low' | 'medium' | 'high' }> = []
+  warnings: Array<{
+    type: string;
+    message: string;
+    severity: 'low' | 'medium' | 'high';
+  }> = []
 ): TranscriptCaptureOptions {
   return {
     selectedEquations: equations,
     intermediateValues: {
       calculationType,
-      ...intermediates
+      ...intermediates,
     },
-    warnings
+    warnings,
   };
 }

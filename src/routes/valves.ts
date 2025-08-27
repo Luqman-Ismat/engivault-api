@@ -5,7 +5,12 @@ import { sizeValve, validateValveSizingInputs } from '@/logic/valves';
 import { handleError } from '@/utils/errorHandler';
 
 const zValveTrimCharacteristic = z.object({
-  type: z.enum(['linear', 'equal-percentage', 'quick-opening', 'modified-parabolic']),
+  type: z.enum([
+    'linear',
+    'equal-percentage',
+    'quick-opening',
+    'modified-parabolic',
+  ]),
   description: z.string().optional(),
 });
 
@@ -83,21 +88,32 @@ export default async function valveRoutes(fastify: FastifyInstance) {
           properties: {
             flow: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             pressureDrop: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             specificGravity: { type: 'number', minimum: 0 },
             trimCharacteristic: {
               type: 'object',
               properties: {
-                type: { 
-                  type: 'string', 
-                  enum: ['linear', 'equal-percentage', 'quick-opening', 'modified-parabolic'] 
+                type: {
+                  type: 'string',
+                  enum: [
+                    'linear',
+                    'equal-percentage',
+                    'quick-opening',
+                    'modified-parabolic',
+                  ],
                 },
                 description: { type: 'string' },
               },
@@ -106,41 +122,56 @@ export default async function valveRoutes(fastify: FastifyInstance) {
             pressureRecoveryFactor: { type: 'number', minimum: 0, maximum: 1 },
             upstreamPressure: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             downstreamPressure: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             temperature: {
               type: 'object',
-              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              properties: {
+                value: { type: 'number' },
+                unit: { type: 'string' },
+              },
               required: ['value', 'unit'],
             },
             fluidName: { type: 'string' },
           },
-          required: ['flow', 'pressureDrop', 'specificGravity', 'trimCharacteristic'],
+          required: [
+            'flow',
+            'pressureDrop',
+            'specificGravity',
+            'trimCharacteristic',
+          ],
         },
         examples: [
           {
             name: 'Water Control Valve',
             summary: 'Size control valve for water flow',
-            description: 'Size a control valve for water flow with equal percentage trim',
+            description:
+              'Size a control valve for water flow with equal percentage trim',
             value: {
               flow: { value: 50, unit: 'm³/h' },
               pressureDrop: { value: 2.5, unit: 'bar' },
               specificGravity: 1.0,
               trimCharacteristic: {
                 type: 'equal-percentage',
-                description: 'Equal percentage trim for good control range'
+                description: 'Equal percentage trim for good control range',
               },
               pressureRecoveryFactor: 0.9,
               upstreamPressure: { value: 6.0, unit: 'bar' },
               temperature: { value: 20, unit: 'C' },
-              fluidName: 'water'
-            }
+              fluidName: 'water',
+            },
           },
           {
             name: 'Oil Control Valve',
@@ -152,14 +183,14 @@ export default async function valveRoutes(fastify: FastifyInstance) {
               specificGravity: 0.85,
               trimCharacteristic: {
                 type: 'linear',
-                description: 'Linear trim for proportional control'
+                description: 'Linear trim for proportional control',
               },
               pressureRecoveryFactor: 0.85,
               upstreamPressure: { value: 4.5, unit: 'bar' },
               temperature: { value: 60, unit: 'C' },
-              fluidName: 'oil'
-            }
-          }
+              fluidName: 'oil',
+            },
+          },
         ],
         response: {
           200: {
@@ -167,12 +198,18 @@ export default async function valveRoutes(fastify: FastifyInstance) {
             properties: {
               cv: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               kv: {
                 type: 'object',
-                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                properties: {
+                  value: { type: 'number' },
+                  unit: { type: 'string' },
+                },
                 required: ['value', 'unit'],
               },
               valveAuthority: { type: 'number' },
@@ -180,22 +217,33 @@ export default async function valveRoutes(fastify: FastifyInstance) {
                 type: 'object',
                 properties: {
                   isChoked: { type: 'boolean' },
-                  likelihood: { 
-                    type: 'string', 
-                    enum: ['none', 'low', 'medium', 'high'] 
+                  likelihood: {
+                    type: 'string',
+                    enum: ['none', 'low', 'medium', 'high'],
                   },
                   criticalPressureDrop: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                   actualPressureDrop: {
                     type: 'object',
-                    properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                    properties: {
+                      value: { type: 'number' },
+                      unit: { type: 'string' },
+                    },
                     required: ['value', 'unit'],
                   },
                 },
-                required: ['isChoked', 'likelihood', 'criticalPressureDrop', 'actualPressureDrop'],
+                required: [
+                  'isChoked',
+                  'likelihood',
+                  'criticalPressureDrop',
+                  'actualPressureDrop',
+                ],
               },
               warnings: { type: 'array', items: { type: 'string' } },
               metadata: {
@@ -206,12 +254,18 @@ export default async function valveRoutes(fastify: FastifyInstance) {
                     properties: {
                       flow: {
                         type: 'object',
-                        properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                        properties: {
+                          value: { type: 'number' },
+                          unit: { type: 'string' },
+                        },
                         required: ['value', 'unit'],
                       },
                       pressureDrop: {
                         type: 'object',
-                        properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                        properties: {
+                          value: { type: 'number' },
+                          unit: { type: 'string' },
+                        },
                         required: ['value', 'unit'],
                       },
                       specificGravity: { type: 'number' },
@@ -224,19 +278,30 @@ export default async function valveRoutes(fastify: FastifyInstance) {
                         required: ['type'],
                       },
                     },
-                    required: ['flow', 'pressureDrop', 'specificGravity', 'trimCharacteristic'],
+                    required: [
+                      'flow',
+                      'pressureDrop',
+                      'specificGravity',
+                      'trimCharacteristic',
+                    ],
                   },
                   calculations: {
                     type: 'object',
                     properties: {
                       flowRate: {
                         type: 'object',
-                        properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                        properties: {
+                          value: { type: 'number' },
+                          unit: { type: 'string' },
+                        },
                         required: ['value', 'unit'],
                       },
                       pressureDrop: {
                         type: 'object',
-                        properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                        properties: {
+                          value: { type: 'number' },
+                          unit: { type: 'string' },
+                        },
                         required: ['value', 'unit'],
                       },
                       specificGravity: { type: 'number' },
@@ -247,7 +312,14 @@ export default async function valveRoutes(fastify: FastifyInstance) {
                 required: ['input', 'calculations'],
               },
             },
-            required: ['cv', 'kv', 'valveAuthority', 'chokedFlow', 'warnings', 'metadata'],
+            required: [
+              'cv',
+              'kv',
+              'valveAuthority',
+              'chokedFlow',
+              'warnings',
+              'metadata',
+            ],
           },
           400: {
             type: 'object',
@@ -272,10 +344,10 @@ export default async function valveRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         const body = zValveSizingRequest.parse(request.body);
-        
+
         // Validate inputs
         const validation = validateValveSizingInputs(body);
-        
+
         if (!validation.isValid) {
           return reply.status(400).send({
             error: 'Invalid input parameters',
@@ -288,7 +360,7 @@ export default async function valveRoutes(fastify: FastifyInstance) {
         const result = sizeValve(body);
 
         // Convert warnings to strings for API response
-        const stringWarnings = result.warnings.map(warning => 
+        const stringWarnings = result.warnings.map(warning =>
           typeof warning === 'string' ? warning : warning.message
         );
 
@@ -326,7 +398,13 @@ export default async function valveRoutes(fastify: FastifyInstance) {
                     typicalFL: { type: 'number' },
                     applications: { type: 'array', items: { type: 'string' } },
                   },
-                  required: ['type', 'name', 'description', 'typicalFL', 'applications'],
+                  required: [
+                    'type',
+                    'name',
+                    'description',
+                    'typicalFL',
+                    'applications',
+                  ],
                 },
               },
             },
@@ -353,7 +431,8 @@ export default async function valveRoutes(fastify: FastifyInstance) {
           {
             type: 'equal-percentage',
             name: 'Equal Percentage',
-            description: 'Equal increments of valve travel produce equal percentage changes in flow',
+            description:
+              'Equal increments of valve travel produce equal percentage changes in flow',
             typicalFL: 0.85,
             applications: [
               'Temperature control',
@@ -377,7 +456,8 @@ export default async function valveRoutes(fastify: FastifyInstance) {
           {
             type: 'modified-parabolic',
             name: 'Modified Parabolic',
-            description: 'Intermediate characteristic between linear and equal percentage',
+            description:
+              'Intermediate characteristic between linear and equal percentage',
             typicalFL: 0.88,
             applications: [
               'Temperature control',
@@ -413,12 +493,18 @@ export default async function valveRoutes(fastify: FastifyInstance) {
                       properties: {
                         flow: {
                           type: 'object',
-                          properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                          properties: {
+                            value: { type: 'number' },
+                            unit: { type: 'string' },
+                          },
                           required: ['value', 'unit'],
                         },
                         pressureDrop: {
                           type: 'object',
-                          properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                          properties: {
+                            value: { type: 'number' },
+                            unit: { type: 'string' },
+                          },
                           required: ['value', 'unit'],
                         },
                         specificGravity: { type: 'number' },
@@ -432,22 +518,36 @@ export default async function valveRoutes(fastify: FastifyInstance) {
                         },
                         upstreamPressure: {
                           type: 'object',
-                          properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                          properties: {
+                            value: { type: 'number' },
+                            unit: { type: 'string' },
+                          },
                           required: ['value', 'unit'],
                         },
                         downstreamPressure: {
                           type: 'object',
-                          properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                          properties: {
+                            value: { type: 'number' },
+                            unit: { type: 'string' },
+                          },
                           required: ['value', 'unit'],
                         },
                         temperature: {
                           type: 'object',
-                          properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                          properties: {
+                            value: { type: 'number' },
+                            unit: { type: 'string' },
+                          },
                           required: ['value', 'unit'],
                         },
                         fluidName: { type: 'string' },
                       },
-                      required: ['flow', 'pressureDrop', 'specificGravity', 'trimCharacteristic'],
+                      required: [
+                        'flow',
+                        'pressureDrop',
+                        'specificGravity',
+                        'trimCharacteristic',
+                      ],
                     },
                   },
                   required: ['name', 'description', 'scenario'],
@@ -481,7 +581,8 @@ export default async function valveRoutes(fastify: FastifyInstance) {
           },
           {
             name: 'Chemical Process Control',
-            description: 'Control valve for chemical process with high pressure drop',
+            description:
+              'Control valve for chemical process with high pressure drop',
             scenario: {
               flow: { value: 25, unit: 'gpm' },
               pressureDrop: { value: 50, unit: 'psi' },

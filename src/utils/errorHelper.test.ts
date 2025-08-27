@@ -5,7 +5,7 @@ describe('ErrorHelper', () => {
   describe('createError', () => {
     it('should create a basic error', () => {
       const error = ErrorHelper.createError('Test error', 'TEST_ERROR');
-      
+
       expect(error).toEqual({
         error: 'Test error',
         code: 'TEST_ERROR',
@@ -21,9 +21,14 @@ describe('ErrorHelper', () => {
           message: 'Test hint',
         },
       ];
-      
-      const error = ErrorHelper.createError('Test error', 'TEST_ERROR', { test: 'data' }, hints);
-      
+
+      const error = ErrorHelper.createError(
+        'Test error',
+        'TEST_ERROR',
+        { test: 'data' },
+        hints
+      );
+
       expect(error).toEqual({
         error: 'Test error',
         code: 'TEST_ERROR',
@@ -44,7 +49,8 @@ describe('ErrorHelper', () => {
       expect(hints).toHaveLength(1);
       expect(hints[0]).toEqual({
         type: 'assumption_violation',
-        message: 'Mach number (0.500) exceeds 0.3. Compressible flow effects are significant.',
+        message:
+          'Mach number (0.500) exceeds 0.3. Compressible flow effects are significant.',
         suggestedEndpoint: '/api/v1/gas/pressure-drop',
         validRange: { min: 0, max: 0.3 },
       });
@@ -162,12 +168,20 @@ describe('ErrorHelper', () => {
 
   describe('addCurveFittingViolationHint', () => {
     it('should not add hint for adequate points', () => {
-      const hints = ErrorHelper.addCurveFittingViolationHint(5, 'quadratic', 0.95);
+      const hints = ErrorHelper.addCurveFittingViolationHint(
+        5,
+        'quadratic',
+        0.95
+      );
       expect(hints).toEqual([]);
     });
 
     it('should add hint for insufficient points for quadratic', () => {
-      const hints = ErrorHelper.addCurveFittingViolationHint(2, 'quadratic', 0.95);
+      const hints = ErrorHelper.addCurveFittingViolationHint(
+        2,
+        'quadratic',
+        0.95
+      );
       expect(hints).toHaveLength(1);
       expect(hints[0].message).toContain('requires at least 3 points');
       expect(hints[0].suggestedValue).toBe(3);
@@ -181,7 +195,11 @@ describe('ErrorHelper', () => {
     });
 
     it('should add hint for poor fit', () => {
-      const hints = ErrorHelper.addCurveFittingViolationHint(5, 'quadratic', 0.8);
+      const hints = ErrorHelper.addCurveFittingViolationHint(
+        5,
+        'quadratic',
+        0.8
+      );
       expect(hints).toHaveLength(1);
       expect(hints[0].message).toContain('poor fit');
       expect(hints[0].validRange).toEqual({ min: 0.9, max: 1.0 });
@@ -190,7 +208,11 @@ describe('ErrorHelper', () => {
 
   describe('addUnitConversionHint', () => {
     it('should add unit conversion hint', () => {
-      const hints = ErrorHelper.addUnitConversionHint('m/s', 'ft/s', 'velocity');
+      const hints = ErrorHelper.addUnitConversionHint(
+        'm/s',
+        'ft/s',
+        'velocity'
+      );
       expect(hints).toHaveLength(1);
       expect(hints[0].type).toBe('unit_conversion');
       expect(hints[0].message).toContain('/api/v1/utilities/convert');
@@ -200,7 +222,12 @@ describe('ErrorHelper', () => {
 
   describe('addParameterFixHint', () => {
     it('should add parameter fix hint', () => {
-      const hints = ErrorHelper.addParameterFixHint('diameter', 0.005, 0.01, 'too small');
+      const hints = ErrorHelper.addParameterFixHint(
+        'diameter',
+        0.005,
+        0.01,
+        'too small'
+      );
       expect(hints).toHaveLength(1);
       expect(hints[0].type).toBe('parameter_fix');
       expect(hints[0].message).toContain('diameter (0.005): too small');
@@ -216,9 +243,15 @@ describe('ErrorHelper', () => {
           message: 'Test hint',
         },
       ];
-      
-      const error = ErrorHelper.createValidationError('diameter', 0.005, 'min', 'Too small', hints);
-      
+
+      const error = ErrorHelper.createValidationError(
+        'diameter',
+        0.005,
+        'min',
+        'Too small',
+        hints
+      );
+
       expect(error).toEqual({
         error: 'Validation Error',
         code: 'VALIDATION_ERROR',
@@ -243,7 +276,7 @@ describe('ErrorHelper', () => {
         diameter: 0.005,
         velocity: 0.05,
       });
-      
+
       expect(hints).toHaveLength(4);
       expect(hints.some(h => h.message.includes('laminar flow'))).toBe(true);
       expect(hints.some(h => h.message.includes('exceeds 0.05'))).toBe(true);
@@ -255,7 +288,7 @@ describe('ErrorHelper', () => {
       const hints = ErrorHelper.addEngineeringHints('gas_flow', {
         mach: 0.5,
       });
-      
+
       expect(hints).toHaveLength(1);
       expect(hints[0].message).toContain('exceeds 0.3');
     });
@@ -265,7 +298,7 @@ describe('ErrorHelper', () => {
         npsha: 2.0,
         npshr: 3.0,
       });
-      
+
       expect(hints).toHaveLength(1);
       expect(hints[0].message).toContain('Cavitation risk is high');
     });
@@ -274,7 +307,7 @@ describe('ErrorHelper', () => {
       const hints = ErrorHelper.addEngineeringHints('bep_check', {
         bepDistance: 0.3,
       });
-      
+
       expect(hints).toHaveLength(1);
       expect(hints[0].message).toContain('far from BEP');
     });
@@ -285,9 +318,11 @@ describe('ErrorHelper', () => {
         model: 'quadratic',
         rSquared: 0.8,
       });
-      
+
       expect(hints).toHaveLength(2);
-      expect(hints.some(h => h.message.includes('requires at least 3 points'))).toBe(true);
+      expect(
+        hints.some(h => h.message.includes('requires at least 3 points'))
+      ).toBe(true);
       expect(hints.some(h => h.message.includes('poor fit'))).toBe(true);
     });
 

@@ -51,9 +51,9 @@ export default async function pressureProfileRoutes(fastify: FastifyInstance) {
                   diameter: { type: 'object' },
                   roughness: { type: 'object' },
                   elevationDelta: { type: 'object' },
-                  kLocal: { 
+                  kLocal: {
                     type: 'array',
-                    items: { type: 'number' }
+                    items: { type: 'number' },
                   },
                   flow: { type: 'object' },
                 },
@@ -146,7 +146,7 @@ export default async function pressureProfileRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       try {
         const body = zPressureProfileRequest.parse(request.body);
-        
+
         // Validate segments
         const validation = validateSegments(body.segments);
         if (!validation.isValid) {
@@ -156,13 +156,13 @@ export default async function pressureProfileRoutes(fastify: FastifyInstance) {
             details: validation.warnings,
           });
         }
-        
+
         // Calculate pressure profile
         const result = computeProfile(body.segments, body.fluid);
-        
+
         // Validate response
         const response = zPressureProfileResponse.parse(result);
-        
+
         return reply.send(response);
       } catch (error) {
         handleError(error, reply);

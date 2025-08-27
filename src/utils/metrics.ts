@@ -133,18 +133,18 @@ export function recordRequestMetrics(
   responseSize?: number
 ): void {
   const labels = { method, route, status_code: statusCode.toString() };
-  
+
   httpRequestTotal.inc(labels);
   httpRequestDuration.observe(labels, duration / 1000); // Convert to seconds
-  
+
   if (requestSize !== undefined) {
     httpRequestSize.observe({ method, route }, requestSize);
   }
-  
+
   if (responseSize !== undefined) {
     httpResponseSize.observe(labels, responseSize);
   }
-  
+
   if (statusCode >= 400) {
     const errorType = statusCode >= 500 ? 'server_error' : 'client_error';
     httpErrorsTotal.inc({ method, route, error_type: errorType });
@@ -158,7 +158,10 @@ export function recordCalculationMetrics(
   status: 'success' | 'error' = 'success'
 ): void {
   calculationTotal.inc({ calculation_type: calculationType, status });
-  calculationDuration.observe({ calculation_type: calculationType }, duration / 1000);
+  calculationDuration.observe(
+    { calculation_type: calculationType },
+    duration / 1000
+  );
 }
 
 // Helper function to record transcript metrics

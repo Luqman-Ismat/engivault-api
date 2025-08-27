@@ -1,18 +1,46 @@
 # EngiVault API
 
-A high-performance engineering calculations API for fluid dynamics and pump systems, built with Fastify and TypeScript.
+A comprehensive high-performance engineering calculations API for fluid dynamics, pump systems, gas flow, thermal calculations, and more. Built with Fastify, TypeScript, and modern engineering standards.
 
-## Features
+## 🚀 Features
 
-- **Pressure Drop Calculations**: Darcy-Weisbach equation with Churchill friction factor
-- **NPSH Analysis**: Net Positive Suction Head calculations
-- **Flow Fittings**: K-factor based pressure drop calculations
-- **Pump System Curves**: Operating point analysis
-- **Performance Optimized**: Caching, compression, and rate limiting
-- **API Documentation**: Auto-generated Swagger/OpenAPI docs
-- **Production Ready**: Docker support, health checks, and monitoring
+### Core Engineering Calculations
+- **Fluid Dynamics**: Pressure drop, flow fittings, minor losses
+- **Pump Systems**: Operating point analysis, BEP distance, curve fitting
+- **Gas Flow**: Fanno/Rayleigh lines, pressure drop with compressibility
+- **Thermal**: Heat exchanger pressure drop, viscosity-adjusted calculations
+- **Valve Sizing**: Cv/Kv calculations with trim characteristics
+- **Network Analysis**: Complex piping network calculations
+- **Safety Systems**: Relief valve sizing and analysis
+- **Operations**: Tank fill/drain time calculations
+- **Rheology**: Non-Newtonian fluid calculations
 
-## Quick Start
+### Advanced Features
+- **Batch Processing**: Process multiple calculations in a single request
+- **Transcript Service**: Capture and retrieve calculation runs with `X-EngiVault-Transcript` header
+- **Error Helper**: Intelligent error messages with engineering hints
+- **Golden Tests**: Regression testing with fixed inputs and tolerance verification
+- **SDK Generation**: Auto-generated TypeScript and Python SDKs
+- **Performance Optimized**: Caching, compression, rate limiting, and metrics
+
+### Production Ready
+- **API Documentation**: Auto-generated Swagger/OpenAPI docs with examples
+- **Monitoring**: Prometheus metrics and structured logging
+- **Docker Support**: Containerized deployment
+- **Health Checks**: Comprehensive health monitoring
+- **Type Safety**: Full TypeScript coverage
+
+## 📊 Current Status
+
+- **40+ API Endpoints** covering comprehensive engineering calculations
+- **1,171 Tests** (1,121 passing, 40 failing - see [Repository Review](REPOSITORY_REVIEW.md))
+- **Golden Tests** for regression verification
+- **TypeScript & Python SDKs** with examples
+- **Error Helper** with intelligent engineering hints
+- **Batch Processing** for efficient multiple calculations
+- **Transcript Service** for calculation tracking
+
+## 🚦 Quick Start
 
 ### Using Docker (Recommended)
 
@@ -40,6 +68,9 @@ npm run dev
 # Run tests
 npm test
 
+# Run golden tests
+npm test tests/golden/
+
 # Build for production
 npm run build
 
@@ -47,85 +78,170 @@ npm run build
 npm start
 ```
 
-## API Endpoints
+## 🔧 API Endpoints
 
-### Pressure Drop Calculation
+### Core Calculations
+
+#### Pressure Drop
 ```http
 POST /api/v1/calculate/pressure-drop
 Content-Type: application/json
 
 {
-  "flowRate": 0.01,
-  "pipeDiameter": 0.1,
-  "pipeLength": 100,
-  "fluidDensity": 1000,
-  "fluidViscosity": 0.001,
-  "roughness": 0.0001
+  "flowRate": {"value": 0.01, "unit": "m3/s"},
+  "pipeDiameter": {"value": 0.1, "unit": "m"},
+  "pipeLength": {"value": 100, "unit": "m"},
+  "fluidDensity": {"value": 1000, "unit": "kg/m3"},
+  "fluidViscosity": {"value": 0.001, "unit": "Pa·s"},
+  "roughness": {"value": 0.0001, "unit": "m"}
 }
 ```
 
-### NPSH Calculation
+#### Gas Pressure Drop
 ```http
-POST /api/v1/calculate/npsh
+POST /api/v1/gas/pressure-drop
 Content-Type: application/json
 
 {
-  "atmosphericPressure": 101325,
-  "vaporPressure": 2337,
-  "fluidDensity": 1000,
-  "staticHead": 2,
-  "frictionLosses": 5000,
-  "flowRate": 0.01,
-  "pipeDiameter": 0.1
+  "inletPressure": {"value": 1000000, "unit": "Pa"},
+  "flowRate": {"value": 0.1, "unit": "m3/s"},
+  "pipeDiameter": {"value": 0.1, "unit": "m"},
+  "pipeLength": {"value": 100, "unit": "m"},
+  "frictionFactor": 0.02,
+  "specificHeatRatio": 1.4
 }
 ```
 
-### Flow Fittings
+#### Pump Operating Point
 ```http
-POST /api/v1/calculate/flow-fittings
+POST /api/v1/pumps/operate
 Content-Type: application/json
 
 {
-  "kFactor": 0.5,
-  "fluidDensity": 1000,
-  "velocity": 2.5
-}
-```
-
-### Pump System Curve
-```http
-POST /api/v1/calculate/pump-system-curve
-Content-Type: application/json
-
-{
-  "pumpCurve": [
-    {"flow": 0, "head": 30},
-    {"flow": 0.01, "head": 25},
-    {"flow": 0.02, "head": 15}
+  "pumps": [
+    {
+      "curve": [
+        {"flow": {"value": 0, "unit": "m3/s"}, "head": {"value": 30, "unit": "m"}},
+        {"flow": {"value": 0.01, "unit": "m3/s"}, "head": {"value": 25, "unit": "m"}}
+      ],
+      "efficiency": 0.8
+    }
   ],
   "systemCurve": {
-    "staticHead": 10,
+    "staticHead": {"value": 10, "unit": "m"},
     "resistanceCoefficient": 1000
   }
 }
 ```
 
-### NPSH Required
+#### Valve Sizing
 ```http
-POST /api/v1/calculate/npsh-required
+POST /api/v1/valves/size
 Content-Type: application/json
 
 {
-  "flowRate": 0.01,
-  "npshrCurve": [
-    {"flow": 0, "npshr": 2},
-    {"flow": 0.01, "npshr": 3},
-    {"flow": 0.02, "npshr": 5}
+  "flow": {"value": 100, "unit": "gpm"},
+  "pressureDrop": {"value": 10, "unit": "psi"},
+  "specificGravity": 1.0,
+  "trimCharacteristic": {
+    "type": "linear",
+    "description": "Linear characteristic"
+  }
+}
+```
+
+#### Curve Fitting
+```http
+POST /api/v1/curves/fit
+Content-Type: application/json
+
+{
+  "points": [
+    {"q": 10, "h": 94.5},
+    {"q": 20, "h": 88},
+    {"q": 30, "h": 80.5}
+  ],
+  "model": "quadratic"
+}
+```
+
+### Advanced Features
+
+#### Batch Processing
+```http
+POST /api/v1/calculate/pressure-drop
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "flowRate": {"value": 0.01, "unit": "m3/s"},
+      "pipeDiameter": {"value": 0.1, "unit": "m"}
+    },
+    {
+      "flowRate": {"value": 0.02, "unit": "m3/s"},
+      "pipeDiameter": {"value": 0.15, "unit": "m"}
+    }
   ]
 }
 ```
 
-## Performance Features
+#### Transcript Service
+```http
+POST /api/v1/calculate/pressure-drop
+X-EngiVault-Transcript: on
+Content-Type: application/json
+
+{
+  "flowRate": {"value": 0.01, "unit": "m3/s"},
+  "pipeDiameter": {"value": 0.1, "unit": "m"}
+}
+
+# Retrieve transcript
+GET /api/v1/runs/{transcript-id}
+```
+
+## 🛠️ SDK Usage
+
+### TypeScript SDK
+```typescript
+import { EngiVaultAPI } from './clients/ts';
+
+const client = new EngiVaultAPI('http://localhost:3000');
+
+const result = await client.calculatePressureDrop({
+  flowRate: { value: 0.01, unit: 'm3/s' },
+  pipeDiameter: { value: 0.1, unit: 'm' }
+});
+```
+
+### Python SDK
+```python
+from clients.py.client import EngiVaultAPI
+
+client = EngiVaultAPI('http://localhost:3000')
+
+result = client.calculate_pressure_drop({
+    'flowRate': {'value': 0.01, 'unit': 'm3/s'},
+    'pipeDiameter': {'value': 0.1, 'unit': 'm'}
+})
+```
+
+## ⚙️ Configuration
+
+Environment variables:
+
+```bash
+NODE_ENV=development          # Environment (development/production/test)
+PORT=3000                     # Server port
+HOST=0.0.0.0                  # Server host
+LOG_LEVEL=info               # Logging level
+RATE_LIMIT_MAX=100           # Rate limit requests per window
+RATE_LIMIT_WINDOW=1 minute   # Rate limit time window
+CACHE_TTL=600000             # Cache TTL in milliseconds
+```
+
+## 📈 Performance Features
 
 ### Caching
 - In-memory caching for expensive mathematical calculations
@@ -140,21 +256,12 @@ Content-Type: application/json
 - 100 requests per minute per IP
 - Configurable limits via environment variables
 
-## Configuration
+### Metrics
+- Prometheus metrics for monitoring
+- Request counts, latency, and error rates
+- Available at `/metrics`
 
-Environment variables:
-
-```bash
-NODE_ENV=development          # Environment (development/production/test)
-PORT=3000                     # Server port
-HOST=0.0.0.0                  # Server host
-LOG_LEVEL=info               # Logging level
-RATE_LIMIT_MAX=100           # Rate limit requests per window
-RATE_LIMIT_WINDOW=1 minute   # Rate limit time window
-CACHE_TTL=600000             # Cache TTL in milliseconds
-```
-
-## Health Check
+## 🏥 Health Check
 
 ```http
 GET /health
@@ -170,24 +277,33 @@ Returns:
 }
 ```
 
-## API Documentation
+## 📚 API Documentation
 
 Interactive API documentation is available at `/documentation` when the server is running.
 
-## Testing
+## 🧪 Testing
 
 ```bash
 # Run all tests
 npm test
+
+# Run golden tests (regression testing)
+npm test tests/golden/
 
 # Run tests in watch mode
 npm test -- --watch
 
 # Run tests with coverage
 npm test -- --coverage
+
+# Run linting
+npm run lint
+
+# Fix linting issues
+npm run lint -- --fix
 ```
 
-## Docker
+## 🐳 Docker
 
 ### Build Image
 ```bash
@@ -211,7 +327,7 @@ docker-compose logs -f
 docker-compose down
 ```
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 src/
@@ -219,19 +335,49 @@ src/
 ├── logic/           # Core calculation logic
 ├── routes/          # API route handlers
 ├── schemas/         # Input validation schemas
-├── utils/           # Utility functions (cache, error handling)
+├── services/        # Business services (transcript, etc.)
+├── utils/           # Utility functions (cache, error handling, etc.)
 └── index.ts         # Application entry point
+
+tests/
+├── golden/          # Regression tests with fixed inputs
+└── ...              # Unit and integration tests
+
+clients/
+├── ts/              # TypeScript SDK
+└── py/              # Python SDK
 ```
 
-## Performance Optimizations
+## 🔍 Error Handling
+
+The API provides intelligent error messages with engineering hints:
+
+```json
+{
+  "error": "Validation Error",
+  "message": "Invalid input parameters",
+  "hints": [
+    "For Mach > 0.3, consider using /api/v1/gas/pressure-drop endpoint",
+    "Check that Reynolds number is within valid range (Re > 2300 for turbulent flow)"
+  ]
+}
+```
+
+## 📊 Performance Optimizations
 
 1. **Mathematical Caching**: Expensive calculations are cached with configurable TTL
 2. **Response Compression**: Automatic compression for large responses
 3. **Rate Limiting**: Protection against abuse
 4. **Type Safety**: Full TypeScript coverage for better performance
 5. **Error Handling**: Centralized error handling with proper HTTP status codes
+6. **Batch Processing**: Efficient handling of multiple calculations
+7. **Transcript Service**: Calculation tracking and debugging
 
-## Contributing
+## 🚧 Known Issues
+
+See [Repository Review](REPOSITORY_REVIEW.md) for detailed analysis of current issues and roadmap.
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -240,6 +386,6 @@ src/
 5. Ensure all tests pass
 6. Submit a pull request
 
-## License
+## 📄 License
 
 ISC License

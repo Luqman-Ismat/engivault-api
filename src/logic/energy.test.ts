@@ -36,36 +36,48 @@ describe('Energy Logic', () => {
   describe('wireToWaterEfficiency', () => {
     it('should calculate efficiency without VFD', () => {
       const pumpEff = 0.75;
-      const motorEff = 0.90;
-      
+      const motorEff = 0.9;
+
       const totalEff = wireToWaterEfficiency(pumpEff, motorEff);
-      
+
       expect(totalEff).toBe(0.675); // 0.75 * 0.90
     });
 
     it('should calculate efficiency with VFD', () => {
       const pumpEff = 0.75;
-      const motorEff = 0.90;
+      const motorEff = 0.9;
       const vfdEff = 0.95;
-      
+
       const totalEff = wireToWaterEfficiency(pumpEff, motorEff, vfdEff);
-      
+
       expect(totalEff).toBeCloseTo(0.641, 3); // 0.75 * 0.90 * 0.95
     });
 
     it('should throw error for invalid pump efficiency', () => {
-      expect(() => wireToWaterEfficiency(0, 0.9)).toThrow('Pump efficiency must be between 0 and 1');
-      expect(() => wireToWaterEfficiency(1.1, 0.9)).toThrow('Pump efficiency must be between 0 and 1');
+      expect(() => wireToWaterEfficiency(0, 0.9)).toThrow(
+        'Pump efficiency must be between 0 and 1'
+      );
+      expect(() => wireToWaterEfficiency(1.1, 0.9)).toThrow(
+        'Pump efficiency must be between 0 and 1'
+      );
     });
 
     it('should throw error for invalid motor efficiency', () => {
-      expect(() => wireToWaterEfficiency(0.75, 0)).toThrow('Motor efficiency must be between 0 and 1');
-      expect(() => wireToWaterEfficiency(0.75, 1.1)).toThrow('Motor efficiency must be between 0 and 1');
+      expect(() => wireToWaterEfficiency(0.75, 0)).toThrow(
+        'Motor efficiency must be between 0 and 1'
+      );
+      expect(() => wireToWaterEfficiency(0.75, 1.1)).toThrow(
+        'Motor efficiency must be between 0 and 1'
+      );
     });
 
     it('should throw error for invalid VFD efficiency', () => {
-      expect(() => wireToWaterEfficiency(0.75, 0.9, 0)).toThrow('VFD efficiency must be between 0 and 1');
-      expect(() => wireToWaterEfficiency(0.75, 0.9, 1.1)).toThrow('VFD efficiency must be between 0 and 1');
+      expect(() => wireToWaterEfficiency(0.75, 0.9, 0)).toThrow(
+        'VFD efficiency must be between 0 and 1'
+      );
+      expect(() => wireToWaterEfficiency(0.75, 0.9, 1.1)).toThrow(
+        'VFD efficiency must be between 0 and 1'
+      );
     });
   });
 
@@ -76,27 +88,31 @@ describe('Energy Logic', () => {
       const Q = 0.1; // m³/s
       const H = 20; // m
       const efficiency = 0.75;
-      
+
       const power = calculatePower(rho, g, Q, H, efficiency);
-      
+
       // Manual calculation: P = ρ g Q H / η
       // P = 998 * 9.81 * 0.1 * 20 / 0.75 = 26,108 W
       expect(power).toBeCloseTo(26108, 0);
     });
 
     it('should throw error for zero efficiency', () => {
-      expect(() => calculatePower(998, 9.81, 0.1, 20, 0)).toThrow('Total efficiency must be positive');
+      expect(() => calculatePower(998, 9.81, 0.1, 20, 0)).toThrow(
+        'Total efficiency must be positive'
+      );
     });
 
     it('should throw error for negative efficiency', () => {
-      expect(() => calculatePower(998, 9.81, 0.1, 20, -0.1)).toThrow('Total efficiency must be positive');
+      expect(() => calculatePower(998, 9.81, 0.1, 20, -0.1)).toThrow(
+        'Total efficiency must be positive'
+      );
     });
   });
 
   describe('calculatePowerWithBreakdown', () => {
     const efficiencies: PumpEfficiencyData = {
       pumpEfficiency: 0.75,
-      motorEfficiency: 0.90,
+      motorEfficiency: 0.9,
     };
 
     it('should calculate power with breakdown without VFD', () => {
@@ -104,15 +120,15 @@ describe('Energy Logic', () => {
       const g = 9.81;
       const Q = 0.1;
       const H = 20;
-      
+
       const result = calculatePowerWithBreakdown(rho, g, Q, H, efficiencies);
-      
+
       expect(result.power.value).toBeCloseTo(29009, 0);
       expect(result.efficiency.total).toBe(0.675);
       expect(result.efficiency.pump).toBe(0.75);
-      expect(result.efficiency.motor).toBe(0.90);
+      expect(result.efficiency.motor).toBe(0.9);
       expect(result.efficiency.vfd).toBeUndefined();
-      
+
       // Check breakdown
       expect(result.breakdown.hydraulicPower.value).toBeCloseTo(19581, 0); // ρ g Q H
       expect(result.breakdown.pumpLosses.value).toBeGreaterThan(0);
@@ -123,17 +139,23 @@ describe('Energy Logic', () => {
     it('should calculate power with breakdown with VFD', () => {
       const efficienciesWithVFD: PumpEfficiencyData = {
         pumpEfficiency: 0.75,
-        motorEfficiency: 0.90,
+        motorEfficiency: 0.9,
         vfdEfficiency: 0.95,
       };
-      
+
       const rho = 998;
       const g = 9.81;
       const Q = 0.1;
       const H = 20;
-      
-      const result = calculatePowerWithBreakdown(rho, g, Q, H, efficienciesWithVFD);
-      
+
+      const result = calculatePowerWithBreakdown(
+        rho,
+        g,
+        Q,
+        H,
+        efficienciesWithVFD
+      );
+
       expect(result.power.value).toBeCloseTo(30535, 0); // Higher due to VFD losses
       expect(result.efficiency.total).toBeCloseTo(0.641, 3);
       expect(result.efficiency.vfd).toBe(0.95);
@@ -146,9 +168,15 @@ describe('Energy Logic', () => {
       const g = 9.81;
       const Q = 0.1;
       const H = 20;
-      
-      const result = calculatePowerWithBreakdown(rho_air, g, Q, H, efficiencies);
-      
+
+      const result = calculatePowerWithBreakdown(
+        rho_air,
+        g,
+        Q,
+        H,
+        efficiencies
+      );
+
       // Air power should be much lower than water power
       expect(result.power.value).toBeLessThan(1000);
       expect(result.breakdown.hydraulicPower.value).toBeLessThan(1000);
@@ -163,19 +191,23 @@ describe('Energy Logic', () => {
           Qset: { value: 0.1, unit: 'm³/s' },
         },
       ];
-      
+
       const powerCalculator = (Q: number) => ({
         power: { value: 1000, unit: 'W' },
-        efficiency: { pump: 0.75, motor: 0.90, total: 0.675 },
+        efficiency: { pump: 0.75, motor: 0.9, total: 0.675 },
         breakdown: {
           hydraulicPower: { value: 750, unit: 'W' },
           pumpLosses: { value: 250, unit: 'W' },
           motorLosses: { value: 111, unit: 'W' },
         },
       });
-      
-      const result = calculateAnnualEnergy(simpleProfile, sampleTariff, powerCalculator);
-      
+
+      const result = calculateAnnualEnergy(
+        simpleProfile,
+        sampleTariff,
+        powerCalculator
+      );
+
       expect(result.totalEnergy.value).toBe(8760); // 1000W * 8760h / 1000 = 8760 kWh
       expect(result.totalCost.value).toBe(1051.2); // 8760 * 0.12
       expect(result.averagePower.value).toBe(1000);
@@ -198,25 +230,29 @@ describe('Energy Logic', () => {
           Qset: { value: 0.05, unit: 'm³/s' },
         },
       ];
-      
+
       const powerCalculator = (Q: number) => ({
         power: { value: Q * 10000, unit: 'W' }, // Power proportional to flow
-        efficiency: { pump: 0.75, motor: 0.90, total: 0.675 },
+        efficiency: { pump: 0.75, motor: 0.9, total: 0.675 },
         breakdown: {
           hydraulicPower: { value: Q * 7500, unit: 'W' },
           pumpLosses: { value: Q * 2500, unit: 'W' },
           motorLosses: { value: Q * 1111, unit: 'W' },
         },
       });
-      
-      const result = calculateAnnualEnergy(complexProfile, sampleTariff, powerCalculator);
-      
+
+      const result = calculateAnnualEnergy(
+        complexProfile,
+        sampleTariff,
+        powerCalculator
+      );
+
       // Expected calculations:
       // Point 1: 0.1 m³/s * 10000 W/(m³/s) * 4000 h / 1000 = 4000 kWh
       // Point 2: 0.15 m³/s * 10000 W/(m³/s) * 3000 h / 1000 = 4500 kWh
       // Point 3: 0.05 m³/s * 10000 W/(m³/s) * 1760 h / 1000 = 880 kWh
       // Total: 4000 + 4500 + 880 = 9380 kWh
-      
+
       expect(result.totalEnergy.value).toBe(9380);
       expect(result.totalCost.value).toBe(1125.6); // 9380 * 0.12
       expect(result.loadProfile).toHaveLength(3);
@@ -230,21 +266,27 @@ describe('Energy Logic', () => {
           Qset: { value: 0.1, unit: 'm³/s' },
         },
       ];
-      
+
       const powerCalculator = (Q: number) => ({
         power: { value: 1000, unit: 'W' },
-        efficiency: { pump: 0.75, motor: 0.90, total: 0.675 },
+        efficiency: { pump: 0.75, motor: 0.9, total: 0.675 },
         breakdown: {
           hydraulicPower: { value: 750, unit: 'W' },
           pumpLosses: { value: 250, unit: 'W' },
           motorLosses: { value: 111, unit: 'W' },
         },
       });
-      
-      const result = calculateAnnualEnergy(incompleteProfile, sampleTariff, powerCalculator);
-      
+
+      const result = calculateAnnualEnergy(
+        incompleteProfile,
+        sampleTariff,
+        powerCalculator
+      );
+
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => typeof w === 'string' && w.includes('50%'))).toBe(true);
+      expect(
+        result.warnings.some(w => typeof w === 'string' && w.includes('50%'))
+      ).toBe(true);
     });
 
     it('should generate warnings for excessive hours', () => {
@@ -254,21 +296,27 @@ describe('Energy Logic', () => {
           Qset: { value: 0.1, unit: 'm³/s' },
         },
       ];
-      
+
       const powerCalculator = (Q: number) => ({
         power: { value: 1000, unit: 'W' },
-        efficiency: { pump: 0.75, motor: 0.90, total: 0.675 },
+        efficiency: { pump: 0.75, motor: 0.9, total: 0.675 },
         breakdown: {
           hydraulicPower: { value: 750, unit: 'W' },
           pumpLosses: { value: 250, unit: 'W' },
           motorLosses: { value: 111, unit: 'W' },
         },
       });
-      
-      const result = calculateAnnualEnergy(excessiveProfile, sampleTariff, powerCalculator);
-      
+
+      const result = calculateAnnualEnergy(
+        excessiveProfile,
+        sampleTariff,
+        powerCalculator
+      );
+
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => typeof w === 'string' && w.includes('8760'))).toBe(true);
+      expect(
+        result.warnings.some(w => typeof w === 'string' && w.includes('8760'))
+      ).toBe(true);
     });
   });
 
@@ -279,7 +327,7 @@ describe('Energy Logic', () => {
         name: 'water',
       },
       pumpEfficiency: 0.75,
-      motorEfficiency: 0.90,
+      motorEfficiency: 0.9,
       loadProfile: sampleLoadProfile,
       tariff: sampleTariff,
       head: { value: 20, unit: 'm' },
@@ -287,7 +335,7 @@ describe('Energy Logic', () => {
 
     it('should calculate pump energy for water', () => {
       const result = calculatePumpEnergy(sampleInput);
-      
+
       expect(result.totalEnergy.value).toBeGreaterThan(0);
       expect(result.totalCost.value).toBeGreaterThan(0);
       expect(result.averagePower.value).toBeGreaterThan(0);
@@ -301,9 +349,9 @@ describe('Energy Logic', () => {
         ...sampleInput,
         vfdEfficiency: 0.95,
       };
-      
+
       const result = calculatePumpEnergy(inputWithVFD);
-      
+
       expect(result.efficiency.averageVfdEfficiency).toBe(0.95);
       expect(result.efficiency.averageTotalEfficiency).toBeLessThan(0.675); // Should be lower due to VFD
     });
@@ -326,17 +374,17 @@ describe('Energy Logic', () => {
           speed: 0.25,
         },
       ];
-      
+
       const inputWithSpeed = {
         ...sampleInput,
         loadProfile: loadProfileWithSpeed,
       };
-      
+
       const result = calculatePumpEnergy(inputWithSpeed);
-      
+
       expect(result.totalEnergy.value).toBeGreaterThan(0);
       expect(result.loadProfile).toHaveLength(3);
-      
+
       // Lower speeds should result in lower power consumption
       const powers = result.loadProfile.map(p => p.power.value);
       expect(powers[0]).toBeGreaterThan(powers[1]); // Full speed > half speed
@@ -348,8 +396,10 @@ describe('Energy Logic', () => {
         ...sampleInput,
         pumpEfficiency: 1.1,
       };
-      
-      expect(() => calculatePumpEnergy(invalidInput)).toThrow('Pump efficiency must be between 0 and 1');
+
+      expect(() => calculatePumpEnergy(invalidInput)).toThrow(
+        'Pump efficiency must be between 0 and 1'
+      );
     });
 
     it('should throw error for invalid motor efficiency', () => {
@@ -357,8 +407,10 @@ describe('Energy Logic', () => {
         ...sampleInput,
         motorEfficiency: -0.1,
       };
-      
-      expect(() => calculatePumpEnergy(invalidInput)).toThrow('Motor efficiency must be between 0 and 1');
+
+      expect(() => calculatePumpEnergy(invalidInput)).toThrow(
+        'Motor efficiency must be between 0 and 1'
+      );
     });
 
     it('should throw error for invalid VFD efficiency', () => {
@@ -366,8 +418,10 @@ describe('Energy Logic', () => {
         ...sampleInput,
         vfdEfficiency: 1.5,
       };
-      
-      expect(() => calculatePumpEnergy(invalidInput)).toThrow('VFD efficiency must be between 0 and 1');
+
+      expect(() => calculatePumpEnergy(invalidInput)).toThrow(
+        'VFD efficiency must be between 0 and 1'
+      );
     });
 
     it('should throw error for invalid speed ratio', () => {
@@ -378,13 +432,15 @@ describe('Energy Logic', () => {
           speed: 1.5, // Invalid speed
         },
       ];
-      
+
       const invalidInput = {
         ...sampleInput,
         loadProfile: loadProfileWithInvalidSpeed,
       };
-      
-      expect(() => calculatePumpEnergy(invalidInput)).toThrow('Speed ratio must be between 0 and 1');
+
+      expect(() => calculatePumpEnergy(invalidInput)).toThrow(
+        'Speed ratio must be between 0 and 1'
+      );
     });
 
     it('should generate warnings for low efficiency', () => {
@@ -393,11 +449,15 @@ describe('Energy Logic', () => {
         pumpEfficiency: 0.3, // Very low efficiency
         motorEfficiency: 0.5, // Very low efficiency
       };
-      
+
       const result = calculatePumpEnergy(lowEfficiencyInput);
-      
+
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => typeof w === 'string' && w.includes('efficiency'))).toBe(true);
+      expect(
+        result.warnings.some(
+          w => typeof w === 'string' && w.includes('efficiency')
+        )
+      ).toBe(true);
     });
 
     it('should handle different fluids', () => {
@@ -408,9 +468,9 @@ describe('Energy Logic', () => {
           name: 'air',
         },
       };
-      
+
       const result = calculatePumpEnergy(airInput);
-      
+
       expect(result.totalEnergy.value).toBeGreaterThan(0);
       expect(result.totalEnergy.value).toBeLessThan(1000); // Air should use much less energy than water
     });
@@ -423,7 +483,7 @@ describe('Energy Logic', () => {
         name: 'water',
       },
       pumpEfficiency: 0.75,
-      motorEfficiency: 0.90,
+      motorEfficiency: 0.9,
       loadProfile: sampleLoadProfile,
       tariff: sampleTariff,
       head: { value: 20, unit: 'm' },
@@ -431,7 +491,7 @@ describe('Energy Logic', () => {
 
     it('should validate correct inputs', () => {
       const result = validateEnergyInputs(validInput);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
@@ -444,9 +504,9 @@ describe('Energy Logic', () => {
           name: 'water',
         },
       };
-      
+
       const result = validateEnergyInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Fluid density must be positive');
     });
@@ -456,9 +516,9 @@ describe('Energy Logic', () => {
         ...validInput,
         head: { value: -20, unit: 'm' },
       };
-      
+
       const result = validateEnergyInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Head must be positive');
     });
@@ -468,11 +528,13 @@ describe('Energy Logic', () => {
         ...validInput,
         loadProfile: [],
       };
-      
+
       const result = validateEnergyInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Load profile must have at least one operating point');
+      expect(result.errors).toContain(
+        'Load profile must have at least one operating point'
+      );
     });
 
     it('should reject negative tariff rate', () => {
@@ -480,9 +542,9 @@ describe('Energy Logic', () => {
         ...validInput,
         tariff: { rate: -0.12, name: 'Invalid' },
       };
-      
+
       const result = validateEnergyInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Energy tariff rate must be positive');
     });
@@ -494,16 +556,18 @@ describe('Energy Logic', () => {
           Qset: { value: 0.1, unit: 'm³/s' },
         },
       ];
-      
+
       const invalidInput = {
         ...validInput,
         loadProfile: invalidLoadProfile,
       };
-      
+
       const result = validateEnergyInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Load profile point 1: Hours must be positive');
+      expect(result.errors).toContain(
+        'Load profile point 1: Hours must be positive'
+      );
     });
 
     it('should reject negative flow rate in load profile', () => {
@@ -513,16 +577,18 @@ describe('Energy Logic', () => {
           Qset: { value: -0.1, unit: 'm³/s' },
         },
       ];
-      
+
       const invalidInput = {
         ...validInput,
         loadProfile: invalidLoadProfile,
       };
-      
+
       const result = validateEnergyInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Load profile point 1: Flow rate must be positive');
+      expect(result.errors).toContain(
+        'Load profile point 1: Flow rate must be positive'
+      );
     });
 
     it('should reject invalid speed ratio in load profile', () => {
@@ -533,16 +599,18 @@ describe('Energy Logic', () => {
           speed: 1.5, // Invalid speed
         },
       ];
-      
+
       const invalidInput = {
         ...validInput,
         loadProfile: invalidLoadProfile,
       };
-      
+
       const result = validateEnergyInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Load profile point 1: Speed ratio must be between 0 and 1');
+      expect(result.errors).toContain(
+        'Load profile point 1: Speed ratio must be between 0 and 1'
+      );
     });
 
     it('should reject excessive total hours', () => {
@@ -552,16 +620,18 @@ describe('Energy Logic', () => {
           Qset: { value: 0.1, unit: 'm³/s' },
         },
       ];
-      
+
       const invalidInput = {
         ...validInput,
         loadProfile: excessiveLoadProfile,
       };
-      
+
       const result = validateEnergyInputs(invalidInput);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Total hours in load profile cannot exceed 9636 hours (8760 + 10%)');
+      expect(result.errors).toContain(
+        'Total hours in load profile cannot exceed 9636 hours (8760 + 10%)'
+      );
     });
   });
 });
