@@ -1,5 +1,8 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import { config } from '@/config/environment';
+import { createLogger, LogConfig } from '@/utils/logger';
+import { initializeMetrics } from '@/utils/metrics';
+import { registerMiddleware } from '@/utils/middleware';
 
 // Import plugins
 import { registerCompression } from '@/utils/plugins/compression';
@@ -9,6 +12,7 @@ import { registerSwagger } from '@/utils/plugins/swagger';
 
 // Import routes
 import { registerRoutes } from '@/routes';
+import metricsRoutes from '@/routes/metrics';
 
 // Import schemas
 import { registerSchemas } from '@/schemas';
@@ -17,11 +21,26 @@ import { registerSchemas } from '@/schemas';
 import { registerUtils } from '@/utils';
 
 export async function createFastifyInstance(): Promise<FastifyInstance> {
+  // Initialize metrics if enabled
+  if (config.ENABLE_METRICS) {
+    initializeMetrics();
+  }
+
+  // Create logger configuration
+  const logConfig: LogConfig = {
+    level: config.LOG_LEVEL,
+    prettyPrint: config.LOG_PRETTY_PRINT,
+    redactPII: config.REDACT_PII,
+  };
+
   const fastify = Fastify({
     logger: {
       level: config.LOG_LEVEL,
     },
   });
+
+  // Register middleware
+  await registerMiddleware(fastify);
 
   // Register plugins
   await registerCompression(fastify);
@@ -37,6 +56,11 @@ export async function createFastifyInstance(): Promise<FastifyInstance> {
 
   // Register routes
   await registerRoutes(fastify);
+  
+  // Register metrics routes if enabled
+  if (config.ENABLE_METRICS) {
+    await fastify.register(metricsRoutes);
+  }
 
   return fastify;
 }
