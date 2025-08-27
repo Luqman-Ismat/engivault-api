@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { bepDistance, PumpCurve } from '@/logic/pumps';
 import { handleError } from '@/utils/errorHandler';
+import { processBatchOrSingle } from '@/utils/batchProcessor';
 
 const zPumpCurvePoint = z.object({
   q: z.number().positive(),
@@ -58,66 +59,137 @@ const zBEPCheckResponse = z.object({
 export default async function pumpsRoutes(fastify: FastifyInstance) {
   fastify.post('/api/v1/pumps/bep-check', async (request, reply) => {
     try {
-      const input = request.body as any;
+      const payload = request.body as any;
       
-      // Manual validation
-      if (!input || !input.operatingPoint || !input.curve) {
+      // Validate basic structure
+      if (!payload) {
         return reply.status(400).send({
-          error: 'Missing required fields: operatingPoint and curve'
+          error: 'Request body is required'
         });
       }
       
-      const { operatingPoint, curve } = input;
-      
-      // Validate operating point
-      if (typeof operatingPoint.q !== 'number' || operatingPoint.q <= 0 ||
-          typeof operatingPoint.h !== 'number' || operatingPoint.h <= 0) {
-        return reply.status(400).send({
-          error: 'Operating point must have positive q and h values'
-        });
-      }
-      
-      // Validate curve
-      if (!Array.isArray(curve.points) || curve.points.length === 0) {
-        return reply.status(400).send({
-          error: 'Curve must have at least one point'
-        });
-      }
-      
-      for (const point of curve.points) {
-        if (typeof point.q !== 'number' || point.q < 0 ||
-            typeof point.h !== 'number' || point.h < 0) {
-          return reply.status(400).send({
-            error: 'Curve points must have non-negative q and h values'
-          });
-        }
-        if (point.efficiency !== undefined && (point.efficiency < 0 || point.efficiency > 1)) {
-          return reply.status(400).send({
-            error: 'Efficiency must be between 0 and 1'
-          });
-        }
-      }
-      
-      const result = bepDistance(operatingPoint, curve as PumpCurve);
-      
-      // Calculate additional metadata
-      const minFlow = Math.min(...curve.points.map((p: any) => p.q));
-      const maxFlow = Math.max(...curve.points.map((p: any) => p.q));
-      const normalizedDistance = result.distance / result.bepPoint.q;
-      
-      return reply.send({
-        ...result,
-        metadata: {
-          input: { operatingPoint, curve },
-          calculations: {
-            normalizedDistance,
-            curveRange: {
-              minFlow,
-              maxFlow
+      // Check if this is a batch request
+      if (payload && Array.isArray(payload.items)) {
+        // Batch request - use batch processor
+        const result = await processBatchOrSingle(
+          payload,
+          (input: any) => {
+            // Manual validation for single item
+            if (!input || !input.operatingPoint || !input.curve) {
+              throw new Error('Missing required fields: operatingPoint and curve');
             }
+            
+            const { operatingPoint, curve } = input;
+            
+            // Validate operating point
+            if (typeof operatingPoint.q !== 'number' || operatingPoint.q <= 0 ||
+                typeof operatingPoint.h !== 'number' || operatingPoint.h <= 0) {
+              throw new Error('Operating point must have positive q and h values');
+            }
+            
+            // Validate curve
+            if (!Array.isArray(curve.points) || curve.points.length === 0) {
+              throw new Error('Curve must have at least one point');
+            }
+            
+            for (const point of curve.points) {
+              if (typeof point.q !== 'number' || point.q < 0 ||
+                  typeof point.h !== 'number' || point.h < 0) {
+                throw new Error('Curve points must have non-negative q and h values');
+              }
+              if (point.efficiency !== undefined && (point.efficiency < 0 || point.efficiency > 1)) {
+                throw new Error('Efficiency must be between 0 and 1');
+              }
+            }
+            
+            const result = bepDistance(operatingPoint, curve as PumpCurve);
+            
+            // Calculate additional metadata
+            const minFlow = Math.min(...curve.points.map((p: any) => p.q));
+            const maxFlow = Math.max(...curve.points.map((p: any) => p.q));
+            const normalizedDistance = result.distance / result.bepPoint.q;
+            
+            return {
+              ...result,
+              metadata: {
+                input: { operatingPoint, curve },
+                calculations: {
+                  normalizedDistance,
+                  curveRange: {
+                    minFlow,
+                    maxFlow
+                  }
+                }
+              }
+            };
+          },
+          reply
+        );
+        
+        return reply.send(result);
+      } else {
+        // Single item request - validate and process directly
+        const input = payload as any;
+        
+        // Manual validation
+        if (!input || !input.operatingPoint || !input.curve) {
+          return reply.status(400).send({
+            error: 'Missing required fields: operatingPoint and curve'
+          });
+        }
+        
+        const { operatingPoint, curve } = input;
+        
+        // Validate operating point
+        if (typeof operatingPoint.q !== 'number' || operatingPoint.q <= 0 ||
+            typeof operatingPoint.h !== 'number' || operatingPoint.h <= 0) {
+          return reply.status(400).send({
+            error: 'Operating point must have positive q and h values'
+          });
+        }
+        
+        // Validate curve
+        if (!Array.isArray(curve.points) || curve.points.length === 0) {
+          return reply.status(400).send({
+            error: 'Curve must have at least one point'
+          });
+        }
+        
+        for (const point of curve.points) {
+          if (typeof point.q !== 'number' || point.q < 0 ||
+              typeof point.h !== 'number' || point.h < 0) {
+            return reply.status(400).send({
+              error: 'Curve points must have non-negative q and h values'
+            });
+          }
+          if (point.efficiency !== undefined && (point.efficiency < 0 || point.efficiency > 1)) {
+            return reply.status(400).send({
+              error: 'Efficiency must be between 0 and 1'
+            });
           }
         }
-      });
+        
+        const result = bepDistance(operatingPoint, curve as PumpCurve);
+        
+        // Calculate additional metadata
+        const minFlow = Math.min(...curve.points.map((p: any) => p.q));
+        const maxFlow = Math.max(...curve.points.map((p: any) => p.q));
+        const normalizedDistance = result.distance / result.bepPoint.q;
+        
+        return reply.send({
+          ...result,
+          metadata: {
+            input: { operatingPoint, curve },
+            calculations: {
+              normalizedDistance,
+              curveRange: {
+                minFlow,
+                maxFlow
+              }
+            }
+          }
+        });
+      }
     } catch (error) {
       return handleError(error, reply);
     }
