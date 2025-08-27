@@ -3,6 +3,7 @@ import { calculatePressureDrop } from '../logic/pressureDrop';
 import { pressureDropSchema, PressureDropInput } from '../schemas/validation';
 import { handleError } from '../utils/errorHandler';
 import { createFastifySchema } from '../utils/schemaConverter';
+import { ErrorHelper } from '../utils/errorHelper';
 
 export default async function pressureDropRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: PressureDropInput }>(
@@ -105,9 +106,34 @@ export default async function pressureDropRoutes(fastify: FastifyInstance) {
       try {
         const inputs: PressureDropInput = request.body;
         const results = calculatePressureDrop(inputs);
+        
+        // Add engineering hints based on calculation results
+        const hints = ErrorHelper.addEngineeringHints('pressure_drop', {
+          reynolds: results.reynoldsNumber,
+          relativeRoughness: results.relativeRoughness,
+          diameter: inputs.pipeDiameter,
+          velocity: results.flowVelocity,
+        });
+        
+        // If there are hints, add them to the response
+        if (hints.length > 0) {
+          return reply.send({
+            ...results,
+            warnings: hints,
+          });
+        }
+        
         return reply.send(results);
       } catch (error) {
-        handleError(error, reply);
+        // Add engineering hints to error response
+        const hints = ErrorHelper.addEngineeringHints('pressure_drop', {
+          reynolds: (error as any)?.reynoldsNumber,
+          relativeRoughness: (error as any)?.relativeRoughness,
+          diameter: (error as any)?.pipeDiameter,
+          velocity: (error as any)?.flowVelocity,
+        });
+        
+        handleError(error, reply, hints);
       }
     }
   );

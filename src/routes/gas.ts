@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { zQuantity } from '@/schemas/common';
 import { calculateGasFlow, fannoLine, rayleighLine, GasFlowInput, FannoLineInput, RayleighLineInput } from '@/logic/gas';
 import { handleError } from '@/utils/errorHandler';
+import { ErrorHelper } from '@/utils/errorHelper';
 
 const zGasProperties = z.object({
   density: zQuantity,
@@ -296,9 +297,34 @@ export default async function gasRoutes(fastify: FastifyInstance) {
         
         const result = calculateGasFlow(input);
         
+        // Add engineering hints based on gas flow results
+        const hints = ErrorHelper.addEngineeringHints('gas_flow', {
+          mach: result.machNumber,
+          reynolds: result.reynoldsNumber,
+          velocity: result.velocity.value,
+          diameter: input.pipe.diameter.value,
+        });
+        
+        // If there are hints, add them to the response
+        if (hints.length > 0) {
+          return reply.send({
+            ...result,
+            warnings: [...(result.warnings || []), ...hints.map(h => h.message)],
+            hints,
+          });
+        }
+        
         return reply.send(result);
       } catch (error) {
-        return handleError(error, reply);
+        // Add engineering hints to error response
+        const hints = ErrorHelper.addEngineeringHints('gas_flow', {
+          mach: (error as any)?.machNumber,
+          reynolds: (error as any)?.reynoldsNumber,
+          velocity: (error as any)?.velocity,
+          diameter: (error as any)?.diameter,
+        });
+        
+        return handleError(error, reply, hints);
       }
     }
   );

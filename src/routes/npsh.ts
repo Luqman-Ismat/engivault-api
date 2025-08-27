@@ -3,6 +3,7 @@ import { calculateCavitationRisk } from '../logic/npsh';
 import { npshSchema, NpshInput } from '../schemas/validation';
 import { handleError } from '../utils/errorHandler';
 import { createFastifySchema } from '../utils/schemaConverter';
+import { ErrorHelper } from '../utils/errorHelper';
 
 export default async function npshRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: NpshInput }>(
@@ -67,9 +68,31 @@ export default async function npshRoutes(fastify: FastifyInstance) {
       try {
         const inputs: NpshInput = request.body;
         const results = calculateCavitationRisk(inputs);
+        
+        // Add engineering hints based on NPSH results
+        const hints = ErrorHelper.addEngineeringHints('npsh', {
+          npsha: results.npshAvailable?.value,
+          npshr: results.npshRequired?.value,
+        });
+        
+        // If there are hints, add them to the response
+        if (hints.length > 0) {
+          return reply.send({
+            ...results,
+            warnings: [...(results.warnings || []), ...hints.map(h => h.message)],
+            hints,
+          });
+        }
+        
         return reply.send(results);
       } catch (error) {
-        handleError(error, reply);
+        // Add engineering hints to error response
+        const hints = ErrorHelper.addEngineeringHints('npsh', {
+          npsha: (error as any)?.npshAvailable?.value,
+          npshr: (error as any)?.npshRequired?.value,
+        });
+        
+        handleError(error, reply, hints);
       }
     }
   );

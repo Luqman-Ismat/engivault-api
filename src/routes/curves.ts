@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { fitPumpCurve, CurvePoint, CurveFitResult } from '@/logic/curves';
 import { handleError } from '@/utils/errorHandler';
+import { ErrorHelper } from '@/utils/errorHelper';
 
 const zCurvePoint = z.object({
   q: z.number().positive(),
@@ -266,14 +267,20 @@ export default async function curvesRoutes(fastify: FastifyInstance) {
 
       // Validate minimum points requirement
       if (model === 'quadratic' && points.length < 3) {
+        const hints = ErrorHelper.addCurveFittingViolationHint(points.length, model, 0);
         return reply.status(400).send({
-          error: 'At least 3 points are required for quadratic fitting'
+          error: 'At least 3 points are required for quadratic fitting',
+          code: 'VALIDATION_ERROR',
+          hints
         });
       }
 
       if (model === 'cubic' && points.length < 4) {
+        const hints = ErrorHelper.addCurveFittingViolationHint(points.length, model, 0);
         return reply.status(400).send({
-          error: 'At least 4 points are required for cubic fitting'
+          error: 'At least 4 points are required for cubic fitting',
+          code: 'VALIDATION_ERROR',
+          hints
         });
       }
 
@@ -295,6 +302,13 @@ export default async function curvesRoutes(fastify: FastifyInstance) {
       const nPoints = sortedPoints.length;
       const degreesOfFreedom = nPoints - (model === 'quadratic' ? 3 : 4);
       const adjustedRSquared = degreesOfFreedom > 0 ? 1 - ((1 - result.rSquared) * (nPoints - 1) / degreesOfFreedom) : 0;
+
+      // Add engineering hints based on curve fitting results
+      const hints = ErrorHelper.addEngineeringHints('curve_fit', {
+        nPoints,
+        model,
+        rSquared: result.rSquared,
+      });
 
       // Create response with metadata
       const response = {
@@ -320,9 +334,24 @@ export default async function curvesRoutes(fastify: FastifyInstance) {
         }
       };
 
+      // Add warnings if there are hints
+      if (hints.length > 0) {
+        return reply.send({
+          ...response,
+          warnings: hints,
+        });
+      }
+
       return reply.send(response);
     } catch (error) {
-      return handleError(error, reply);
+      // Add engineering hints to error response
+      const hints = ErrorHelper.addEngineeringHints('curve_fit', {
+        nPoints: (error as any)?.nPoints,
+        model: (error as any)?.model,
+        rSquared: (error as any)?.rSquared,
+      });
+      
+      return handleError(error, reply, hints);
     }
   });
 }
