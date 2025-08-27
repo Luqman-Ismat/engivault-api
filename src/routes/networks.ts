@@ -78,8 +78,40 @@ export default async function networkRoutes(fastify: FastifyInstance) {
     '/api/v1/networks/solve',
     {
       schema: {
-        description: 'Solve pipe network using Hardy Cross method',
         tags: ['Networks'],
+        summary: 'Solve pipe network using Hardy Cross iterative method',
+        description: `Solve complex pipe networks using the Hardy Cross iterative method for flow distribution analysis.
+
+**Algorithm Used:**
+- **Hardy Cross Method**: Iterative loop-based approach for flow distribution
+- **Loop Corrections**: ΔQ = -Σh_f / (2 × Σh_f/Q)
+- **Friction Loss**: h_f = f × (L/D) × (V²/2g) using Churchill correlation
+- **Convergence**: Iterative corrections until |ΔQ| < tolerance
+
+**Validity Ranges:**
+- Network Size: 2-100 nodes, 1-50 loops
+- Flow Rates: 0.001 m³/s < Q < 100 m³/s
+- Pipe Diameters: 0.01 m < D < 2.0 m
+- Reynolds Numbers: 4,000 < Re < 10^8 (turbulent flow)
+- Convergence Tolerance: 1e-6 < tolerance < 1e-3
+- Maximum Iterations: 10 < maxIter < 1000
+
+**Network Requirements:**
+- Must have at least one supply node (no demand)
+- Must have at least one demand node
+- All pipes must be connected in loops
+- Network must be properly defined with valid topology
+
+**Convergence Criteria:**
+- Flow corrections < tolerance for all loops
+- Mass balance satisfied at all nodes
+- Energy balance satisfied around all loops
+
+**References:**
+- Hardy Cross (1936). "Analysis of flow in networks of conduits or conductors." University of Illinois Bulletin
+- Jeppson, R.W. (1976). "Analysis of Flow in Pipe Networks." Ann Arbor Science
+
+**Version:** 1.0.0`,
         body: {
           type: 'object',
           properties: {

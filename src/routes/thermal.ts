@@ -59,8 +59,34 @@ export default async function thermalRoutes(fastify: FastifyInstance) {
     '/api/v1/thermal/viscosity-adjusted-drop',
     {
       schema: {
-        description: 'Calculate viscosity-adjusted pressure drop with temperature-dependent fluid properties',
         tags: ['Thermal'],
+        summary: 'Calculate viscosity-adjusted pressure drop with temperature-dependent properties',
+        description: `Calculate pressure drop accounting for temperature-dependent viscosity changes using iterative convergence.
+
+**Correlations Used:**
+- **Viscosity-Temperature**: μ(T) = μ₀ × exp[β(1/T - 1/T₀)] (Andrade equation)
+- **Darcy-Weisbach**: ΔP = f × (L/D) × (ρv²/2)
+- **Churchill Friction Factor**: f = 8 × [(8/Re)^12 + (2.457×ln((7/Re)^0.9 + 0.27ε/D))^-16]^(1/12)
+- **Reynolds Number**: Re = ρvD/μ(T)
+- **Convergence**: Iterative solution until |ΔP_i - ΔP_{i-1}| < tolerance
+
+**Validity Ranges:**
+- Temperature: 273 K < T < 373 K (0-100°C)
+- Viscosity: 0.0001 Pa·s < μ < 1 Pa·s
+- Reynolds Number: 4,000 < Re < 10^8 (turbulent flow)
+- Temperature Change: |ΔT| < 50 K
+- Convergence: 1e-12 < tolerance < 1e-3
+
+**Convergence Criteria:**
+- Pressure drop change < tolerance between iterations
+- Maximum iterations not exceeded
+- Stable viscosity-temperature relationship
+
+**References:**
+- Andrade, E.N. da C. (1930). "The viscosity of liquids." Nature, 125, 309-310
+- Reid, R.C. et al. (1987). "The Properties of Gases and Liquids" (4th ed.). McGraw-Hill
+
+**Version:** 1.0.0`,
         body: {
           type: 'object',
           properties: {

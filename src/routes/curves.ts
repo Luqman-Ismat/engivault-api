@@ -37,7 +37,171 @@ const zCurveFitResponse = z.object({
 });
 
 export default async function curvesRoutes(fastify: FastifyInstance) {
-  fastify.post('/api/v1/curves/fit', async (request, reply) => {
+  fastify.post('/api/v1/curves/fit', {
+    schema: {
+      tags: ['Utilities'],
+      summary: 'Fit pump curve using polynomial regression',
+      description: `Fit pump performance curves using polynomial regression with statistical analysis.
+
+**Method Used:**
+- **Polynomial Regression**: h = a₀ + a₁q + a₂q² + a₃q³
+- **Normal Equations**: (X^T X)β = X^T y solved using Gaussian elimination
+- **R-squared**: R² = 1 - (SS_res / SS_tot)
+- **Standard Error**: SE = √(SS_res / (n-p-1))
+- **Residuals**: ε_i = h_i - ĥ_i
+
+**Models Available:**
+- **Quadratic**: h = a₀ + a₁q + a₂q² (minimum 3 points)
+- **Cubic**: h = a₀ + a₁q + a₂q² + a₃q³ (minimum 4 points)
+
+**Validity Ranges:**
+- Flow Rate: 0.001 m³/s < q < 100 m³/s
+- Head: 0.1 m < h < 1000 m
+- Data Points: 3-50 points for stable fitting
+- R-squared: 0.8 < R² < 1.0 (good fit)
+
+**Quality Metrics:**
+- **R-squared**: Coefficient of determination (0-1)
+- **Standard Error**: Average prediction error
+- **Residuals**: Individual prediction errors
+- **Adjusted R-squared**: Penalized for model complexity
+
+**References:**
+- Montgomery, D.C. (2012). "Introduction to Linear Regression Analysis" (5th ed.). Wiley
+- Draper, N.R. & Smith, H. (1998). "Applied Regression Analysis" (3rd ed.). Wiley
+
+**Version:** 1.0.0`,
+      body: {
+        type: 'object',
+        properties: {
+          points: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                q: { type: 'number', description: 'Flow rate in m³/s' },
+                h: { type: 'number', description: 'Head in m' },
+              },
+              required: ['q', 'h'],
+            },
+            minItems: 3,
+          },
+          model: { 
+            type: 'string', 
+            enum: ['quadratic', 'cubic'],
+            description: 'Polynomial model type'
+          },
+        },
+        required: ['points', 'model'],
+      },
+      examples: [
+        {
+          name: 'Quadratic Fit',
+          summary: 'Fit quadratic curve to pump data',
+          description: 'Fit a quadratic polynomial to pump performance data',
+          value: {
+            points: [
+              { q: 0, h: 100 },
+              { q: 0.05, h: 95 },
+              { q: 0.1, h: 85 },
+              { q: 0.15, h: 70 },
+              { q: 0.2, h: 50 }
+            ],
+            model: 'quadratic'
+          }
+        },
+        {
+          name: 'Cubic Fit',
+          summary: 'Fit cubic curve to pump data',
+          description: 'Fit a cubic polynomial to pump performance data',
+          value: {
+            points: [
+              { q: 0, h: 120 },
+              { q: 0.02, h: 118 },
+              { q: 0.04, h: 115 },
+              { q: 0.06, h: 110 },
+              { q: 0.08, h: 100 },
+              { q: 0.1, h: 85 }
+            ],
+            model: 'cubic'
+          }
+        }
+      ],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            coefficients: {
+              type: 'array',
+              items: { type: 'number' },
+              description: 'Polynomial coefficients [a₀, a₁, a₂, a₃]'
+            },
+            rSquared: { 
+              type: 'number', 
+              description: 'Coefficient of determination (0-1)' 
+            },
+            residuals: {
+              type: 'array',
+              items: { type: 'number' },
+              description: 'Prediction residuals'
+            },
+            model: { 
+              type: 'string', 
+              enum: ['quadratic', 'cubic'] 
+            },
+            equation: { 
+              type: 'string', 
+              description: 'Human-readable equation' 
+            },
+            predictedValues: {
+              type: 'array',
+              items: { type: 'number' },
+              description: 'Fitted values'
+            },
+            standardError: { 
+              type: 'number', 
+              description: 'Standard error of regression' 
+            },
+            maxResidual: { 
+              type: 'number', 
+              description: 'Maximum absolute residual' 
+            },
+            meanResidual: { 
+              type: 'number', 
+              description: 'Mean absolute residual' 
+            },
+            metadata: {
+              type: 'object',
+              properties: {
+                input: { type: 'object' },
+                statistics: {
+                  type: 'object',
+                  properties: {
+                    nPoints: { type: 'number' },
+                    degreesOfFreedom: { type: 'number' },
+                    adjustedRSquared: { type: 'number' },
+                  },
+                },
+              },
+            },
+          },
+          required: ['coefficients', 'rSquared', 'residuals', 'model', 'equation', 'predictedValues', 'standardError', 'maxResidual', 'meanResidual', 'metadata'],
+        },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+          },
+        },
+        500: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
     try {
       const payload = request.body as any;
       

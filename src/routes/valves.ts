@@ -47,8 +47,37 @@ export default async function valveRoutes(fastify: FastifyInstance) {
     '/api/v1/valves/size',
     {
       schema: {
-        description: 'Size control valve for liquid flow',
         tags: ['Valves'],
+        summary: 'Size control valve for liquid flow using IEC 60534 standard',
+        description: `Size control valves for liquid flow using IEC 60534-2-1 standard with pressure recovery considerations.
+
+**Correlations Used:**
+- **Flow Coefficient (Cv)**: Cv = Q × √(SG/ΔP)
+- **Metric Flow Coefficient (Kv)**: Kv = Cv × 1.156
+- **Valve Authority**: β = ΔP_valve / (ΔP_valve + ΔP_system)
+- **Choked Flow**: ΔP_choked = FL² × (P1 - FF × Pv)
+  - FL: Liquid pressure recovery factor
+  - FF: Liquid critical pressure ratio factor
+  - Pv: Vapor pressure
+
+**Validity Ranges:**
+- Flow Rate: 0.001 m³/h < Q < 1000 m³/h
+- Pressure Drop: 0.1 bar < ΔP < 50 bar
+- Specific Gravity: 0.5 < SG < 2.0
+- Temperature: -40°C < T < 200°C
+- Valve Authority: 0.1 < β < 0.9 (recommended)
+
+**Trim Characteristics:**
+- **Linear**: Equal percentage change in flow per unit change in valve position
+- **Equal Percentage**: Equal percentage change in flow per equal percentage change in valve position
+- **Quick Opening**: Large flow change for small valve movement at low openings
+- **Modified Parabolic**: Intermediate between linear and equal percentage
+
+**References:**
+- IEC 60534-2-1: "Industrial-process control valves - Part 2-1: Flow capacity - Sizing equations for fluid flow under installed conditions"
+- ISA-75.01.01: "Flow Equations for Sizing Control Valves"
+
+**Version:** 1.0.0`,
         body: {
           type: 'object',
           properties: {
@@ -94,6 +123,44 @@ export default async function valveRoutes(fastify: FastifyInstance) {
           },
           required: ['flow', 'pressureDrop', 'specificGravity', 'trimCharacteristic'],
         },
+        examples: [
+          {
+            name: 'Water Control Valve',
+            summary: 'Size control valve for water flow',
+            description: 'Size a control valve for water flow with equal percentage trim',
+            value: {
+              flow: { value: 50, unit: 'm³/h' },
+              pressureDrop: { value: 2.5, unit: 'bar' },
+              specificGravity: 1.0,
+              trimCharacteristic: {
+                type: 'equal-percentage',
+                description: 'Equal percentage trim for good control range'
+              },
+              pressureRecoveryFactor: 0.9,
+              upstreamPressure: { value: 6.0, unit: 'bar' },
+              temperature: { value: 20, unit: 'C' },
+              fluidName: 'water'
+            }
+          },
+          {
+            name: 'Oil Control Valve',
+            summary: 'Size control valve for oil flow',
+            description: 'Size a control valve for oil flow with linear trim',
+            value: {
+              flow: { value: 25, unit: 'm³/h' },
+              pressureDrop: { value: 1.8, unit: 'bar' },
+              specificGravity: 0.85,
+              trimCharacteristic: {
+                type: 'linear',
+                description: 'Linear trim for proportional control'
+              },
+              pressureRecoveryFactor: 0.85,
+              upstreamPressure: { value: 4.5, unit: 'bar' },
+              temperature: { value: 60, unit: 'C' },
+              fluidName: 'oil'
+            }
+          }
+        ],
         response: {
           200: {
             type: 'object',

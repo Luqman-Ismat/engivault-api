@@ -101,7 +101,7 @@ export default async function gasRoutes(fastify: FastifyInstance) {
     {
       schema: {
         description: 'Calculate gas pressure drop using isothermal or adiabatic models',
-        tags: ['Gas Flow'],
+        tags: ['Gas'],
         body: {
           type: 'object',
           properties: {
@@ -308,7 +308,7 @@ export default async function gasRoutes(fastify: FastifyInstance) {
     {
       schema: {
         description: 'Calculate Fanno line - gas properties along a duct with friction',
-        tags: ['Gas Flow'],
+        tags: ['Gas'],
         body: {
           type: 'object',
           properties: {

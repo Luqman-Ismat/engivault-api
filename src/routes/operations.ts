@@ -83,7 +83,225 @@ const zFillDrainResponse = z.object({
 });
 
 export default async function operationsRoutes(fastify: FastifyInstance) {
-  fastify.post('/api/v1/operations/fill-drain-time', async (request, reply) => {
+  fastify.post('/api/v1/operations/fill-drain-time', {
+    schema: {
+      tags: ['Operations'],
+      summary: 'Calculate tank fill/drain time using numerical integration',
+      description: `Calculate fill or drain time for tanks using numerical integration with variable flow rates.
+
+**Method Used:**
+- **Numerical Integration**: Fourth-order Runge-Kutta method for time stepping
+- **Volume Calculation**: V = f(h) based on tank geometry (cylindrical, rectangular, custom)
+- **Flow Rate**: Q = Q(t) or constant Q
+- **Time Integration**: Δt = min(timeStep, convergence_criteria)
+
+**Tank Geometries:**
+- **Cylindrical**: V = πD²h/4, A = πD²/4
+- **Rectangular**: V = L×W×h, A = L×W
+- **Custom**: User-defined volume-height relationship
+
+**Validity Ranges:**
+- Tank Volume: 0.1 m³ < V < 100,000 m³
+- Flow Rate: 0.001 m³/s < Q < 100 m³/s
+- Time Step: 0.1 s < Δt < 3600 s
+- Level Change: 0.01 m < Δh < 100 m
+- Integration Time: 1 s < t < 24 hours
+
+**Convergence Criteria:**
+- Volume balance satisfied within 0.1%
+- Time step stability maintained
+- Maximum iterations not exceeded
+
+**References:**
+- Press, W.H. et al. (2007). "Numerical Recipes" (3rd ed.). Cambridge University Press
+- Chapra, S.C. (2018). "Applied Numerical Methods with MATLAB" (4th ed.). McGraw-Hill
+
+**Version:** 1.0.0`,
+      body: {
+        type: 'object',
+        properties: {
+          tank: {
+            type: 'object',
+            properties: {
+              volume: {
+                type: 'object',
+                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                required: ['value', 'unit'],
+              },
+              height: {
+                type: 'object',
+                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                required: ['value', 'unit'],
+              },
+              diameter: {
+                type: 'object',
+                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                required: ['value', 'unit'],
+              },
+              shape: { 
+                type: 'string', 
+                enum: ['cylindrical', 'rectangular', 'custom'] 
+              },
+            },
+            required: ['volume', 'shape'],
+          },
+          flowRate: {
+            type: 'object',
+            properties: {
+              type: { 
+                type: 'string', 
+                enum: ['constant', 'variable'] 
+              },
+              value: {
+                type: 'object',
+                properties: { value: { type: 'number' }, unit: { type: 'string' } },
+                required: ['value', 'unit'],
+              },
+              function: { type: 'string' },
+            },
+            required: ['type'],
+          },
+          operation: { 
+            type: 'string', 
+            enum: ['fill', 'drain'] 
+          },
+          initialLevel: {
+            type: 'object',
+            properties: { value: { type: 'number' }, unit: { type: 'string' } },
+            required: ['value', 'unit'],
+          },
+          targetLevel: {
+            type: 'object',
+            properties: { value: { type: 'number' }, unit: { type: 'string' } },
+            required: ['value', 'unit'],
+          },
+          timeStep: {
+            type: 'object',
+            properties: { value: { type: 'number' }, unit: { type: 'string' } },
+            required: ['value', 'unit'],
+          },
+        },
+        required: ['tank', 'flowRate', 'operation'],
+      },
+      examples: [
+        {
+          name: 'Cylindrical Tank Fill',
+          summary: 'Fill a cylindrical tank with constant flow rate',
+          description: 'Calculate fill time for a 100m³ cylindrical tank',
+          value: {
+            tank: {
+              volume: { value: 100, unit: 'm³' },
+              height: { value: 10, unit: 'm' },
+              diameter: { value: 3.57, unit: 'm' },
+              shape: 'cylindrical'
+            },
+            flowRate: {
+              type: 'constant',
+              value: { value: 0.05, unit: 'm³/s' }
+            },
+            operation: 'fill',
+            initialLevel: { value: 0, unit: 'm' },
+            targetLevel: { value: 10, unit: 'm' },
+            timeStep: { value: 60, unit: 's' }
+          }
+        },
+        {
+          name: 'Variable Flow Drain',
+          summary: 'Drain tank with variable flow rate',
+          description: 'Drain tank with flow rate decreasing over time',
+          value: {
+            tank: {
+              volume: { value: 50, unit: 'm³' },
+              height: { value: 5, unit: 'm' },
+              shape: 'rectangular'
+            },
+            flowRate: {
+              type: 'variable',
+              function: '0.02 * Math.exp(-t/3600)'
+            },
+            operation: 'drain',
+            initialLevel: { value: 5, unit: 'm' },
+            targetLevel: { value: 0.5, unit: 'm' }
+          }
+        }
+      ],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            totalTime: {
+              type: 'object',
+              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              required: ['value', 'unit'],
+            },
+            averageFlowRate: {
+              type: 'object',
+              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              required: ['value', 'unit'],
+            },
+            volumeChange: {
+              type: 'object',
+              properties: { value: { type: 'number' }, unit: { type: 'string' } },
+              required: ['value', 'unit'],
+            },
+            timeHistory: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  time: { type: 'number' },
+                  level: { type: 'number' },
+                  volume: { type: 'number' },
+                  flowRate: { type: 'number' },
+                },
+              },
+            },
+            warnings: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  type: { type: 'string' },
+                  message: { type: 'string' },
+                  severity: { 
+                    type: 'string', 
+                    enum: ['low', 'medium', 'high'] 
+                  },
+                },
+              },
+            },
+            metadata: {
+              type: 'object',
+              properties: {
+                input: { type: 'object' },
+                calculations: {
+                  type: 'object',
+                  properties: {
+                    method: { type: 'string' },
+                    timeSteps: { type: 'number' },
+                    convergence: { type: 'boolean' },
+                  },
+                },
+              },
+            },
+          },
+          required: ['totalTime', 'averageFlowRate', 'volumeChange', 'timeHistory', 'warnings', 'metadata'],
+        },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+          },
+        },
+        500: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const startTime = Date.now();
     
     try {
