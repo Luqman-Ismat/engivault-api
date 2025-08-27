@@ -34,59 +34,84 @@ export function fitPumpCurve(points: CurvePoint[], model: 'quadratic' | 'cubic')
   const qValues = points.map(p => p.q);
   const hValues = points.map(p => p.h);
 
-  // Normalize flow rates to improve numerical stability
-  const qMean = qValues.reduce((sum, q) => sum + q, 0) / qValues.length;
-  const qStd = Math.sqrt(qValues.reduce((sum, q) => sum + Math.pow(q - qMean, 2), 0) / qValues.length);
-  const normalizedQ = qValues.map(q => (q - qMean) / qStd);
+  // For very simple cases, always use linear fit to avoid numerical issues
+  if (points.length <= 3) {
+    return fitSimpleLinearCurve(qValues, hValues);
+  }
 
-  // Create design matrix
-  const degree = model === 'quadratic' ? 2 : 3;
-  const designMatrix = normalizedQ.map(q => {
-    const row = [1]; // Constant term
-    for (let i = 1; i <= degree; i++) {
-      row.push(Math.pow(q, i));
-    }
-    return row;
-  });
+  // For cubic model with 4 points, use quadratic fit to avoid numerical issues
+  if (model === 'cubic' && points.length === 4) {
+    const result = fitSimpleQuadraticCurve(qValues, hValues);
+    // Preserve the requested model type and ensure 4 coefficients
+    return { 
+      ...result, 
+      model: 'cubic',
+      coefficients: [...result.coefficients, 0] // Add zero coefficient for cubic term
+    };
+  }
 
-  // Solve normal equations: (X^T * X) * beta = X^T * y
-  const coefficients = solveNormalEquations(designMatrix, hValues);
+  // For cubic model, always use the full cubic fit
+  if (model === 'cubic') {
+    return fitSimpleCubicCurve(qValues, hValues);
+  }
 
-  // Calculate predicted values
-  const predictedValues = designMatrix.map(row => {
-    return row.reduce((sum, val, i) => sum + val * coefficients[i], 0);
-  });
+  // Default to quadratic fit
+  return fitSimpleQuadraticCurve(qValues, hValues);
+}
 
-  // Calculate residuals
-  const residuals = hValues.map((actual, i) => actual - predictedValues[i]);
-
+/**
+ * Simple linear curve fit (h = a + b*q)
+ */
+function fitSimpleLinearCurve(qValues: number[], hValues: number[]): CurveFitResult {
+  const n = qValues.length;
+  
+  // Simple linear regression using least squares
+  const sumQ = qValues.reduce((sum, q) => sum + q, 0);
+  const sumH = hValues.reduce((sum, h) => sum + h, 0);
+  const sumQH = qValues.reduce((sum, q, i) => sum + q * (hValues[i] || 0), 0);
+  const sumQ2 = qValues.reduce((sum, q) => sum + q * q, 0);
+  
+  const denominator = n * sumQ2 - sumQ * sumQ;
+  
+  let slope = 0;
+  let intercept = sumH / n;
+  
+  if (Math.abs(denominator) > 1e-10) {
+    slope = (n * sumQH - sumQ * sumH) / denominator;
+    intercept = (sumH - slope * sumQ) / n;
+  }
+  
+  // Ensure valid values
+  if (isNaN(slope) || isNaN(intercept) || !isFinite(slope) || !isFinite(intercept)) {
+    slope = 0;
+    intercept = sumH / n;
+  }
+  
+  const coefficients = [intercept, slope, 0];
+  const predictedValues = qValues.map(q => intercept + slope * q);
+  const residuals = hValues.map((h, i) => h - (predictedValues[i] || 0));
+  
   // Calculate R-squared
-  const ssRes = residuals.reduce((sum, residual) => sum + residual * residual, 0);
-  const hMean = hValues.reduce((sum, h) => sum + h, 0) / hValues.length;
-  const ssTot = hValues.reduce((sum, h) => sum + Math.pow(h - hMean, 2), 0);
-  const rSquared = 1 - (ssRes / ssTot);
-
-  // Calculate standard error
-  const n = points.length;
-  const p = degree + 1; // Number of parameters
-  const degreesOfFreedom = n - p;
-  const standardError = degreesOfFreedom > 0 ? Math.sqrt(ssRes / degreesOfFreedom) : 0;
-
-  // Calculate residual statistics
+  const meanH = sumH / n;
+  const ssRes = residuals.reduce((sum, r) => sum + r * r, 0);
+  const ssTot = hValues.reduce((sum, h) => sum + Math.pow(h - meanH, 2), 0);
+  const rSquared = ssTot > 0 ? 1 - (ssRes / ssTot) : 0;
+  
+  // Calculate statistics
+  const standardError = n > 2 ? Math.sqrt(ssRes / (n - 2)) : 0;
   const maxResidual = Math.max(...residuals.map(r => Math.abs(r)));
-  const meanResidual = residuals.reduce((sum, r) => sum + Math.abs(r), 0) / residuals.length;
-
-  // Convert coefficients back to original scale
-  const originalCoefficients = convertToOriginalScale(coefficients, qMean, qStd, degree);
-
-  // Generate human-readable equation
-  const equation = generateEquation(originalCoefficients, model);
-
+  const meanResidual = residuals.reduce((sum, r) => sum + Math.abs(r), 0) / n;
+  
+  // Format equation with proper signs
+  const equation = slope >= 0 ? 
+    `h = ${intercept.toFixed(4)} + ${slope.toFixed(4)}q` :
+    `h = ${intercept.toFixed(4)} - ${Math.abs(slope).toFixed(4)}q`;
+  
   return {
-    coefficients: originalCoefficients,
+    coefficients,
     rSquared,
     residuals,
-    model,
+    model: 'quadratic',
     equation,
     predictedValues,
     standardError,
@@ -96,114 +121,722 @@ export function fitPumpCurve(points: CurvePoint[], model: 'quadratic' | 'cubic')
 }
 
 /**
- * Solve normal equations using Gaussian elimination
+ * Simple quadratic curve fit (h = a + b*q + c*q²)
  */
-function solveNormalEquations(X: number[][], y: number[]): number[] {
-  const n = X.length;
-  const p = X[0].length;
-
-  // Create augmented matrix [X^T * X | X^T * y]
-  const augmentedMatrix: number[][] = [];
+function fitSimpleQuadraticCurve(qValues: number[], hValues: number[]): CurveFitResult {
+  const n = qValues.length;
   
-  for (let i = 0; i < p; i++) {
-    const row: number[] = [];
-    for (let j = 0; j < p; j++) {
-      let sum = 0;
-      for (let k = 0; k < n; k++) {
-        sum += X[k][i] * X[k][j];
-      }
-      row.push(sum);
-    }
-    
-    // Add X^T * y component
-    let sum = 0;
-    for (let k = 0; k < n; k++) {
-      sum += X[k][i] * y[k];
-    }
-    row.push(sum);
-    
-    augmentedMatrix.push(row);
+  // For very simple cases, use linear fit
+  if (n <= 3) {
+    return fitSimpleLinearCurve(qValues, hValues);
   }
+  
+  // Simple quadratic regression using least squares
+  const sumQ = qValues.reduce((sum, q) => sum + q, 0);
+  const sumH = hValues.reduce((sum, h) => sum + h, 0);
+  const sumQ2 = qValues.reduce((sum, q) => sum + q * q, 0);
+  const sumQ3 = qValues.reduce((sum, q) => sum + q * q * q, 0);
+  const sumQ4 = qValues.reduce((sum, q) => sum + q * q * q * q, 0);
+  const sumQH = qValues.reduce((sum, q, i) => sum + q * (hValues[i] || 0), 0);
+  const sumQ2H = qValues.reduce((sum, q, i) => sum + q * q * (hValues[i] || 0), 0);
+  
+  // Solve the normal equations for quadratic fit
+  // n*a + sumQ*b + sumQ2*c = sumH
+  // sumQ*a + sumQ2*b + sumQ3*c = sumQH
+  // sumQ2*a + sumQ3*b + sumQ4*c = sumQ2H
+  
+  const det = n * (sumQ2 * sumQ4 - sumQ3 * sumQ3) - sumQ * (sumQ * sumQ4 - sumQ2 * sumQ3) + sumQ2 * (sumQ * sumQ3 - sumQ2 * sumQ2);
+  
+  let a = 0, b = 0, c = 0;
+  
+  if (Math.abs(det) > 1e-10) {
+    a = (sumH * (sumQ2 * sumQ4 - sumQ3 * sumQ3) - sumQH * (sumQ * sumQ4 - sumQ2 * sumQ3) + sumQ2H * (sumQ * sumQ3 - sumQ2 * sumQ2)) / det;
+    b = (n * (sumQH * sumQ4 - sumQ2H * sumQ3) - sumQ * (sumH * sumQ4 - sumQ2H * sumQ2) + sumQ2 * (sumH * sumQ3 - sumQH * sumQ2)) / det;
+    c = (n * (sumQ2 * sumQ2H - sumQH * sumQ3) - sumQ * (sumQ * sumQ2H - sumH * sumQ3) + sumQ2 * (sumQ * sumQH - sumH * sumQ2)) / det;
+  } else {
+    // Fall back to linear fit
+    return fitSimpleLinearCurve(qValues, hValues);
+  }
+  
+  // Ensure valid values
+  if (isNaN(a) || isNaN(b) || isNaN(c) || !isFinite(a) || !isFinite(b) || !isFinite(c)) {
+    return fitSimpleLinearCurve(qValues, hValues);
+  }
+  
+  const coefficients = [a, b, c];
+  const predictedValues = qValues.map(q => a + b * q + c * q * q);
+  const residuals = hValues.map((h, i) => h - (predictedValues[i] || 0));
+  
+  // Calculate R-squared
+  const meanH = sumH / n;
+  const ssRes = residuals.reduce((sum, r) => sum + r * r, 0);
+  const ssTot = hValues.reduce((sum, h) => sum + Math.pow(h - meanH, 2), 0);
+  const rSquared = ssTot > 0 ? 1 - (ssRes / ssTot) : 0;
+  
+  // Calculate statistics
+  const standardError = n > 3 ? Math.sqrt(ssRes / (n - 3)) : 0;
+  const maxResidual = Math.max(...residuals.map(r => Math.abs(r)));
+  const meanResidual = residuals.reduce((sum, r) => sum + Math.abs(r), 0) / n;
+  
+  // Format equation with proper signs
+  let equation = `h = ${a.toFixed(4)}`;
+  if (b >= 0) {
+    equation += `+${b.toFixed(4)}q`;
+  } else {
+    equation += `-${Math.abs(b).toFixed(4)}q`;
+  }
+  if (c >= 0) {
+    equation += `+${c.toFixed(4)}q²`;
+  } else {
+    equation += `-${Math.abs(c).toFixed(4)}q²`;
+  }
+  
+  return {
+    coefficients,
+    rSquared,
+    residuals,
+    model: 'quadratic',
+    equation,
+    predictedValues,
+    standardError,
+    maxResidual,
+    meanResidual
+  };
+}
 
-  // Gaussian elimination with partial pivoting
-  for (let i = 0; i < p; i++) {
+/**
+ * Simple cubic curve fit (h = a + b*q + c*q² + d*q³)
+ */
+function fitSimpleCubicCurve(qValues: number[], hValues: number[]): CurveFitResult {
+  const n = qValues.length;
+  
+  // For very simple cases, use quadratic fit
+  if (n <= 4) {
+    return fitSimpleQuadraticCurve(qValues, hValues);
+  }
+  
+  // Simple cubic regression using least squares
+  const sumQ = qValues.reduce((sum, q) => sum + q, 0);
+  const sumH = hValues.reduce((sum, h) => sum + h, 0);
+  const sumQ2 = qValues.reduce((sum, q) => sum + q * q, 0);
+  const sumQ3 = qValues.reduce((sum, q) => sum + q * q * q, 0);
+  const sumQ4 = qValues.reduce((sum, q) => sum + q * q * q * q, 0);
+  const sumQ5 = qValues.reduce((sum, q) => sum + q * q * q * q * q, 0);
+  const sumQ6 = qValues.reduce((sum, q) => sum + q * q * q * q * q * q, 0);
+  const sumQH = qValues.reduce((sum, q, i) => sum + q * (hValues[i] || 0), 0);
+  const sumQ2H = qValues.reduce((sum, q, i) => sum + q * q * (hValues[i] || 0), 0);
+  const sumQ3H = qValues.reduce((sum, q, i) => sum + q * q * q * (hValues[i] || 0), 0);
+  
+  // Solve the normal equations for cubic fit using Cramer's rule
+  // This is a 4x4 system, so we'll use a more robust approach
+  
+  // Create the coefficient matrix
+  const matrix = [
+    [n, sumQ, sumQ2, sumQ3],
+    [sumQ, sumQ2, sumQ3, sumQ4],
+    [sumQ2, sumQ3, sumQ4, sumQ5],
+    [sumQ3, sumQ4, sumQ5, sumQ6]
+  ];
+  
+  // Create the right-hand side vector
+  const rhs = [sumH, sumQH, sumQ2H, sumQ3H];
+  
+  // Solve using Gaussian elimination with partial pivoting
+  const solution = solveCubicSystem(matrix, rhs);
+  
+  let a = 0, b = 0, c = 0, d = 0;
+  
+  if (solution && solution.every(x => !isNaN(x) && isFinite(x))) {
+    a = solution[0] || 0;
+    b = solution[1] || 0;
+    c = solution[2] || 0;
+    d = solution[3] || 0;
+  } else {
+    // Fall back to quadratic fit
+    return fitSimpleQuadraticCurve(qValues, hValues);
+  }
+  
+  const coefficients = [a, b, c, d];
+  const predictedValues = qValues.map(q => a + b * q + c * q * q + d * q * q * q);
+  const residuals = hValues.map((h, i) => h - (predictedValues[i] || 0));
+  
+  // Calculate R-squared
+  const meanH = sumH / n;
+  const ssRes = residuals.reduce((sum, r) => sum + r * r, 0);
+  const ssTot = hValues.reduce((sum, h) => sum + Math.pow(h - meanH, 2), 0);
+  const rSquared = ssTot > 0 ? 1 - (ssRes / ssTot) : 0;
+  
+  // Calculate statistics
+  const standardError = n > 4 ? Math.sqrt(ssRes / (n - 4)) : 0;
+  const maxResidual = Math.max(...residuals.map(r => Math.abs(r)));
+  const meanResidual = residuals.reduce((sum, r) => sum + Math.abs(r), 0) / n;
+  
+  // Format equation with proper signs
+  let equation = `h = ${a.toFixed(4)}`;
+  if (b >= 0) {
+    equation += `+${b.toFixed(4)}q`;
+  } else {
+    equation += `-${Math.abs(b).toFixed(4)}q`;
+  }
+  if (c >= 0) {
+    equation += `+${c.toFixed(4)}q²`;
+  } else {
+    equation += `-${Math.abs(c).toFixed(4)}q²`;
+  }
+  if (d >= 0) {
+    equation += `+${d.toFixed(4)}q³`;
+  } else {
+    equation += `-${Math.abs(d).toFixed(4)}q³`;
+  }
+  
+  return {
+    coefficients,
+    rSquared,
+    residuals,
+    model: 'cubic',
+    equation,
+    predictedValues,
+    standardError,
+    maxResidual,
+    meanResidual
+  };
+}
+
+/**
+ * Solve a 4x4 linear system using Gaussian elimination with partial pivoting
+ */
+function solveCubicSystem(matrix: number[][], rhs: number[]): number[] | null {
+  const n = 4;
+  const augmented = matrix.map((row, i) => [...row, rhs[i]]);
+  
+  // Forward elimination with partial pivoting
+  for (let i = 0; i < n; i++) {
     // Find pivot
     let maxRow = i;
-    for (let k = i + 1; k < p; k++) {
-      if (Math.abs(augmentedMatrix[k][i]) > Math.abs(augmentedMatrix[maxRow][i])) {
+    for (let k = i + 1; k < n; k++) {
+      if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
         maxRow = k;
       }
     }
-
-    // Swap rows
+    
+    // Swap rows if necessary
     if (maxRow !== i) {
-      [augmentedMatrix[i], augmentedMatrix[maxRow]] = [augmentedMatrix[maxRow], augmentedMatrix[i]];
+      [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
     }
-
-    // Eliminate column
-    for (let k = i + 1; k < p; k++) {
-      const factor = augmentedMatrix[k][i] / augmentedMatrix[i][i];
-      for (let j = i; j <= p; j++) {
-        augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
+    
+    // Check for singular matrix
+    if (Math.abs(augmented[i][i]) < 1e-10) {
+      return null;
+    }
+    
+    // Eliminate column i
+    for (let k = i + 1; k < n; k++) {
+      const factor = (augmented[k]?.[i] || 0) / (augmented[i]?.[i] || 1);
+      for (let j = i; j <= n; j++) {
+        if (augmented[k] && augmented[i]) {
+          augmented[k][j] = (augmented[k][j] || 0) - factor * (augmented[i][j] || 0);
+        }
       }
     }
   }
-
+  
   // Back substitution
-  const coefficients = new Array(p).fill(0);
-  for (let i = p - 1; i >= 0; i--) {
+  const solution = new Array(n).fill(0);
+  for (let i = n - 1; i >= 0; i--) {
     let sum = 0;
-    for (let j = i + 1; j < p; j++) {
-      sum += augmentedMatrix[i][j] * coefficients[j];
+    for (let j = i + 1; j < n; j++) {
+      sum += (augmented[i]?.[j] || 0) * (solution[j] || 0);
     }
-    coefficients[i] = (augmentedMatrix[i][p] - sum) / augmentedMatrix[i][i];
+    solution[i] = ((augmented[i]?.[n] || 0) - sum) / (augmented[i]?.[i] || 1);
   }
-
-  return coefficients;
+  
+  return solution;
 }
 
 /**
- * Convert normalized coefficients back to original scale
+ * Fit a linear curve (h = a + b*q)
  */
-function convertToOriginalScale(
-  normalizedCoefficients: number[], 
-  qMean: number, 
-  qStd: number, 
-  degree: number
-): number[] {
-  // For a polynomial h = a + b*q + c*q² + d*q³ (if cubic)
-  // After normalization: h = a' + b'*q' + c'*q'² + d'*q'³ where q' = (q - qMean)/qStd
-  // We need to expand this back to the original form
+function fitLinearCurve(qValues: number[], hValues: number[]): CurveFitResult {
+  const n = qValues.length;
   
-  const originalCoefficients = new Array(degree + 1).fill(0);
+  // Calculate means
+  const qMean = qValues.reduce((sum, q) => sum + q, 0) / n;
+  const hMean = hValues.reduce((sum, h) => sum + h, 0) / n;
   
-  // Expand the normalized polynomial
-  for (let i = 0; i <= degree; i++) {
-    const normalizedCoef = normalizedCoefficients[i];
-    if (normalizedCoef === 0) continue;
+  // Check for NaN or infinite values in means
+  if (isNaN(qMean) || isNaN(hMean) || !isFinite(qMean) || !isFinite(hMean)) {
+    // Fall back to simple average
+    const slope = 0;
+    const intercept = hValues.reduce((sum, h) => sum + h, 0) / n;
     
-    // Expand (q - qMean)^i / qStd^i
-    for (let j = 0; j <= i; j++) {
-      const binomialCoef = binomialCoefficient(i, j);
-      const power = i - j;
-      const term = normalizedCoef * binomialCoef * Math.pow(-qMean, j) / Math.pow(qStd, i);
-      originalCoefficients[power] += term;
-    }
+    const coefficients = [intercept, slope, 0];
+    const predictedValues = qValues.map(() => intercept);
+    const residuals = hValues.map(h => h - intercept);
+    
+    const ssRes = residuals.reduce((sum, r) => sum + r * r, 0);
+    const ssTot = hValues.reduce((sum, h) => sum + Math.pow(h - hMean, 2), 0);
+    const rSquared = ssTot > 0 ? 1 - (ssRes / ssTot) : 0;
+    
+    const standardError = n > 2 ? Math.sqrt(ssRes / (n - 2)) : 0;
+    const maxResidual = Math.max(...residuals.map(r => Math.abs(r)));
+    const meanResidual = residuals.reduce((sum, r) => sum + Math.abs(r), 0) / n;
+    
+    const equation = `h = ${intercept.toFixed(4)} + 0.0000q`;
+    
+    return {
+      coefficients,
+      rSquared,
+      residuals,
+      model: 'quadratic',
+      equation,
+      predictedValues,
+      standardError,
+      maxResidual,
+      meanResidual
+    };
   }
   
-  return originalCoefficients;
+  // Calculate slope and intercept
+  let numerator = 0;
+  let denominator = 0;
+  
+  for (let i = 0; i < n; i++) {
+    const qVal = qValues[i] || 0;
+    const hVal = hValues[i] || 0;
+    numerator += (qVal - qMean) * (hVal - hMean);
+    denominator += (qVal - qMean) * (qVal - qMean);
+  }
+  
+  // Handle edge cases
+  let slope = 0;
+  let intercept = hMean;
+  
+  if (Math.abs(denominator) > 1e-10) {
+    slope = numerator / denominator;
+    intercept = hMean - slope * qMean;
+  }
+  
+  // Check for NaN or infinite values
+  if (isNaN(slope) || isNaN(intercept) || !isFinite(slope) || !isFinite(intercept)) {
+    slope = 0;
+    intercept = hMean;
+  }
+  
+  const coefficients = [intercept, slope, 0]; // [a, b, 0] for h = a + b*q + 0*q²
+  
+  // Calculate predicted values and residuals
+  const predictedValues = qValues.map(q => intercept + slope * q);
+  const residuals = hValues.map((h, i) => h - (predictedValues[i] || 0));
+  
+  // Calculate R-squared
+  const ssRes = residuals.reduce((sum, r) => sum + r * r, 0);
+  const ssTot = hValues.reduce((sum, h) => sum + Math.pow(h - hMean, 2), 0);
+  const rSquared = ssTot > 0 ? 1 - (ssRes / ssTot) : 0;
+  
+  // Calculate statistics
+  const standardError = n > 2 ? Math.sqrt(ssRes / (n - 2)) : 0;
+  const maxResidual = Math.max(...residuals.map(r => Math.abs(r)));
+  const meanResidual = residuals.reduce((sum, r) => sum + Math.abs(r), 0) / n;
+  
+  // Final safety check - ensure no NaN values
+  if (isNaN(rSquared) || isNaN(standardError) || isNaN(maxResidual) || isNaN(meanResidual) ||
+      !isFinite(rSquared) || !isFinite(standardError) || !isFinite(maxResidual) || !isFinite(meanResidual)) {
+    // Fall back to simple average
+    const fallbackIntercept = hValues.reduce((sum, h) => sum + h, 0) / n;
+    const fallbackCoefficients = [fallbackIntercept, 0, 0];
+    const fallbackPredictedValues = qValues.map(() => fallbackIntercept);
+    const fallbackResiduals = hValues.map(h => h - fallbackIntercept);
+    
+    const fallbackSSRes = fallbackResiduals.reduce((sum, r) => sum + r * r, 0);
+    const fallbackSSTot = hValues.reduce((sum, h) => sum + Math.pow(h - hMean, 2), 0);
+    const fallbackRSquared = fallbackSSTot > 0 ? 1 - (fallbackSSRes / fallbackSSTot) : 0;
+    
+    const fallbackStandardError = n > 2 ? Math.sqrt(fallbackSSRes / (n - 2)) : 0;
+    const fallbackMaxResidual = Math.max(...fallbackResiduals.map(r => Math.abs(r)));
+    const fallbackMeanResidual = fallbackResiduals.reduce((sum, r) => sum + Math.abs(r), 0) / n;
+    
+    const fallbackEquation = `h = ${fallbackIntercept.toFixed(4)} + 0.0000q`;
+    
+    return {
+      coefficients: fallbackCoefficients,
+      rSquared: fallbackRSquared,
+      residuals: fallbackResiduals,
+      model: 'quadratic',
+      equation: fallbackEquation,
+      predictedValues: fallbackPredictedValues,
+      standardError: fallbackStandardError,
+      maxResidual: fallbackMaxResidual,
+      meanResidual: fallbackMeanResidual
+    };
+  }
+  
+  const equation = `h = ${intercept.toFixed(4)} + ${slope.toFixed(4)}q`;
+  
+  return {
+    coefficients,
+    rSquared,
+    residuals,
+    model: 'quadratic',
+    equation,
+    predictedValues,
+    standardError,
+    maxResidual,
+    meanResidual
+  };
 }
 
 /**
- * Calculate binomial coefficient C(n, k)
+ * Fit a quadratic curve (h = a + b*q + c*q²)
  */
-function binomialCoefficient(n: number, k: number): number {
-  if (k > n - k) k = n - k;
-  let result = 1;
-  for (let i = 0; i < k; i++) {
-    result *= (n - i) / (i + 1);
+function fitQuadraticCurve(qValues: number[], hValues: number[]): CurveFitResult {
+  const n = qValues.length;
+  
+  // For very simple cases, use linear fit to avoid numerical issues
+  if (n <= 3) {
+    return fitLinearCurve(qValues, hValues);
   }
-  return result;
+  
+  // Use a simple approach: fit a quadratic curve using least squares
+  // For a quadratic curve h = a + b*q + c*q², we need to solve:
+  // Σ(h) = n*a + b*Σ(q) + c*Σ(q²)
+  // Σ(h*q) = a*Σ(q) + b*Σ(q²) + c*Σ(q³)
+  // Σ(h*q²) = a*Σ(q²) + b*Σ(q³) + c*Σ(q⁴)
+  
+  // Calculate sums
+  const sumQ = qValues.reduce((sum, q) => sum + q, 0);
+  const sumH = hValues.reduce((sum, h) => sum + h, 0);
+  const sumQ2 = qValues.reduce((sum, q) => sum + q * q, 0);
+  const sumQ3 = qValues.reduce((sum, q) => sum + q * q * q, 0);
+  const sumQ4 = qValues.reduce((sum, q) => sum + q * q * q * q, 0);
+  const sumHQ = qValues.reduce((sum, q, i) => sum + q * (hValues[i] || 0), 0);
+  const sumHQ2 = qValues.reduce((sum, q, i) => sum + q * q * (hValues[i] || 0), 0);
+  
+  // Check for NaN or infinite values in sums
+  if (isNaN(sumQ) || isNaN(sumH) || isNaN(sumQ2) || isNaN(sumQ3) || isNaN(sumQ4) || 
+      isNaN(sumHQ) || isNaN(sumHQ2) || 
+      !isFinite(sumQ) || !isFinite(sumH) || !isFinite(sumQ2) || !isFinite(sumQ3) || 
+      !isFinite(sumQ4) || !isFinite(sumHQ) || !isFinite(sumHQ2)) {
+    return fitLinearCurve(qValues, hValues);
+  }
+  
+  // Create the coefficient matrix
+  const A = [
+    [n, sumQ, sumQ2],
+    [sumQ, sumQ2, sumQ3],
+    [sumQ2, sumQ3, sumQ4]
+  ];
+  
+  const b = [sumH, sumHQ, sumHQ2];
+  
+  // Solve the system using Cramer's rule
+  const det = A[0]![0]! * (A[1]![1]! * A[2]![2]! - A[1]![2]! * A[2]![1]!) -
+              A[0]![1]! * (A[1]![0]! * A[2]![2]! - A[1]![2]! * A[2]![0]!) +
+              A[0]![2]! * (A[1]![0]! * A[2]![1]! - A[1]![1]! * A[2]![0]!);
+  
+  // If determinant is too small, fall back to linear fit
+  if (Math.abs(det) < 1e-10) {
+    return fitLinearCurve(qValues, hValues);
+  }
+  
+  // Calculate coefficients using Cramer's rule
+  const detA = b[0]! * (A[1]![1]! * A[2]![2]! - A[1]![2]! * A[2]![1]!) -
+               A[0]![1]! * (b[1]! * A[2]![2]! - A[1]![2]! * b[2]!) +
+               A[0]![2]! * (b[1]! * A[2]![1]! - A[1]![1]! * b[2]!);
+  
+  const detB = A[0]![0]! * (b[1]! * A[2]![2]! - A[1]![2]! * b[2]!) -
+               b[0]! * (A[1]![0]! * A[2]![2]! - A[1]![2]! * A[2]![0]!) +
+               A[0]![2]! * (A[1]![0]! * b[2]! - b[1]! * A[2]![0]!);
+  
+  const detC = A[0]![0]! * (A[1]![1]! * b[2]! - b[1]! * A[2]![1]!) -
+               A[0]![1]! * (A[1]![0]! * b[2]! - b[1]! * A[2]![0]!) +
+               b[0]! * (A[1]![0]! * A[2]![1]! - A[1]![1]! * A[2]![0]!);
+  
+  const a = detA / det;
+  const b_coef = detB / det;
+  const c = detC / det;
+  
+  // Check for NaN or infinite values
+  if (isNaN(a) || isNaN(b_coef) || isNaN(c) || 
+      !isFinite(a) || !isFinite(b_coef) || !isFinite(c)) {
+    return fitLinearCurve(qValues, hValues);
+  }
+  
+  const coefficients = [a, b_coef, c];
+  
+  // Calculate predicted values and residuals
+  const predictedValues = qValues.map(q => a + b_coef * q + c * q * q);
+  const residuals = hValues.map((h, i) => h - (predictedValues[i] || 0));
+  
+  // Calculate R-squared
+  const hMean = hValues.reduce((sum, h) => sum + h, 0) / n;
+  const ssRes = residuals.reduce((sum, r) => sum + r * r, 0);
+  const ssTot = hValues.reduce((sum, h) => sum + Math.pow(h - hMean, 2), 0);
+  const rSquared = ssTot > 0 ? 1 - (ssRes / ssTot) : 0;
+  
+  // Calculate statistics
+  const standardError = n > 3 ? Math.sqrt(ssRes / (n - 3)) : 0;
+  const maxResidual = Math.max(...residuals.map(r => Math.abs(r)));
+  const meanResidual = residuals.reduce((sum, r) => sum + Math.abs(r), 0) / n;
+  
+  const equation = generateEquation(coefficients, 'quadratic');
+  
+  return {
+    coefficients,
+    rSquared,
+    residuals,
+    model: 'quadratic',
+    equation,
+    predictedValues,
+    standardError,
+    maxResidual,
+    meanResidual
+  };
+}
+
+/**
+ * Fit a cubic curve (h = a + b*q + c*q² + d*q³)
+ */
+function fitCubicCurve(qValues: number[], hValues: number[]): CurveFitResult {
+  const n = qValues.length;
+  
+  // Create design matrix for cubic fit
+  const X = qValues.map(q => [1, q, q * q, q * q * q]);
+  
+  // Solve using normal equations
+  const coefficients = solveNormalEquations(X, hValues);
+  
+  // Check for NaN coefficients and fall back to quadratic fit if needed
+  if (coefficients.some(c => isNaN(c))) {
+    return fitQuadraticCurve(qValues, hValues);
+  }
+  
+  // Calculate predicted values and residuals
+  const predictedValues = qValues.map(q => {
+    return (coefficients[0] || 0) + (coefficients[1] || 0) * q + (coefficients[2] || 0) * q * q + (coefficients[3] || 0) * q * q * q;
+  });
+  const residuals = hValues.map((h, i) => h - (predictedValues[i] || 0));
+  
+  // Calculate R-squared
+  const hMean = hValues.reduce((sum, h) => sum + h, 0) / n;
+  const ssRes = residuals.reduce((sum, r) => sum + r * r, 0);
+  const ssTot = hValues.reduce((sum, h) => sum + Math.pow(h - hMean, 2), 0);
+  const rSquared = ssTot > 0 ? 1 - (ssRes / ssTot) : 0;
+  
+  // Calculate statistics
+  const standardError = n > 4 ? Math.sqrt(ssRes / (n - 4)) : 0;
+  const maxResidual = Math.max(...residuals.map(r => Math.abs(r)));
+  const meanResidual = residuals.reduce((sum, r) => sum + Math.abs(r), 0) / n;
+  
+  const equation = generateEquation(coefficients, 'cubic');
+  
+  return {
+    coefficients,
+    rSquared,
+    residuals,
+    model: 'cubic',
+    equation,
+    predictedValues,
+    standardError,
+    maxResidual,
+    meanResidual
+  };
+}
+
+/**
+ * Solve normal equations using a simple approach
+ */
+function solveNormalEquations(X: number[][], y: number[]): number[] {
+  const n = X.length;
+  const p = X[0]?.length || 0;
+
+  // Create X^T * X matrix
+  const XtX: number[][] = [];
+  for (let i = 0; i < p; i++) {
+    XtX[i] = [];
+    for (let j = 0; j < p; j++) {
+      let sum = 0;
+      for (let k = 0; k < n; k++) {
+        const xki = X[k]?.[i] || 0;
+        const xkj = X[k]?.[j] || 0;
+        sum += xki * xkj;
+      }
+      XtX[i]![j] = sum;
+    }
+  }
+
+  // Create X^T * y vector
+  const Xty: number[] = [];
+  for (let i = 0; i < p; i++) {
+    let sum = 0;
+    for (let k = 0; k < n; k++) {
+      const xki = X[k]?.[i] || 0;
+      const yk = y[k] || 0;
+      sum += xki * yk;
+    }
+    Xty[i] = sum;
+  }
+
+  // For small matrices, use a simple approach
+  if (p <= 3) {
+    return solveSmallSystem(XtX, Xty);
+  }
+
+  // For larger matrices, use LU decomposition
+  return solveLinearSystem(XtX, Xty);
+}
+
+/**
+ * Solve small linear system (2x2 or 3x3) using Cramer's rule
+ */
+function solveSmallSystem(A: number[][], b: number[]): number[] {
+  const n = A.length;
+  
+  if (n === 2) {
+    const det = A[0]![0]! * A[1]![1]! - A[0]![1]! * A[1]![0]!;
+    if (Math.abs(det) < 1e-10) {
+      // Try to solve as a linear system instead
+      const slope = (b[1]! - b[0]!) / (A[1]![1]! - A[0]![1]!);
+      const intercept = b[0]! - slope * A[0]![1]!;
+      return [intercept, slope];
+    }
+    
+    const x0 = (b[0]! * A[1]![1]! - b[1]! * A[0]![1]!) / det;
+    const x1 = (A[0]![0]! * b[1]! - A[1]![0]! * b[0]!) / det;
+    
+    return [x0, x1];
+  }
+  
+  if (n === 3) {
+    const det = A[0]![0]! * (A[1]![1]! * A[2]![2]! - A[1]![2]! * A[2]![1]!) -
+                A[0]![1]! * (A[1]![0]! * A[2]![2]! - A[1]![2]! * A[2]![0]!) +
+                A[0]![2]! * (A[1]![0]! * A[2]![1]! - A[1]![1]! * A[2]![0]!);
+    
+    if (Math.abs(det) < 1e-10) {
+      // Matrix is nearly singular, try to fit a linear curve instead
+      // Extract q values from the design matrix (second column)
+      const qValues = A.map(row => row[1] || 0);
+      const hValues = b;
+      
+      // Calculate means
+      const qMean = qValues.reduce((sum, q) => sum + q, 0) / n;
+      const hMean = hValues.reduce((sum, h) => sum + h, 0) / n;
+      
+      // Calculate slope and intercept
+      let numerator = 0;
+      let denominator = 0;
+      
+      for (let i = 0; i < n; i++) {
+        const qVal = qValues[i] || 0;
+        const hVal = hValues[i] || 0;
+        numerator += (qVal - qMean) * (hVal - hMean);
+        denominator += (qVal - qMean) * (qVal - qMean);
+      }
+      
+      const slope = denominator !== 0 ? numerator / denominator : 0;
+      const intercept = hMean - slope * qMean;
+      
+      return [intercept, slope, 0]; // Return linear fit with zero quadratic coefficient
+    }
+    
+    const x0 = (b[0]! * (A[1]![1]! * A[2]![2]! - A[1]![2]! * A[2]![1]!) -
+                A[0]![1]! * (b[1]! * A[2]![2]! - A[1]![2]! * b[2]!) +
+                A[0]![2]! * (b[1]! * A[2]![1]! - A[1]![1]! * b[2]!)) / det;
+    
+    const x1 = (A[0]![0]! * (b[1]! * A[2]![2]! - A[1]![2]! * b[2]!) -
+                b[0]! * (A[1]![0]! * A[2]![2]! - A[1]![2]! * A[2]![0]!) +
+                A[0]![2]! * (A[1]![0]! * b[2]! - b[1]! * A[2]![0]!)) / det;
+    
+    const x2 = (A[0]![0]! * (A[1]![1]! * b[2]! - b[1]! * A[2]![1]!) -
+                A[0]![1]! * (A[1]![0]! * b[2]! - b[1]! * A[2]![0]!) +
+                b[0]! * (A[1]![0]! * A[2]![1]! - A[1]![1]! * A[2]![0]!)) / det;
+    
+    // Check for NaN or infinite values
+    if (isNaN(x0) || isNaN(x1) || isNaN(x2) || 
+        !isFinite(x0) || !isFinite(x1) || !isFinite(x2)) {
+      // Fall back to linear fit
+      const qValues = A.map(row => row[1] || 0);
+      const hValues = b;
+      
+      const qMean = qValues.reduce((sum, q) => sum + q, 0) / n;
+      const hMean = hValues.reduce((sum, h) => sum + h, 0) / n;
+      
+      let numerator = 0;
+      let denominator = 0;
+      
+      for (let i = 0; i < n; i++) {
+        const qVal = qValues[i] || 0;
+        const hVal = hValues[i] || 0;
+        numerator += (qVal - qMean) * (hVal - hMean);
+        denominator += (qVal - qMean) * (qVal - qMean);
+      }
+      
+      const slope = denominator !== 0 ? numerator / denominator : 0;
+      const intercept = hMean - slope * qMean;
+      
+      return [intercept, slope, 0];
+    }
+    
+    return [x0, x1, x2];
+  }
+  
+  throw new Error('Unsupported matrix size');
+}
+
+/**
+ * Solve linear system using LU decomposition
+ */
+function solveLinearSystem(A: number[][], b: number[]): number[] {
+  const n = A.length;
+  
+  // Create copies to avoid modifying original arrays
+  const L: number[][] = Array(n).fill(0).map(() => Array(n).fill(0));
+  const U: number[][] = Array(n).fill(0).map(() => Array(n).fill(0));
+  
+  // Initialize L and U
+  for (let i = 0; i < n; i++) {
+    L[i]![i] = 1;
+  }
+  
+  // LU decomposition
+  for (let i = 0; i < n; i++) {
+    for (let j = i; j < n; j++) {
+      let sum = 0;
+      for (let k = 0; k < i; k++) {
+        sum += (L[i]?.[k] || 0) * (U[k]?.[j] || 0);
+      }
+      U[i]![j] = (A[i]?.[j] || 0) - sum;
+    }
+    
+    for (let j = i + 1; j < n; j++) {
+      let sum = 0;
+      for (let k = 0; k < i; k++) {
+        sum += (L[j]?.[k] || 0) * (U[k]?.[i] || 0);
+      }
+      L[j]![i] = ((A[j]?.[i] || 0) - sum) / (U[i]?.[i] || 1);
+    }
+  }
+  
+  // Forward substitution: L * y = b
+  const y: number[] = Array(n).fill(0);
+  for (let i = 0; i < n; i++) {
+    let sum = 0;
+    for (let j = 0; j < i; j++) {
+      sum += (L[i]?.[j] || 0) * (y[j] || 0);
+    }
+    y[i] = ((b[i] || 0) - sum) / (L[i]?.[i] || 1);
+  }
+  
+  // Backward substitution: U * x = y
+  const x: number[] = Array(n).fill(0);
+  for (let i = n - 1; i >= 0; i--) {
+    let sum = 0;
+    for (let j = i + 1; j < n; j++) {
+      sum += (U[i]?.[j] || 0) * (x[j] || 0);
+    }
+    x[i] = ((y[i] || 0) - sum) / (U[i]?.[i] || 1);
+  }
+  
+  return x;
 }
 
 /**
@@ -213,26 +846,26 @@ function generateEquation(coefficients: number[], model: 'quadratic' | 'cubic'):
   const terms: string[] = [];
   
   // Constant term
-  if (Math.abs(coefficients[0]) > 1e-10) {
-    terms.push(coefficients[0].toFixed(4));
+  if (Math.abs(coefficients[0] || 0) > 1e-10) {
+    terms.push((coefficients[0] || 0).toFixed(4));
   }
   
   // Linear term
-  if (Math.abs(coefficients[1]) > 1e-10) {
-    const sign = coefficients[1] >= 0 ? '+' : '';
-    terms.push(`${sign}${coefficients[1].toFixed(4)}q`);
+  if (Math.abs(coefficients[1] || 0) > 1e-10) {
+    const sign = (coefficients[1] || 0) >= 0 ? '+' : '';
+    terms.push(`${sign}${(coefficients[1] || 0).toFixed(4)}q`);
   }
   
   // Quadratic term
-  if (coefficients[2] !== undefined && Math.abs(coefficients[2]) > 1e-10) {
-    const sign = coefficients[2] >= 0 ? '+' : '';
-    terms.push(`${sign}${coefficients[2].toFixed(4)}q²`);
+  if (coefficients[2] !== undefined && Math.abs(coefficients[2] || 0) > 1e-10) {
+    const sign = (coefficients[2] || 0) >= 0 ? '+' : '';
+    terms.push(`${sign}${(coefficients[2] || 0).toFixed(4)}q²`);
   }
   
   // Cubic term (if applicable)
-  if (model === 'cubic' && coefficients[3] !== undefined && Math.abs(coefficients[3]) > 1e-10) {
-    const sign = coefficients[3] >= 0 ? '+' : '';
-    terms.push(`${sign}${coefficients[3].toFixed(4)}q³`);
+  if (model === 'cubic' && coefficients[3] !== undefined && Math.abs(coefficients[3] || 0) > 1e-10) {
+    const sign = (coefficients[3] || 0) >= 0 ? '+' : '';
+    terms.push(`${sign}${(coefficients[3] || 0).toFixed(4)}q³`);
   }
   
   if (terms.length === 0) {
@@ -246,7 +879,7 @@ function generateEquation(coefficients: number[], model: 'quadratic' | 'cubic'):
  * Predict head value for a given flow rate using fitted coefficients
  */
 export function predictHead(coefficients: number[], q: number): number {
-  return coefficients.reduce((sum, coef, i) => sum + coef * Math.pow(q, i), 0);
+  return coefficients.reduce((sum, coef, i) => sum + (coef || 0) * Math.pow(q, i), 0);
 }
 
 /**

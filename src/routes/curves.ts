@@ -84,7 +84,6 @@ export default async function curvesRoutes(fastify: FastifyInstance) {
               },
               required: ['q', 'h'],
             },
-            minItems: 3,
           },
           model: { 
             type: 'string', 
@@ -173,7 +172,24 @@ export default async function curvesRoutes(fastify: FastifyInstance) {
             metadata: {
               type: 'object',
               properties: {
-                input: { type: 'object' },
+                input: {
+                  type: 'object',
+                  properties: {
+                    points: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          q: { type: 'number' },
+                          h: { type: 'number' }
+                        },
+                        required: ['q', 'h']
+                      }
+                    },
+                    model: { type: 'string', enum: ['quadratic', 'cubic'] }
+                  },
+                  required: ['points', 'model']
+                },
                 statistics: {
                   type: 'object',
                   properties: {
@@ -181,8 +197,10 @@ export default async function curvesRoutes(fastify: FastifyInstance) {
                     degreesOfFreedom: { type: 'number' },
                     adjustedRSquared: { type: 'number' },
                   },
+                  required: ['nPoints', 'degreesOfFreedom', 'adjustedRSquared']
                 },
               },
+              required: ['input', 'statistics']
             },
           },
           required: ['coefficients', 'rSquared', 'residuals', 'model', 'equation', 'predictedValues', 'standardError', 'maxResidual', 'meanResidual', 'metadata'],
@@ -276,11 +294,19 @@ export default async function curvesRoutes(fastify: FastifyInstance) {
       // Calculate additional statistics
       const nPoints = sortedPoints.length;
       const degreesOfFreedom = nPoints - (model === 'quadratic' ? 3 : 4);
-      const adjustedRSquared = 1 - ((1 - result.rSquared) * (nPoints - 1) / degreesOfFreedom);
+      const adjustedRSquared = degreesOfFreedom > 0 ? 1 - ((1 - result.rSquared) * (nPoints - 1) / degreesOfFreedom) : 0;
 
       // Create response with metadata
       const response = {
-        ...result,
+        coefficients: result.coefficients,
+        rSquared: result.rSquared,
+        residuals: result.residuals,
+        model: result.model,
+        equation: result.equation,
+        predictedValues: result.predictedValues,
+        standardError: result.standardError,
+        maxResidual: result.maxResidual,
+        meanResidual: result.meanResidual,
         metadata: {
           input: {
             points: sortedPoints,

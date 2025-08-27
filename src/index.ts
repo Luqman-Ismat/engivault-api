@@ -5,10 +5,8 @@ import { initializeMetrics } from '@/utils/metrics';
 import { registerMiddleware } from '@/utils/middleware';
 
 // Import plugins
-import { registerCompression } from '@/utils/plugins/compression';
-import { registerRateLimit } from '@/utils/plugins/rateLimit';
+import { registerPerformancePlugins } from '@/utils/plugins/performance';
 import { registerSwagger } from '@/utils/plugins/swagger';
-// import { registerCaching } from '@/utils/plugins/caching';
 
 // Import routes
 import { registerRoutes } from '@/routes';
@@ -43,9 +41,7 @@ export async function createFastifyInstance(): Promise<FastifyInstance> {
   await registerMiddleware(fastify);
 
   // Register plugins
-  await registerCompression(fastify);
-  await registerRateLimit(fastify);
-  // await registerCaching(fastify);
+  await registerPerformancePlugins(fastify);
   await registerSwagger(fastify);
 
   // Register schemas
@@ -67,30 +63,43 @@ export async function createFastifyInstance(): Promise<FastifyInstance> {
 
 async function startServer(): Promise<void> {
   try {
-    const fastify = await createFastifyInstance();
+    fastifyInstance = await createFastifyInstance();
     
     const port = config.PORT;
     const host = config.HOST;
     
-    await fastify.listen({ port, host });
+    await fastifyInstance.listen({ port, host });
     
-    fastify.log.info(`Server listening on ${host}:${port}`);
-    fastify.log.info(`API Documentation available at http://${host}:${port}/documentation`);
-    fastify.log.info(`Health check available at http://${host}:${port}/health`);
-  } catch (err) {
-    console.error('Error starting server:', err);
+    fastifyInstance.log.info(`Server listening on ${host}:${port}`);
+    fastifyInstance.log.info(`API Documentation available at http://${host}:${port}/documentation`);
+    fastifyInstance.log.info(`Health check available at http://${host}:${port}/health`);
+  } catch (err: any) {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${config.PORT} is already in use. Please try a different port or stop the existing server.`);
+      console.error('You can set a different port using the PORT environment variable.');
+    } else {
+      console.error('Error starting server:', err);
+    }
     process.exit(1);
   }
 }
 
+let fastifyInstance: FastifyInstance | null = null;
+
 // Handle graceful shutdown
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('Received SIGINT, shutting down gracefully...');
+  if (fastifyInstance) {
+    await fastifyInstance.close();
+  }
   process.exit(0);
 });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('Received SIGTERM, shutting down gracefully...');
+  if (fastifyInstance) {
+    await fastifyInstance.close();
+  }
   process.exit(0);
 });
 

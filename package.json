@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
-    "build": "tsc",
+    "dev:clean": "pkill -f 'tsx src/index.ts' || true && sleep 1 && npm run dev",
+    "build": "npm run generate-sdk && tsc",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -16,7 +17,12 @@
     "format:check": "prettier --check src/**/*.ts",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "prebuild": "npm run clean"
+    "prebuild": "npm run clean",
+    "generate-sdk": "node scripts/generate-sdk.js",
+    "sdk:install-ts": "cd clients/ts && npm install",
+    "sdk:install-py": "cd clients/py && pip3 install -e .",
+    "sdk:test-ts": "cd clients/ts && npm run build",
+    "sdk:test-py": "cd clients/py && python3 example.py"
   },
   "keywords": [
     "engineering",
@@ -29,6 +35,7 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.23.1",
     "@types/node": "^24.3.0",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
@@ -37,6 +44,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
     "nodemon": "^3.1.0",
+    "openapi-typescript-codegen": "^0.29.0",
     "prettier": "^3.2.5",
     "supertest": "^7.0.0",
     "ts-node": "^10.9.2",
@@ -46,8 +54,8 @@
   },
   "dependencies": {
     "@fastify/caching": "^8.0.0",
-    "@fastify/compress": "^8.0.0",
-    "@fastify/rate-limit": "^10.0.0",
+    "@fastify/compress": "^8.1.0",
+    "@fastify/rate-limit": "^10.3.0",
     "@fastify/swagger": "^9.5.1",
     "@fastify/swagger-ui": "^5.2.3",
     "fastify": "^5.5.0",
