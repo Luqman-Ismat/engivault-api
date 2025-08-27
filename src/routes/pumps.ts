@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { bepDistance, PumpCurve } from '@/logic/pumps';
 import { handleError } from '@/utils/errorHandler';
 import { processBatchOrSingle } from '@/utils/batchProcessor';
+import { transcriptService } from '@/services/runs';
 
 const zPumpCurvePoint = z.object({
   q: z.number().positive(),
@@ -58,6 +59,8 @@ const zBEPCheckResponse = z.object({
 
 export default async function pumpsRoutes(fastify: FastifyInstance) {
   fastify.post('/api/v1/pumps/bep-check', async (request, reply) => {
+    const startTime = Date.now();
+    
     try {
       const payload = request.body as any;
       
@@ -126,6 +129,25 @@ export default async function pumpsRoutes(fastify: FastifyInstance) {
           reply
         );
         
+        // Capture transcript if enabled
+        const processingTime = Date.now() - startTime;
+        const transcript = transcriptService.createFromRequest(
+          request,
+          result,
+          processingTime,
+          [],
+          {},
+          [
+            'BEP Distance = |Q_operating - Q_BEP| / Q_BEP',
+            'Efficiency-based BEP: max(efficiency)',
+            'Midpoint BEP: (Q_min + Q_max) / 2'
+          ]
+        );
+        
+        if (transcript) {
+          reply.header('X-EngiVault-Transcript-ID', transcript.id);
+        }
+        
         return reply.send(result);
       } else {
         // Single item request - validate and process directly
@@ -176,7 +198,7 @@ export default async function pumpsRoutes(fastify: FastifyInstance) {
         const maxFlow = Math.max(...curve.points.map((p: any) => p.q));
         const normalizedDistance = result.distance / result.bepPoint.q;
         
-        return reply.send({
+        const resultWithMetadata = {
           ...result,
           metadata: {
             input: { operatingPoint, curve },
@@ -188,9 +210,49 @@ export default async function pumpsRoutes(fastify: FastifyInstance) {
               }
             }
           }
-        });
+        };
+        
+        // Capture transcript if enabled
+        const processingTime = Date.now() - startTime;
+        const transcript = transcriptService.createFromRequest(
+          request,
+          resultWithMetadata,
+          processingTime,
+          [],
+          {},
+          [
+            'BEP Distance = |Q_operating - Q_BEP| / Q_BEP',
+            'Efficiency-based BEP: max(efficiency)',
+            'Midpoint BEP: (Q_min + Q_max) / 2'
+          ]
+        );
+        
+        if (transcript) {
+          reply.header('X-EngiVault-Transcript-ID', transcript.id);
+        }
+        
+        return reply.send(resultWithMetadata);
       }
     } catch (error) {
+      // Capture transcript for errors too if enabled
+      const processingTime = Date.now() - startTime;
+      const transcript = transcriptService.createFromRequest(
+        request,
+        { error: error instanceof Error ? error.message : String(error) },
+        processingTime,
+        [],
+        {},
+        [
+          'BEP Distance = |Q_operating - Q_BEP| / Q_BEP',
+          'Efficiency-based BEP: max(efficiency)',
+          'Midpoint BEP: (Q_min + Q_max) / 2'
+        ]
+      );
+      
+      if (transcript) {
+        reply.header('X-EngiVault-Transcript-ID', transcript.id);
+      }
+      
       return handleError(error, reply);
     }
   });

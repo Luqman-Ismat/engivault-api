@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { computeFillDrainTime, FillDrainInput } from '@/logic/operations/fill-drain-time';
 import { handleError } from '@/utils/errorHandler';
 import { processBatchOrSingle, BatchRequest, BatchResponse } from '@/utils/batchProcessor';
+import { transcriptService } from '@/services/runs';
 
 const zTankGeometry = z.object({
   volume: z.object({
@@ -83,6 +84,8 @@ const zFillDrainResponse = z.object({
 
 export default async function operationsRoutes(fastify: FastifyInstance) {
   fastify.post('/api/v1/operations/fill-drain-time', async (request, reply) => {
+    const startTime = Date.now();
+    
     try {
       const payload = request.body as any;
       
@@ -153,6 +156,25 @@ export default async function operationsRoutes(fastify: FastifyInstance) {
           },
           reply
         );
+        
+        // Capture transcript if enabled
+        const processingTime = Date.now() - startTime;
+        const transcript = transcriptService.createFromRequest(
+          request,
+          result,
+          processingTime,
+          [],
+          {},
+          [
+            'Volume = Area × Level',
+            'Time = Volume / Flow Rate',
+            'Cross-sectional Area = π × (Diameter/2)²'
+          ]
+        );
+        
+        if (transcript) {
+          reply.header('X-EngiVault-Transcript-ID', transcript.id);
+        }
         
         return reply.send(result);
       } else {
@@ -232,9 +254,48 @@ export default async function operationsRoutes(fastify: FastifyInstance) {
         }
         
         const result = computeFillDrainTime(input);
+        
+        // Capture transcript if enabled
+        const processingTime = Date.now() - startTime;
+        const transcript = transcriptService.createFromRequest(
+          request,
+          result,
+          processingTime,
+          [],
+          {},
+          [
+            'Volume = Area × Level',
+            'Time = Volume / Flow Rate',
+            'Cross-sectional Area = π × (Diameter/2)²'
+          ]
+        );
+        
+        if (transcript) {
+          reply.header('X-EngiVault-Transcript-ID', transcript.id);
+        }
+        
         return reply.send(result);
       }
     } catch (error) {
+      // Capture transcript for errors too if enabled
+      const processingTime = Date.now() - startTime;
+      const transcript = transcriptService.createFromRequest(
+        request,
+        { error: error instanceof Error ? error.message : String(error) },
+        processingTime,
+        [],
+        {},
+        [
+          'Volume = Area × Level',
+          'Time = Volume / Flow Rate',
+          'Cross-sectional Area = π × (Diameter/2)²'
+        ]
+      );
+      
+      if (transcript) {
+        reply.header('X-EngiVault-Transcript-ID', transcript.id);
+      }
+      
       return handleError(error, reply);
     }
   });
