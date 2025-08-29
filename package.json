@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
     "dev:clean": "pkill -f 'tsx src/index.ts' || true && sleep 1 && npm run dev",
-    "build": "npm run generate-sdk && tsc",
+    "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",

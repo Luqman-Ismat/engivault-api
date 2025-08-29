@@ -95,4 +95,3 @@ async function build() {
 }
 // Start the server
 startServer();
-//# sourceMappingURL=index.js.map

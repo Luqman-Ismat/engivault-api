@@ -10,19 +10,11 @@ const zTranscriptResponse = z.object({
   method: z.string(),
   normalizedInputs: z.any(),
   selectedEquations: z.array(z.string()),
-  intermediateValues: z.record(z.any()),
-  warnings: z.array(
-    z.object({
-      type: z.string(),
-      message: z.string(),
-      severity: z.enum(['low', 'medium', 'high']),
-    })
-  ),
-  meta: z.object({
-    processingTime: z.number(),
-    inputValidation: z.boolean(),
-    calculationMethod: z.string(),
-    units: z.record(z.string()),
+  intermediateValues: z.record(z.string(), z.any()),
+  warnings: z.array(z.string()),
+  metadata: z.object({
+    input: z.record(z.string(), z.any()),
+    units: z.record(z.string(), z.string()),
     userAgent: z.string().optional(),
     contentType: z.string().optional(),
   }),

@@ -1,4 +1,5 @@
-import { convert, Quantity } from '../utils/units';
+import { convert } from '../utils/units';
+import { Quantity } from '@/schemas/common';
 
 // Types for relief valve sizing
 export interface ReliefValveInput {
@@ -143,7 +144,6 @@ export function backPressureCorrection(
  * @param temperature Temperature (R)
  * @param molecularWeight Molecular weight (lb/lbmol)
  * @param k Specific heat ratio
- * @param Z Compressibility factor
  * @param Kd Discharge coefficient
  * @returns Required area (in²) and flow regime
  */
@@ -154,7 +154,6 @@ export function gasReliefArea(
   temperature: number,
   molecularWeight: number,
   k: number = 1.4,
-  Z: number = 1.0,
   Kd: number = 0.65
 ): {
   area: number;
@@ -324,7 +323,6 @@ export function sizeReliefValve(input: ReliefValveInput): ReliefValveResult {
       temperature,
       molecularWeight,
       k,
-      Z,
       Kd
     );
 
@@ -373,8 +371,8 @@ export function sizeReliefValve(input: ReliefValveInput): ReliefValveResult {
   return {
     requiredArea: { value: requiredArea, unit: 'in²' },
     flowRegime,
-    criticalPressureRatio,
-    backPressureCorrection,
+    criticalPressureRatio: criticalPressureRatio || 0,
+    backPressureCorrection: backPressureCorrection || 1,
     warnings,
     metadata: {
       input,

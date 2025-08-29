@@ -1,11 +1,13 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { zQuantity } from '@/schemas/common';
-import {
-  calculateCavitationRisk,
+import { 
+  calculateCavitationRisk, 
+  NPSHCalculationInput,
   validateNPSHInputs,
-  resolveAtmosphericPressure,
+  resolveAtmosphericPressure
 } from '@/logic/npsh';
+import { ErrorHelper } from '@/utils/errorHelper';
 import { handleError } from '@/utils/errorHandler';
 
 const zNPSHCurvePoint = z.object({
@@ -30,221 +32,32 @@ const zCavitationRiskRequest = z.object({
   fluidName: z.string().optional(),
 });
 
-const zCavitationRiskResponse = z.object({
-  npshAvailable: zQuantity,
-  npshRequired: zQuantity,
-  cavitationMargin: zQuantity,
-  warnings: z.array(z.string()),
-  metadata: z.object({
-    atmosphericPressure: zQuantity,
-    vaporPressure: zQuantity,
-    staticHead: zQuantity,
-    losses: zQuantity,
-    flowRate: zQuantity,
-    altitude: z.number().optional(),
-    temperature: zQuantity,
-  }),
-});
-
 export default async function cavitationRiskRoutes(fastify: FastifyInstance) {
   fastify.post(
-    '/api/v1/pumps/cavitation-risk',
+    '/api/v1/cavitation-risk',
     {
       schema: {
-        description: 'Calculate cavitation risk analysis for pump system',
-        tags: ['Pumps'],
-        body: {
-          type: 'object',
-          properties: {
-            atmosphericPressure: {
-              type: 'object',
-              properties: {
-                value: { type: 'number' },
-                unit: { type: 'string' },
-              },
-              required: ['value', 'unit'],
-            },
-            vaporPressure: {
-              type: 'object',
-              properties: {
-                value: { type: 'number' },
-                unit: { type: 'string' },
-              },
-              required: ['value', 'unit'],
-            },
-            staticHead: {
-              type: 'object',
-              properties: {
-                value: { type: 'number' },
-                unit: { type: 'string' },
-              },
-              required: ['value', 'unit'],
-            },
-            losses: {
-              type: 'object',
-              properties: {
-                value: { type: 'number' },
-                unit: { type: 'string' },
-              },
-              required: ['value', 'unit'],
-            },
-            flowRate: {
-              type: 'object',
-              properties: {
-                value: { type: 'number' },
-                unit: { type: 'string' },
-              },
-              required: ['value', 'unit'],
-            },
-            npshCurve: {
-              type: 'object',
-              properties: {
-                points: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      q: { type: 'number', minimum: 0 },
-                      npshr: { type: 'number', minimum: 0 },
-                    },
-                    required: ['q', 'npshr'],
-                  },
-                  minItems: 1,
-                },
-                name: { type: 'string' },
-              },
-              required: ['points'],
-            },
-            altitude: { type: 'number', minimum: 0 },
-            temperature: {
-              type: 'object',
-              properties: {
-                value: { type: 'number' },
-                unit: { type: 'string' },
-              },
-              required: ['value', 'unit'],
-            },
-            fluidName: { type: 'string' },
-          },
-          required: ['staticHead', 'losses', 'flowRate', 'npshCurve'],
-        },
+        tags: ['Safety'],
+        summary: 'Calculate cavitation risk for pump systems',
+        description:
+          'Analyzes NPSH available vs required to determine cavitation risk',
+        body: zCavitationRiskRequest,
         response: {
-          200: {
-            type: 'object',
-            properties: {
-              npshAvailable: {
-                type: 'object',
-                properties: {
-                  value: { type: 'number' },
-                  unit: { type: 'string' },
-                },
-                required: ['value', 'unit'],
-              },
-              npshRequired: {
-                type: 'object',
-                properties: {
-                  value: { type: 'number' },
-                  unit: { type: 'string' },
-                },
-                required: ['value', 'unit'],
-              },
-              cavitationMargin: {
-                type: 'object',
-                properties: {
-                  value: { type: 'number' },
-                  unit: { type: 'string' },
-                },
-                required: ['value', 'unit'],
-              },
-              warnings: { type: 'array', items: { type: 'string' } },
-              metadata: {
-                type: 'object',
-                properties: {
-                  atmosphericPressure: {
-                    type: 'object',
-                    properties: {
-                      value: { type: 'number' },
-                      unit: { type: 'string' },
-                    },
-                    required: ['value', 'unit'],
-                  },
-                  vaporPressure: {
-                    type: 'object',
-                    properties: {
-                      value: { type: 'number' },
-                      unit: { type: 'string' },
-                    },
-                    required: ['value', 'unit'],
-                  },
-                  staticHead: {
-                    type: 'object',
-                    properties: {
-                      value: { type: 'number' },
-                      unit: { type: 'string' },
-                    },
-                    required: ['value', 'unit'],
-                  },
-                  losses: {
-                    type: 'object',
-                    properties: {
-                      value: { type: 'number' },
-                      unit: { type: 'string' },
-                    },
-                    required: ['value', 'unit'],
-                  },
-                  flowRate: {
-                    type: 'object',
-                    properties: {
-                      value: { type: 'number' },
-                      unit: { type: 'string' },
-                    },
-                    required: ['value', 'unit'],
-                  },
-                  altitude: { type: 'number' },
-                  temperature: {
-                    type: 'object',
-                    properties: {
-                      value: { type: 'number' },
-                      unit: { type: 'string' },
-                    },
-                    required: ['value', 'unit'],
-                  },
-                },
-                required: [
-                  'atmosphericPressure',
-                  'vaporPressure',
-                  'staticHead',
-                  'losses',
-                  'flowRate',
-                  'temperature',
-                ],
-              },
-            },
-            required: [
-              'npshAvailable',
-              'npshRequired',
-              'cavitationMargin',
-              'warnings',
-              'metadata',
-            ],
-          },
-          400: {
-            type: 'object',
-            properties: {
-              error: { type: 'string' },
-              code: { type: 'string' },
-              details: { type: 'array', items: { type: 'string' } },
-            },
-            required: ['error', 'code'],
-          },
-          500: {
-            type: 'object',
-            properties: {
-              error: { type: 'string' },
-              code: { type: 'string' },
-            },
-            required: ['error', 'code'],
-          },
+          200: z.object({
+            npshAvailable: zQuantity,
+            npshRequired: zQuantity,
+            cavitationMargin: zQuantity,
+            warnings: z.array(z.string()),
+            metadata: z.object({
+              atmosphericPressure: zQuantity,
+              vaporPressure: zQuantity,
+              staticHead: zQuantity,
+              losses: zQuantity,
+              flowRate: zQuantity,
+              altitude: z.number().optional(),
+              temperature: zQuantity.optional(),
+            }),
+          }),
         },
       },
     },

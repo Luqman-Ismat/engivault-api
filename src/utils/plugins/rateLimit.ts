@@ -5,7 +5,7 @@ import { config } from '@/config/environment';
 export async function registerRateLimit(fastify: FastifyInstance): Promise<void> {
   await fastify.register(rateLimit, {
     max: config.RATE_LIMIT_MAX,
-    timeWindow: config.RATE_LIMIT_WINDOW,
+    timeWindow: config.RATE_LIMIT_TIME_WINDOW,
     errorResponseBuilder: function (_request, context) {
       return {
         code: 429,

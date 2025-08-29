@@ -261,7 +261,7 @@ export function iterateViscosityAdjustedDrop(
   if (outletTemperature <= 0) {
     outletTemperature = inletTemperature * 0.95; // 5% drop as fallback
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message:
         'Calculated outlet temperature was invalid, using 5% drop from inlet',
       severity: 'medium',
@@ -305,8 +305,8 @@ export function iterateViscosityAdjustedDrop(
     } else {
       // Use water properties if available
       try {
-        const waterProps = waterProps(averageTemperature);
-        averageViscosity = waterProps.viscosity;
+        const waterProperties = waterProps(averageTemperature);
+        averageViscosity = waterProperties.viscosity;
       } catch {
         // Fallback to base viscosity
         averageViscosity = baseViscosity;
@@ -380,7 +380,7 @@ export function iterateViscosityAdjustedDrop(
   // Add warnings
   if (!converged) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: `Calculation did not converge within ${maxIterations} iterations`,
       severity: 'high',
     });
@@ -388,7 +388,7 @@ export function iterateViscosityAdjustedDrop(
 
   if (iterations > maxIterations * 0.8) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message:
         'Calculation required many iterations, consider adjusting parameters',
       severity: 'medium',

@@ -30,16 +30,18 @@ export async function requestLoggingMiddleware(
 
   // Create request context
   const context: RequestLogContext = {
-    requestId,
+    requestId: request.id,
     method: request.method,
     url: request.url,
-    userAgent: request.headers['user-agent'],
+    userAgent: Array.isArray(request.headers['user-agent']) 
+      ? request.headers['user-agent'][0] || 'unknown'
+      : request.headers['user-agent'] || 'unknown',
     ip: request.ip,
-    userId: request.headers['x-user-id'] as string,
+    userId: (request.headers['x-user-id'] as string) || 'anonymous',
   };
 
   // Create child logger for this request
-  const requestLogger = createRequestLogger(request.log, request, context);
+  const requestLogger = createRequestLogger(request.log as any, request, context);
 
   // Store context in request
   request.context = {
@@ -93,7 +95,7 @@ export async function registerMiddleware(
       });
 
       // Record metrics
-      const route = request.routerPath || request.url;
+      const route = request.url;
       const requestSize = request.headers['content-length']
         ? parseInt(request.headers['content-length'] as string)
         : undefined;

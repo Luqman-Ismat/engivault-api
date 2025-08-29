@@ -223,7 +223,7 @@ export function settlingVelocity(
   // Check for very small particles (may need special handling)
   if (particleDiameter < 1e-6) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Very small particles (< 1 μm) may require special correlations',
       severity: 'medium',
     });
@@ -232,7 +232,7 @@ export function settlingVelocity(
   // Check for very large particles
   if (particleDiameter > 0.01) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Large particles (> 10 mm) may not follow standard correlations',
       severity: 'medium',
     });
@@ -351,7 +351,7 @@ export function slurryHeadloss(
   // Check applicability limits
   if (froudeNumber < 1.5) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Froude number < 1.5: Durand correlation may not be applicable',
       severity: 'high',
     });
@@ -359,7 +359,7 @@ export function slurryHeadloss(
 
   if (froudeNumber > 40) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Froude number > 40: Durand correlation may not be applicable',
       severity: 'high',
     });
@@ -367,7 +367,7 @@ export function slurryHeadloss(
 
   if (concentration > 0.15) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message:
         'High concentration (> 15%): Durand correlation may not be applicable',
       severity: 'medium',
@@ -445,7 +445,7 @@ export function calculateSettlingVelocity(
   // Add warnings for extreme conditions
   if (particleRe > 1000) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'High particle Reynolds number: turbulent settling regime',
       severity: 'medium',
     });
@@ -453,7 +453,7 @@ export function calculateSettlingVelocity(
 
   if (ar > 100000) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message:
         'Very high Archimedes number: Newton regime with high uncertainty',
       severity: 'medium',
@@ -577,7 +577,7 @@ export function calculateSlurryHeadloss(
   // Add warnings for applicability
   if (froudeNumber < 1.5 || froudeNumber > 40) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: `Froude number (${froudeNumber.toFixed(2)}) outside recommended range (1.5-40)`,
       severity: 'high',
     });
@@ -585,7 +585,7 @@ export function calculateSlurryHeadloss(
 
   if (concentration > 0.15) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: `High concentration (${(concentration * 100).toFixed(1)}%): Durand correlation may not be applicable`,
       severity: 'medium',
     });
@@ -593,7 +593,7 @@ export function calculateSlurryHeadloss(
 
   if (particleDiameter / pipeDiameter > 0.1) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message:
         'Large particle-to-pipe diameter ratio: Durand correlation may not be applicable',
       severity: 'high',

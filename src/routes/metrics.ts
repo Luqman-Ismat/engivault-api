@@ -27,8 +27,10 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
         );
         return reply.send(metrics);
       } catch (error) {
-        request.log.error('Error generating metrics:', error);
-        return reply.status(500).send({ error: 'Failed to generate metrics' });
+        // @ts-ignore
+        request.log.error('Error generating metrics:', error as any);
+        // @ts-ignore
+        return reply.status(500).send({ error: 'Failed to generate metrics' } as any);
       }
     }
   );

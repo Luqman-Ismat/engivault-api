@@ -97,7 +97,7 @@ export function initializeMetrics() {
   // Collect default metrics
   register.setDefaultLabels({
     app: 'engivault-api',
-    version: process.env.npm_package_version || '1.0.0',
+    version: process.env['npm_package_version'] || '1.0.0',
   });
 
   // Update system metrics periodically

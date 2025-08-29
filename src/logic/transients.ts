@@ -237,13 +237,13 @@ export function joukowskySurge(input: JoukowskyInput): JoukowskyResult {
 
     if (!isWithinRating) {
       warnings.push({
-        type: 'warning',
+        type: 'general',
         message: `Pressure surge (${Math.abs(surgePressure).toFixed(0)} Pa) exceeds pipe rating (${pipeRating.toFixed(0)} Pa)`,
         severity: 'high',
       });
     } else if (safetyFactor > 0.8) {
       warnings.push({
-        type: 'warning',
+        type: 'general',
         message: `Pressure surge is ${(safetyFactor * 100).toFixed(1)}% of pipe rating - consider safety margin`,
         severity: 'medium',
       });
@@ -253,7 +253,7 @@ export function joukowskySurge(input: JoukowskyInput): JoukowskyResult {
   // Add validation warnings
   if (Math.abs(velocityChange) > 10) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Large velocity change detected - verify input values',
       severity: 'medium',
     });
@@ -261,7 +261,7 @@ export function joukowskySurge(input: JoukowskyInput): JoukowskyResult {
 
   if (waveSpeed > 1500) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Unusually high wave speed detected - verify pipe properties',
       severity: 'medium',
     });

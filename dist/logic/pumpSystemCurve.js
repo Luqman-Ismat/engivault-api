@@ -45,4 +45,3 @@ function calculateOperatingPoint(pumpCurve, systemCurveEquation) {
     // For now, let's throw an error indicating no intersection found within the range
     throw new Error('No intersection found within the provided pump curve range.');
 }
-//# sourceMappingURL=pumpSystemCurve.js.map

@@ -33,15 +33,16 @@ const zFlowInput = z.object({
 });
 
 // Zod schema for request body
-const zMinorLossesRequest = z
-  .object({
-    fluid: zFluid,
-    pipe: zPipe,
-    fittings: z
-      .array(zMinorLossItem)
-      .min(1, 'At least one fitting is required'),
-  })
-  .and(z.union([zVelocityInput, zFlowInput]));
+const zMinorLossesRequest = z.object({
+  fluid: zFluid,
+  pipe: zPipe,
+  fittings: z
+    .array(zMinorLossItem)
+    .min(1, 'At least one fitting is required'),
+  velocity: zQuantity.optional(),
+  flow: zQuantity.optional(),
+  diameter: zQuantity.optional(),
+});
 
 // Zod schema for response
 const zMinorLossesResponse = z.object({
@@ -58,67 +59,9 @@ export default async function minorLossesRoutes(fastify: FastifyInstance) {
         description: 'Calculate minor losses for pipe fittings',
         tags: ['hydraulics'],
         summary: 'Calculate pressure drop due to minor losses in pipe fittings',
-        body: {
-          type: 'object',
-          properties: {
-            fluid: {
-              type: 'object',
-              properties: {
-                name: { type: 'string' },
-                temperature: { type: 'object' },
-                density: { type: 'object' },
-                viscosity: { type: 'object' },
-              },
-              required: ['name'],
-            },
-            pipe: {
-              type: 'object',
-              properties: {
-                diameter: { type: 'object' },
-                roughness: { type: 'object' },
-              },
-              required: ['diameter'],
-            },
-            fittings: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  type: { type: 'string' },
-                  count: { type: 'number' },
-                  k: { type: 'number' },
-                  nominalSize: { type: 'string' },
-                  schedule: { type: 'string' },
-                },
-                required: ['type', 'count'],
-              },
-            },
-            velocity: { type: 'object' },
-            flow: { type: 'object' },
-            diameter: { type: 'object' },
-          },
-          required: ['fluid', 'pipe', 'fittings'],
-        },
+        body: zMinorLossesRequest,
         response: {
-          200: {
-            type: 'object',
-            properties: {
-              deltaP: {
-                type: 'object',
-                properties: {
-                  value: { type: 'number' },
-                  unit: { type: 'string' },
-                },
-                required: ['value', 'unit'],
-              },
-              Keq: { type: 'number' },
-              warnings: {
-                type: 'array',
-                items: { type: 'string' },
-              },
-            },
-            required: ['deltaP', 'Keq', 'warnings'],
-          },
+          200: zMinorLossesResponse,
         },
       },
     },

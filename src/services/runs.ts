@@ -207,8 +207,8 @@ class TranscriptService {
     const extractFromObject = (obj: any, prefix = '') => {
       for (const [key, value] of Object.entries(obj)) {
         if (typeof value === 'object' && value !== null) {
-          if (value.unit) {
-            units[`${prefix}${key}`] = value.unit;
+          if ((value as any).unit) {
+            units[`${prefix}${key}`] = (value as any).unit;
           } else {
             extractFromObject(value, `${prefix}${key}.`);
           }

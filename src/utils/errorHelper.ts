@@ -26,7 +26,12 @@ export interface EnhancedError {
   code: string;
   details?: any;
   hints?: ErrorHint[];
-  validationErrors?: ValidationError[];
+  validationErrors?: {
+    field: string;
+    value: any;
+    constraint: string;
+    message: string;
+  }[];
 }
 
 export class ErrorHelper {
@@ -290,8 +295,8 @@ export class ErrorHelper {
     return {
       error: 'Validation Error',
       code: 'VALIDATION_ERROR',
-      validationErrors: [{ field, value, constraint, message }],
-      hints,
+      details: message,
+      hints: hints || [],
     };
   }
 
@@ -305,44 +310,44 @@ export class ErrorHelper {
   ): ErrorHint[] {
     switch (calculationType) {
       case 'pressure_drop':
-        if (parameters.reynolds) {
-          this.addReynoldsViolationHint(parameters.reynolds, hints);
+        if (parameters['reynolds']) {
+          this.addReynoldsViolationHint(parameters['reynolds'], hints);
         }
-        if (parameters.relativeRoughness) {
-          this.addRoughnessViolationHint(parameters.relativeRoughness, hints);
+        if (parameters['relativeRoughness']) {
+          this.addRoughnessViolationHint(parameters['relativeRoughness'], hints);
         }
-        if (parameters.diameter) {
-          this.addDiameterViolationHint(parameters.diameter, hints);
+        if (parameters['diameter']) {
+          this.addDiameterViolationHint(parameters['diameter'], hints);
         }
-        if (parameters.velocity) {
-          this.addVelocityViolationHint(parameters.velocity, hints);
+        if (parameters['velocity']) {
+          this.addVelocityViolationHint(parameters['velocity'], hints);
         }
         break;
 
       case 'gas_flow':
-        if (parameters.mach) {
-          this.addMachViolationHint(parameters.mach, hints);
+        if (parameters['mach']) {
+          this.addMachViolationHint(parameters['mach'], hints);
         }
         break;
 
       case 'npsh':
-        if (parameters.npsha && parameters.npshr) {
-          this.addNPSHViolationHint(parameters.npsha, parameters.npshr, hints);
+        if (parameters['npsha'] && parameters['npshr']) {
+          this.addNPSHViolationHint(parameters['npsha'], parameters['npshr'], hints);
         }
         break;
 
       case 'bep_check':
-        if (parameters.bepDistance) {
-          this.addBEPViolationHint(parameters.bepDistance, hints);
+        if (parameters['bepDistance']) {
+          this.addBEPViolationHint(parameters['bepDistance'], hints);
         }
         break;
 
       case 'curve_fit':
-        if (parameters.nPoints && parameters.model && parameters.rSquared) {
+        if (parameters['nPoints'] && parameters['model'] && parameters['rSquared']) {
           this.addCurveFittingViolationHint(
-            parameters.nPoints,
-            parameters.model,
-            parameters.rSquared,
+            parameters['nPoints'],
+            parameters['model'],
+            parameters['rSquared'],
             hints
           );
         }

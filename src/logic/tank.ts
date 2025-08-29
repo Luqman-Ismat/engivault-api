@@ -333,7 +333,11 @@ export function simulateTank(input: TankSimulationInput): TankSimulationResult {
         break;
       case 'function':
         // Future enhancement for mathematical functions
-        warnings.push('Function-based inflow not yet implemented');
+        warnings.push({
+          type: 'general',
+          message: 'Function-based inflow not yet implemented',
+          severity: 'medium',
+        });
         break;
     }
 
@@ -382,7 +386,7 @@ export function simulateTank(input: TankSimulationInput): TankSimulationResult {
   // Add warnings
   if (overflow) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Tank overflow detected during simulation',
       severity: 'high',
     });
@@ -390,7 +394,7 @@ export function simulateTank(input: TankSimulationInput): TankSimulationResult {
 
   if (empty) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Tank empty condition detected during simulation',
       severity: 'high',
     });
@@ -398,7 +402,7 @@ export function simulateTank(input: TankSimulationInput): TankSimulationResult {
 
   if (timeStep > endTime / 100) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Time step may be too large for accurate simulation',
       severity: 'medium',
     });

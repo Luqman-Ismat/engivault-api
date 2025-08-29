@@ -62,4 +62,3 @@ async function pumpSystemCurveRoutes(fastify) {
         }
     });
 }
-//# sourceMappingURL=pumpSystemCurve.js.map

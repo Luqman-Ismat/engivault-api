@@ -345,7 +345,7 @@ export function calculateGasFlow(input: GasFlowInput): GasFlowResult {
       }
 
       warnings.push({
-        type: 'warning',
+        type: 'general',
         message: `Specific heat ratio not provided, estimated as ${specificHeatRatio} based on molecular weight`,
         severity: 'medium',
       });
@@ -410,7 +410,7 @@ export function calculateGasFlow(input: GasFlowInput): GasFlowResult {
   // Add warnings
   if (machNumberValue > 0.3) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: `High Mach number (${machNumberValue.toFixed(3)}): Compressible flow effects are significant`,
       severity: 'high',
     });
@@ -418,7 +418,7 @@ export function calculateGasFlow(input: GasFlowInput): GasFlowResult {
 
   if (machNumberValue > 0.8) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: `Very high Mach number (${machNumberValue.toFixed(3)}): Approaching sonic conditions`,
       severity: 'high',
     });
@@ -426,7 +426,7 @@ export function calculateGasFlow(input: GasFlowInput): GasFlowResult {
 
   if (isChoked) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Flow is choked: Maximum mass flow rate reached',
       severity: 'high',
     });
@@ -434,7 +434,7 @@ export function calculateGasFlow(input: GasFlowInput): GasFlowResult {
 
   if (pressureDropPercent > 20) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: `Large pressure drop (${pressureDropPercent.toFixed(1)}%): Verify inlet conditions`,
       severity: 'medium',
     });
@@ -442,7 +442,7 @@ export function calculateGasFlow(input: GasFlowInput): GasFlowResult {
 
   if (compressibilityFactor < 0.8 || compressibilityFactor > 1.2) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: `Unusual compressibility factor (${compressibilityFactor.toFixed(3)}): Verify gas properties`,
       severity: 'medium',
     });
@@ -704,7 +704,7 @@ export function fannoLine(input: FannoLineInput): DuctFlowResult {
 
   if (isChoked) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Flow becomes choked before reaching the specified length',
       severity: 'high',
     });
@@ -733,7 +733,7 @@ export function fannoLine(input: FannoLineInput): DuctFlowResult {
 
     if (!pressureDecreasing) {
       warnings.push({
-        type: 'warning',
+        type: 'general',
         message: 'Pressure should decrease along Fanno line',
         severity: 'medium',
       });
@@ -741,7 +741,7 @@ export function fannoLine(input: FannoLineInput): DuctFlowResult {
 
     if (!temperatureDecreasing) {
       warnings.push({
-        type: 'warning',
+        type: 'general',
         message: 'Temperature should decrease along Fanno line',
         severity: 'medium',
       });
@@ -749,7 +749,7 @@ export function fannoLine(input: FannoLineInput): DuctFlowResult {
 
     if (!velocityIncreasing) {
       warnings.push({
-        type: 'warning',
+        type: 'general',
         message: 'Velocity should increase along Fanno line',
         severity: 'medium',
       });
@@ -757,7 +757,7 @@ export function fannoLine(input: FannoLineInput): DuctFlowResult {
 
     if (!machIncreasing) {
       warnings.push({
-        type: 'warning',
+        type: 'general',
         message: 'Mach number should increase along Fanno line',
         severity: 'medium',
       });
@@ -858,7 +858,7 @@ export function rayleighLine(input: RayleighLineInput): DuctFlowResult {
 
   if (isChoked) {
     warnings.push({
-      type: 'warning',
+      type: 'general',
       message: 'Flow becomes choked due to heat transfer',
       severity: 'high',
     });
@@ -883,7 +883,7 @@ export function rayleighLine(input: RayleighLineInput): DuctFlowResult {
 
       if (!pressureDecreasing) {
         warnings.push({
-          type: 'warning',
+          type: 'general',
           message:
             'Pressure should decrease with heat addition in Rayleigh flow',
           severity: 'medium',
@@ -892,7 +892,7 @@ export function rayleighLine(input: RayleighLineInput): DuctFlowResult {
 
       if (!temperatureIncreasing) {
         warnings.push({
-          type: 'warning',
+          type: 'general',
           message:
             'Temperature should increase with heat addition in Rayleigh flow',
           severity: 'medium',
@@ -909,7 +909,7 @@ export function rayleighLine(input: RayleighLineInput): DuctFlowResult {
 
       if (!pressureIncreasing) {
         warnings.push({
-          type: 'warning',
+          type: 'general',
           message:
             'Pressure should increase with heat removal in Rayleigh flow',
           severity: 'medium',
@@ -918,7 +918,7 @@ export function rayleighLine(input: RayleighLineInput): DuctFlowResult {
 
       if (!temperatureDecreasing) {
         warnings.push({
-          type: 'warning',
+          type: 'general',
           message:
             'Temperature should decrease with heat removal in Rayleigh flow',
           severity: 'medium',

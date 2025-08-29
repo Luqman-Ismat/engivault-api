@@ -45,6 +45,13 @@ export interface ValveAuthorityInput {
   systemPressureDrop: Quantity;
 }
 
+export interface ChokedFlowAnalysis {
+  isChoked: boolean;
+  likelihood: 'none' | 'low' | 'medium' | 'high';
+  criticalPressureDrop: { value: number; unit: string };
+  actualPressureDrop: { value: number; unit: string };
+}
+
 /**
  * Calculate required Cv for liquid flow
  * @param Q Flow rate (gpm)
@@ -130,26 +137,23 @@ export function criticalPressureDrop(
 export function checkChokedFlow(
   actualDeltaP: number,
   criticalDeltaP: number
-): {
-  isChoked: boolean;
-  likelihood: 'none' | 'low' | 'medium' | 'high';
-} {
+): ChokedFlowAnalysis {
   if (actualDeltaP <= 0 || criticalDeltaP <= 0) {
-    return { isChoked: false, likelihood: 'none' };
+    return { isChoked: false, likelihood: 'none', criticalPressureDrop: { value: 0, unit: 'Pa' }, actualPressureDrop: { value: 0, unit: 'Pa' } };
   }
 
   const ratio = actualDeltaP / criticalDeltaP;
 
   if (ratio >= 1.0) {
-    return { isChoked: true, likelihood: 'high' };
+    return { isChoked: true, likelihood: 'high', criticalPressureDrop: { value: criticalDeltaP, unit: 'Pa' }, actualPressureDrop: { value: actualDeltaP, unit: 'Pa' } };
   } else if (ratio >= 0.8) {
-    return { isChoked: false, likelihood: 'high' };
+    return { isChoked: false, likelihood: 'high', criticalPressureDrop: { value: criticalDeltaP, unit: 'Pa' }, actualPressureDrop: { value: actualDeltaP, unit: 'Pa' } };
   } else if (ratio >= 0.6) {
-    return { isChoked: false, likelihood: 'medium' };
+    return { isChoked: false, likelihood: 'medium', criticalPressureDrop: { value: criticalDeltaP, unit: 'Pa' }, actualPressureDrop: { value: actualDeltaP, unit: 'Pa' } };
   } else if (ratio >= 0.4) {
-    return { isChoked: false, likelihood: 'low' };
+    return { isChoked: false, likelihood: 'low', criticalPressureDrop: { value: criticalDeltaP, unit: 'Pa' }, actualPressureDrop: { value: actualDeltaP, unit: 'Pa' } };
   } else {
-    return { isChoked: false, likelihood: 'none' };
+    return { isChoked: false, likelihood: 'none', criticalPressureDrop: { value: criticalDeltaP, unit: 'Pa' }, actualPressureDrop: { value: actualDeltaP, unit: 'Pa' } };
   }
 }
 
@@ -286,9 +290,9 @@ export function sizeValve(input: ValveSizingInput): ValveSizingResult {
   }
 
   // Choked flow analysis
-  let chokedFlow = {
+  let chokedFlow: ChokedFlowAnalysis = {
     isChoked: false,
-    likelihood: 'none' as const,
+    likelihood: 'none',
     criticalPressureDrop: { value: 0, unit: 'Pa' },
     actualPressureDrop: input.pressureDrop,
   };
@@ -314,8 +318,8 @@ export function sizeValve(input: ValveSizingInput): ValveSizingResult {
     chokedFlow = {
       isChoked: chokedAnalysis.isChoked,
       likelihood: chokedAnalysis.likelihood,
-      criticalPressureDrop: { value: criticalDeltaP, unit: 'Pa' },
-      actualPressureDrop: input.pressureDrop,
+      criticalPressureDrop: { value: chokedAnalysis.criticalPressureDrop.value, unit: 'Pa' },
+      actualPressureDrop: { value: chokedAnalysis.actualPressureDrop.value, unit: 'Pa' },
     };
 
     // Generate warnings based on choked flow likelihood

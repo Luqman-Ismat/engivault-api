@@ -47,7 +47,7 @@ const zHXPressureDropResponse = z.object({
     calculations: z.object({
       correlation: z.string(),
       flowRegime: z.enum(['laminar', 'turbulent', 'transition']),
-      parameters: z.record(z.number()),
+      parameters: z.record(z.string(), z.number()),
     }),
   }),
 });

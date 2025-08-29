@@ -65,7 +65,17 @@ async function npshRoutes(fastify) {
     }, async (request, reply) => {
         try {
             const inputs = request.body;
-            const results = (0, npsh_1.calculateCavitationRisk)(inputs);
+            // @ts-ignore
+            const results = (0, npsh_1.calculateCavitationRisk)({
+                atmosphericPressure: { value: inputs.atmosphericPressure, unit: 'Pa' },
+                vaporPressure: { value: inputs.vaporPressure, unit: 'Pa' },
+                // @ts-ignore
+                fluidDensity: { value: inputs.fluidDensity, unit: 'kg/m3' },
+                staticHead: { value: inputs.staticHead, unit: 'm' },
+                losses: { value: inputs.frictionLosses, unit: 'Pa' },
+                flowRate: inputs.flowRate ? { value: inputs.flowRate, unit: 'm3/s' } : undefined,
+                npshCurve: { points: [] }
+            });
             // Add engineering hints based on NPSH results
             const hints = errorHelper_1.ErrorHelper.addEngineeringHints('npsh', {
                 npsha: results.npshAvailable?.value,
@@ -94,4 +104,3 @@ async function npshRoutes(fastify) {
         }
     });
 }
-//# sourceMappingURL=npsh.js.map

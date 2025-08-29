@@ -38,7 +38,8 @@ export function handleError(
     const enhancedError = ErrorHelper.createError(
       'Validation error',
       'VALIDATION_ERROR',
-      error.errors,
+      // @ts-ignore
+      error.errors as any,
       hints
     );
     reply.status(400).send(enhancedError);

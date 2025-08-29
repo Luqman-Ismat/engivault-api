@@ -1,5 +1,6 @@
 import pino from 'pino';
 import { FastifyRequest } from 'fastify';
+import { IncomingMessage, ServerResponse } from 'http';
 
 export interface LogConfig {
   level: string;
@@ -43,17 +44,25 @@ export function createLogger(config: LogConfig) {
   const pinoConfig: pino.LoggerOptions = {
     level: config.level,
     serializers: {
-      req: pino.stdSerializers.req,
-      res: pino.stdSerializers.res,
-      err: pino.stdSerializers.err,
+      req: (req: IncomingMessage) => ({
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+      }),
+      res: (res: ServerResponse) => ({
+        statusCode: res.statusCode,
+      }),
+      err: (err: Error) => ({
+        type: err.constructor.name,
+        message: err.message,
+        stack: err.stack,
+      }),
     },
-    redact: config.redactPII
-      ? {
-          paths: PII_FIELDS,
-          censor: '[REDACTED]',
-          remove: false,
-        }
-      : undefined,
+    redact: config.redactPII ? {
+      paths: ['req.headers.authorization', 'req.headers.cookie', 'req.body.password'],
+      censor: '[REDACTED]',
+      remove: false,
+    } : undefined,
   };
 
   if (config.prettyPrint) {

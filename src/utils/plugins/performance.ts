@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { config } from '@/config/environment';
+import fastifyCompress from '@fastify/compress';
 
 /**
  * Register performance optimization plugins
@@ -10,14 +11,9 @@ import { config } from '@/config/environment';
 export async function registerPerformancePlugins(fastify: FastifyInstance): Promise<void> {
   // Register compression plugin
   if (config.ENABLE_COMPRESSION) {
-    await fastify.register(import('@fastify/compress'), {
-      threshold: 1024, // Compress payloads > 1KB
+    await fastify.register(fastifyCompress, {
+      threshold: 1024,
       encodings: ['gzip', 'deflate'],
-      forceEncoding: false,
-      onUnsupportedRequest: (req, reply) => {
-        // Don't compress if client doesn't support it
-        return;
-      }
     });
   }
 

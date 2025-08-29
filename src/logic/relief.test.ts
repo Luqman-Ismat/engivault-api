@@ -144,7 +144,6 @@ describe('Relief Valve Sizing Logic', () => {
       const temperature = 530; // R (70°F)
       const molecularWeight = 29; // Air
       const k = 1.4;
-      const Z = 1.0;
       const Kd = 0.65;
 
       const result = gasReliefArea(
@@ -154,7 +153,6 @@ describe('Relief Valve Sizing Logic', () => {
         temperature,
         molecularWeight,
         k,
-        Z,
         Kd
       );
 
@@ -171,7 +169,6 @@ describe('Relief Valve Sizing Logic', () => {
       const temperature = 530; // R
       const molecularWeight = 29; // Air
       const k = 1.4;
-      const Z = 1.0;
       const Kd = 0.65;
 
       const result = gasReliefArea(
@@ -181,7 +178,6 @@ describe('Relief Valve Sizing Logic', () => {
         temperature,
         molecularWeight,
         k,
-        Z,
         Kd
       );
 
@@ -196,7 +192,6 @@ describe('Relief Valve Sizing Logic', () => {
       const backPressure = 50; // psia
       const temperature = 530; // R
       const k = 1.4;
-      const Z = 1.0;
       const Kd = 0.65;
 
       const resultAir = gasReliefArea(
@@ -206,7 +201,6 @@ describe('Relief Valve Sizing Logic', () => {
         temperature,
         29,
         k,
-        Z,
         Kd
       );
       const resultMethane = gasReliefArea(
@@ -216,7 +210,6 @@ describe('Relief Valve Sizing Logic', () => {
         temperature,
         16,
         k,
-        Z,
         Kd
       );
 
@@ -230,7 +223,6 @@ describe('Relief Valve Sizing Logic', () => {
       const backPressure = 50; // psia
       const molecularWeight = 29; // Air
       const k = 1.4;
-      const Z = 1.0;
       const Kd = 0.65;
 
       const resultCold = gasReliefArea(
@@ -240,7 +232,6 @@ describe('Relief Valve Sizing Logic', () => {
         460,
         molecularWeight,
         k,
-        Z,
         Kd
       );
       const resultHot = gasReliefArea(
@@ -250,7 +241,6 @@ describe('Relief Valve Sizing Logic', () => {
         600,
         molecularWeight,
         k,
-        Z,
         Kd
       );
 
@@ -259,20 +249,20 @@ describe('Relief Valve Sizing Logic', () => {
     });
 
     it('should throw error for invalid inputs', () => {
-      expect(() => gasReliefArea(0, 100, 50, 530, 29, 1.4, 1.0, 0.65)).toThrow(
+      expect(() => gasReliefArea(0, 100, 50, 530, 29, 1.4, 0.65)).toThrow(
         'All parameters must be positive'
       );
-      expect(() => gasReliefArea(1000, 0, 50, 530, 29, 1.4, 1.0, 0.65)).toThrow(
+      expect(() => gasReliefArea(1000, 0, 50, 530, 29, 1.4, 0.65)).toThrow(
         'All parameters must be positive'
       );
-      expect(() => gasReliefArea(1000, 100, 50, 0, 29, 1.4, 1.0, 0.65)).toThrow(
+      expect(() => gasReliefArea(1000, 100, 50, 0, 29, 1.4, 0.65)).toThrow(
         'All parameters must be positive'
       );
       expect(() =>
-        gasReliefArea(1000, 100, 50, 530, 0, 1.4, 1.0, 0.65)
+        gasReliefArea(1000, 100, 50, 530, 0, 1.4, 0.65)
       ).toThrow('All parameters must be positive');
       expect(() =>
-        gasReliefArea(1000, 100, 120, 530, 29, 1.4, 1.0, 0.65)
+        gasReliefArea(1000, 100, 120, 530, 29, 1.4, 0.65)
       ).toThrow('Back pressure must be less than upstream pressure');
     });
   });
@@ -461,8 +451,8 @@ describe('Relief Valve Sizing Logic', () => {
 
     it('should reject invalid fluid type', () => {
       const input = {
-        fluidType: 'steam',
-        flow: { value: 100, unit: 'gpm' },
+        fluidType: 'gas',
+        flow: { value: 1000, unit: 'scfm' },
         pressureDrop: { value: 50, unit: 'psi' },
       } as ReliefValveInput;
 

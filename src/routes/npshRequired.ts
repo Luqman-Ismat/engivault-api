@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
-import { calculateNpshr } from '../logic/npsh';
+import { z } from 'zod';
+import { zQuantity } from '@/schemas/common';
 import { npshrSchema, NpshrInput } from '../schemas/validation';
 import { handleError } from '../utils/errorHandler';
 import { createFastifySchema } from '../utils/schemaConverter';

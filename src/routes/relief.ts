@@ -28,18 +28,13 @@ const zReliefValveResponse = z.object({
   flowRegime: z.enum(['liquid', 'choked-gas', 'non-choked-gas']),
   criticalPressureRatio: z.number().optional(),
   backPressureCorrection: z.number().optional(),
-  warnings: z.array(
-    z.union([
-      z.string(),
-      z.object({
-        code: z.string(),
-        message: z.string(),
-        context: z.record(z.any()).optional(),
-      }),
-    ])
-  ),
+  warnings: z.array(z.string()),
   metadata: z.object({
-    input: zReliefValveInput,
+    input: z.object({
+      fluidType: z.enum(['liquid', 'gas']),
+      flow: zQuantity,
+      pressureDrop: zQuantity,
+    }),
     calculations: z.object({
       flowRate: zQuantity,
       pressureDrop: zQuantity,
