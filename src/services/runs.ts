@@ -5,9 +5,9 @@ export interface Transcript {
   timestamp: Date;
   endpoint: string;
   method: string;
-  normalizedInputs: any;
+  normalizedInputs: unknown;
   selectedEquations: string[];
-  intermediateValues: Record<string, any>;
+  intermediateValues: Record<string, unknown>;
   warnings: Array<{
     type: string;
     message: string;
@@ -18,9 +18,9 @@ export interface Transcript {
     inputValidation: boolean;
     calculationMethod: string;
     units: Record<string, string>;
-    [key: string]: any;
+    [key: string]: unknown;
   };
-  result: any;
+  result: unknown;
 }
 
 class TranscriptService {
@@ -102,14 +102,14 @@ class TranscriptService {
    */
   createFromRequest(
     request: FastifyRequest,
-    response: any,
+    response: unknown,
     processingTime: number,
     warnings: Array<{
       type: string;
       message: string;
       severity: 'low' | 'medium' | 'high';
     }> = [],
-    intermediateValues: Record<string, any> = {},
+    intermediateValues: Record<string, unknown> = {},
     selectedEquations: string[] = []
   ): Transcript | null {
     if (!this.isTranscriptEnabled(request)) {
@@ -141,7 +141,7 @@ class TranscriptService {
   /**
    * Normalize input data for consistent storage
    */
-  private normalizeInputs(input: any): any {
+  private normalizeInputs(input: unknown): unknown {
     if (!input) return null;
 
     // Deep clone to avoid reference issues
@@ -149,7 +149,7 @@ class TranscriptService {
 
     // Remove sensitive or unnecessary fields
     if (normalized.items) {
-      normalized.items = normalized.items.map((item: any) => {
+      normalized.items = normalized.items.map((item: unknown) => {
         const clean = { ...item };
         // Remove any sensitive fields if needed
         return clean;
@@ -199,12 +199,12 @@ class TranscriptService {
   /**
    * Extract units from input data
    */
-  private extractUnits(input: any): Record<string, string> {
+  private extractUnits(input: unknown): Record<string, string> {
     const units: Record<string, string> = {};
 
     if (!input) return units;
 
-    const extractFromObject = (obj: any, prefix = '') => {
+    const extractFromObject = (obj: unknown, prefix = '') => {
       for (const [key, value] of Object.entries(obj)) {
         if (typeof value === 'object' && value !== null) {
           if ((value as any).unit) {

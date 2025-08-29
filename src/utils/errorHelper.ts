@@ -2,7 +2,7 @@ import { FastifyReply } from 'fastify';
 
 export interface ValidationError {
   field: string;
-  value: any;
+  value: unknown;
   constraint: string;
   message: string;
 }
@@ -16,7 +16,7 @@ export interface ErrorHint {
     | 'range_guidance';
   message: string;
   suggestedEndpoint?: string;
-  suggestedValue?: any;
+  suggestedValue?: unknown;
   validRange?: { min: number; max: number };
   unit?: string;
 }
@@ -24,11 +24,11 @@ export interface ErrorHint {
 export interface EnhancedError {
   error: string;
   code: string;
-  details?: any;
+  details?: unknown;
   hints?: ErrorHint[];
   validationErrors?: {
     field: string;
-    value: any;
+    value: unknown;
     constraint: string;
     message: string;
   }[];
@@ -41,7 +41,7 @@ export class ErrorHelper {
   static createError(
     error: string,
     code: string,
-    details?: any,
+    details?: unknown,
     hints?: ErrorHint[]
   ): EnhancedError {
     return {
@@ -254,8 +254,8 @@ export class ErrorHelper {
    */
   static addParameterFixHint(
     field: string,
-    currentValue: any,
-    suggestedValue: any,
+    currentValue: unknown,
+    suggestedValue: unknown,
     reason: string,
     hints: ErrorHint[] = []
   ): ErrorHint[] {
@@ -275,7 +275,7 @@ export class ErrorHelper {
     statusCode: number,
     error: string,
     code: string,
-    details?: any,
+    details?: unknown,
     hints?: ErrorHint[]
   ): void {
     const enhancedError = this.createError(error, code, details, hints);
@@ -287,7 +287,7 @@ export class ErrorHelper {
    */
   static createValidationError(
     field: string,
-    value: any,
+    value: unknown,
     constraint: string,
     message: string,
     hints?: ErrorHint[]
@@ -305,45 +305,79 @@ export class ErrorHelper {
    */
   static addEngineeringHints(
     calculationType: string,
-    parameters: Record<string, any>,
+    parameters: Record<string, number | string | boolean>,
     hints: ErrorHint[] = []
   ): ErrorHint[] {
     switch (calculationType) {
       case 'pressure_drop':
-        if (parameters['reynolds']) {
+        if (
+          parameters['reynolds'] &&
+          typeof parameters['reynolds'] === 'number'
+        ) {
           this.addReynoldsViolationHint(parameters['reynolds'], hints);
         }
-        if (parameters['relativeRoughness']) {
-          this.addRoughnessViolationHint(parameters['relativeRoughness'], hints);
+        if (
+          parameters['relativeRoughness'] &&
+          typeof parameters['relativeRoughness'] === 'number'
+        ) {
+          this.addRoughnessViolationHint(
+            parameters['relativeRoughness'],
+            hints
+          );
         }
-        if (parameters['diameter']) {
+        if (
+          parameters['diameter'] &&
+          typeof parameters['diameter'] === 'number'
+        ) {
           this.addDiameterViolationHint(parameters['diameter'], hints);
         }
-        if (parameters['velocity']) {
+        if (
+          parameters['velocity'] &&
+          typeof parameters['velocity'] === 'number'
+        ) {
           this.addVelocityViolationHint(parameters['velocity'], hints);
         }
         break;
 
       case 'gas_flow':
-        if (parameters['mach']) {
+        if (parameters['mach'] && typeof parameters['mach'] === 'number') {
           this.addMachViolationHint(parameters['mach'], hints);
         }
         break;
 
       case 'npsh':
-        if (parameters['npsha'] && parameters['npshr']) {
-          this.addNPSHViolationHint(parameters['npsha'], parameters['npshr'], hints);
+        if (
+          parameters['npsha'] &&
+          typeof parameters['npsha'] === 'number' &&
+          parameters['npshr'] &&
+          typeof parameters['npshr'] === 'number'
+        ) {
+          this.addNPSHViolationHint(
+            parameters['npsha'],
+            parameters['npshr'],
+            hints
+          );
         }
         break;
 
       case 'bep_check':
-        if (parameters['bepDistance']) {
+        if (
+          parameters['bepDistance'] &&
+          typeof parameters['bepDistance'] === 'number'
+        ) {
           this.addBEPViolationHint(parameters['bepDistance'], hints);
         }
         break;
 
       case 'curve_fit':
-        if (parameters['nPoints'] && parameters['model'] && parameters['rSquared']) {
+        if (
+          parameters['nPoints'] &&
+          typeof parameters['nPoints'] === 'number' &&
+          parameters['model'] &&
+          typeof parameters['model'] === 'string' &&
+          parameters['rSquared'] &&
+          typeof parameters['rSquared'] === 'number'
+        ) {
           this.addCurveFittingViolationHint(
             parameters['nPoints'],
             parameters['model'],

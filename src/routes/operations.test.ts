@@ -3,7 +3,7 @@ import { build } from '../index';
 import { transcriptService } from '@/services/runs';
 
 describe('Operations Routes', () => {
-  let app: any;
+  let app: Awaited<ReturnType<typeof build>>;
 
   beforeAll(async () => {
     app = await build();
@@ -429,7 +429,7 @@ describe('Operations Routes', () => {
       const result = JSON.parse(response.payload);
       expect(result.warnings.length).toBeGreaterThan(0);
       const overflowWarnings = result.warnings.filter(
-        (w: any) => w.type === 'tank_capacity'
+        (w: { type: string }) => w.type === 'tank_capacity'
       );
       expect(overflowWarnings.length).toBeGreaterThan(0);
     });
@@ -460,7 +460,7 @@ describe('Operations Routes', () => {
       const result = JSON.parse(response.payload);
       expect(result.warnings.length).toBeGreaterThan(0);
       const underflowWarnings = result.warnings.filter(
-        (w: any) => w.type === 'tank_capacity'
+        (w: { type: string }) => w.type === 'tank_capacity'
       );
       expect(underflowWarnings.length).toBeGreaterThan(0);
     });
@@ -491,7 +491,7 @@ describe('Operations Routes', () => {
       const result = JSON.parse(response.payload);
       expect(result.warnings.length).toBeGreaterThan(0);
       const flowWarnings = result.warnings.filter(
-        (w: any) => w.type === 'flow_rate'
+        (w: { type: string }) => w.type === 'flow_rate'
       );
       expect(flowWarnings.length).toBeGreaterThan(0);
     });
@@ -522,7 +522,7 @@ describe('Operations Routes', () => {
       const result = JSON.parse(response.payload);
       expect(result.warnings.length).toBeGreaterThan(0);
       const timeWarnings = result.warnings.filter(
-        (w: any) => w.type === 'time_limit'
+        (w: { type: string }) => w.type === 'time_limit'
       );
       expect(timeWarnings.length).toBeGreaterThan(0);
     });
@@ -926,20 +926,20 @@ describe('Operations Routes', () => {
         expect(result.results[3]).toBeNull(); // invalidOperation
 
         // Check error details
-        const errorIndexes = result.errors.map((e: any) => e.index);
+        const errorIndexes = result.errors.map((e: { index: number }) => e.index);
         expect(errorIndexes).toContain(2);
         expect(errorIndexes).toContain(3);
 
         // Verify error messages
         const missingFieldsError = result.errors.find(
-          (e: any) => e.index === 2
+          (e: { index: number }) => e.index === 2
         );
         expect(missingFieldsError.error).toBe(
           'Missing required fields: tank, flowRate, and operation'
         );
 
         const invalidOperationError = result.errors.find(
-          (e: any) => e.index === 3
+          (e: { index: number }) => e.index === 3
         );
         expect(invalidOperationError.error).toBe('Invalid operation type');
       });

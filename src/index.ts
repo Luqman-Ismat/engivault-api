@@ -73,8 +73,8 @@ async function startServer(): Promise<void> {
     fastifyInstance.log.info(`Server listening on ${host}:${port}`);
     fastifyInstance.log.info(`API Documentation available at http://${host}:${port}/documentation`);
     fastifyInstance.log.info(`Health check available at http://${host}:${port}/health`);
-  } catch (err: any) {
-    if (err.code === 'EADDRINUSE') {
+  } catch (err: unknown) {
+    if (err && typeof err === 'object' && 'code' in err && err.code === 'EADDRINUSE') {
       console.error(`Port ${config.PORT} is already in use. Please try a different port or stop the existing server.`);
       console.error('You can set a different port using the PORT environment variable.');
     } else {

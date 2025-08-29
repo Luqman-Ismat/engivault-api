@@ -88,13 +88,13 @@ describe('Networks Route', () => {
     expect(result.metadata).toBeDefined();
 
     // Check that all nodes have calculated heads
-    result.nodes.forEach((node: any) => {
+    result.nodes.forEach((node: { head: number }) => {
       expect(node.head).toBeDefined();
       expect(typeof node.head).toBe('number');
     });
 
     // Check that all pipes have calculated flows and headlosses
-    result.pipes.forEach((pipe: any) => {
+    result.pipes.forEach((pipe: { flow: number; headloss: number }) => {
       expect(pipe.flow).toBeDefined();
       expect(typeof pipe.flow).toBe('number');
       expect(pipe.headloss).toBeDefined();

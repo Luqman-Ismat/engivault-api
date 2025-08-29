@@ -5,14 +5,14 @@ import { ErrorHelper, ErrorHint } from './errorHelper';
 export interface ApiError {
   error: string;
   code?: string;
-  details?: any;
+  details?: unknown;
   hints?: ErrorHint[];
 }
 
 export class ValidationError extends Error {
   constructor(
     message: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'ValidationError';
@@ -22,7 +22,7 @@ export class ValidationError extends Error {
 export class CalculationError extends Error {
   constructor(
     message: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'CalculationError';
@@ -39,7 +39,7 @@ export function handleError(
       'Validation error',
       'VALIDATION_ERROR',
       // @ts-ignore
-      error.errors as any,
+      error.errors as unknown,
       hints
     );
     reply.status(400).send(enhancedError);
@@ -80,14 +80,14 @@ export function handleError(
 
 export function createValidationError(
   message: string,
-  details?: any
+  details?: unknown
 ): ValidationError {
   return new ValidationError(message, details);
 }
 
 export function createCalculationError(
   message: string,
-  details?: any
+  details?: unknown
 ): CalculationError {
   return new CalculationError(message, details);
 }

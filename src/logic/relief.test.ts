@@ -258,12 +258,12 @@ describe('Relief Valve Sizing Logic', () => {
       expect(() => gasReliefArea(1000, 100, 50, 0, 29, 1.4, 0.65)).toThrow(
         'All parameters must be positive'
       );
-      expect(() =>
-        gasReliefArea(1000, 100, 50, 530, 0, 1.4, 0.65)
-      ).toThrow('All parameters must be positive');
-      expect(() =>
-        gasReliefArea(1000, 100, 120, 530, 29, 1.4, 0.65)
-      ).toThrow('Back pressure must be less than upstream pressure');
+      expect(() => gasReliefArea(1000, 100, 50, 530, 0, 1.4, 0.65)).toThrow(
+        'All parameters must be positive'
+      );
+      expect(() => gasReliefArea(1000, 100, 120, 530, 29, 1.4, 0.65)).toThrow(
+        'Back pressure must be less than upstream pressure'
+      );
     });
   });
 

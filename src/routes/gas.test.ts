@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { build } from '../index';
 
 describe('Gas Routes', () => {
-  let app: any;
+  let app: Awaited<ReturnType<typeof build>>;
 
   beforeAll(async () => {
     app = await build();
@@ -117,10 +117,10 @@ describe('Gas Routes', () => {
 
       // Should have warnings for high Mach number
       const hasHighMachWarning = result.warnings.some(
-        (w: any) =>
+        (w: { message?: string }) =>
           typeof w === 'object' &&
           'message' in w &&
-          w.message.includes('High Mach number')
+          w.message?.includes('High Mach number')
       );
       expect(hasHighMachWarning).toBe(true);
     });
@@ -419,8 +419,8 @@ describe('Gas Routes', () => {
       const result = JSON.parse(response.payload);
 
       // Check monotonic trends
-      const machNumbers = result.states.map((s: any) => s.machNumber);
-      const velocities = result.states.map((s: any) => s.velocity);
+      const machNumbers = result.states.map((s: { machNumber: number }) => s.machNumber);
+      const velocities = result.states.map((s: { velocity: number }) => s.velocity);
 
       // Mach number should increase
       for (let i = 1; i < machNumbers.length; i++) {
@@ -463,10 +463,10 @@ describe('Gas Routes', () => {
 
       // Should have warning about choked flow
       const hasChokedWarning = result.warnings.some(
-        (w: any) =>
+        (w: { message?: string }) =>
           typeof w === 'object' &&
           'message' in w &&
-          w.message.includes('choked')
+          w.message?.includes('choked')
       );
       expect(hasChokedWarning).toBe(true);
     });

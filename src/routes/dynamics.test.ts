@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { build } from '../index';
 
 describe('Dynamics Routes', () => {
-  let app: any;
+  let app: Awaited<ReturnType<typeof build>>;
 
   beforeAll(async () => {
     app = await build();
@@ -99,7 +99,7 @@ describe('Dynamics Routes', () => {
       expect(result.timeSeries).toHaveLength(101);
 
       // Check that pump states are recorded
-      const pumpStates = result.timeSeries.map((point: any) => point.pumpOn);
+      const pumpStates = result.timeSeries.map((point: { pumpOn: boolean }) => point.pumpOn);
       expect(pumpStates).toBeDefined();
       expect(pumpStates.length).toBeGreaterThan(0);
 

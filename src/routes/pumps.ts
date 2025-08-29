@@ -80,7 +80,7 @@ export default async function pumpsRoutes(fastify: FastifyInstance) {
         // Batch request - use batch processor
         const result = await processBatchOrSingle(
           payload,
-          (input: any) => {
+          (input: unknown) => {
             // Manual validation for single item
             if (!input || !input.operatingPoint || !input.curve) {
               throw new Error(
@@ -129,8 +129,12 @@ export default async function pumpsRoutes(fastify: FastifyInstance) {
             const result = bepDistance(operatingPoint, curve as PumpCurve);
 
             // Calculate additional metadata
-            const minFlow = Math.min(...curve.points.map((p: any) => p.q));
-            const maxFlow = Math.max(...curve.points.map((p: any) => p.q));
+            const minFlow = Math.min(
+              ...curve.points.map((p: { q: number }) => p.q)
+            );
+            const maxFlow = Math.max(
+              ...curve.points.map((p: { q: number }) => p.q)
+            );
             const normalizedDistance = result.distance / result.bepPoint.q;
 
             return {
@@ -172,7 +176,7 @@ export default async function pumpsRoutes(fastify: FastifyInstance) {
         return reply.send(result);
       } else {
         // Single item request - validate and process directly
-        const input = payload as any;
+        const input = payload as unknown;
 
         // Manual validation
         if (!input || !input.operatingPoint || !input.curve) {
@@ -226,8 +230,12 @@ export default async function pumpsRoutes(fastify: FastifyInstance) {
         const result = bepDistance(operatingPoint, curve as PumpCurve);
 
         // Calculate additional metadata
-        const minFlow = Math.min(...curve.points.map((p: any) => p.q));
-        const maxFlow = Math.max(...curve.points.map((p: any) => p.q));
+        const minFlow = Math.min(
+          ...curve.points.map((p: { q: number }) => p.q)
+        );
+        const maxFlow = Math.max(
+          ...curve.points.map((p: { q: number }) => p.q)
+        );
         const normalizedDistance = result.distance / result.bepPoint.q;
 
         const resultWithMetadata = {

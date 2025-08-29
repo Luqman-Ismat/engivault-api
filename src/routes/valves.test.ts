@@ -371,14 +371,14 @@ describe('Valve API', () => {
       expect(result.characteristics).toHaveLength(4);
 
       // Check characteristic types
-      const types = result.characteristics.map((c: any) => c.type);
+      const types = result.characteristics.map((c: { type: string }) => c.type);
       expect(types).toContain('linear');
       expect(types).toContain('equal-percentage');
       expect(types).toContain('quick-opening');
       expect(types).toContain('modified-parabolic');
 
       // Check that each characteristic has required fields
-      result.characteristics.forEach((characteristic: any) => {
+      result.characteristics.forEach((characteristic: { name: string; description: string; typicalFL: number; applications: unknown[] }) => {
         expect(characteristic.name).toBeDefined();
         expect(characteristic.description).toBeDefined();
         expect(characteristic.typicalFL).toBeGreaterThan(0);
@@ -403,14 +403,14 @@ describe('Valve API', () => {
       expect(result.examples).toHaveLength(4);
 
       // Check example names
-      const names = result.examples.map((e: any) => e.name);
+      const names = result.examples.map((e: { name: string }) => e.name);
       expect(names).toContain('Water Flow Control');
       expect(names).toContain('Chemical Process Control');
       expect(names).toContain('Low Flow Control');
       expect(names).toContain('High Pressure Steam');
 
       // Check that each example has required fields
-      result.examples.forEach((example: any) => {
+      result.examples.forEach((example: { description: string; scenario: { flow: unknown; pressureDrop: unknown; specificGravity: unknown; trimCharacteristic: unknown } }) => {
         expect(example.description).toBeDefined();
         expect(example.scenario).toBeDefined();
         expect(example.scenario.flow).toBeDefined();

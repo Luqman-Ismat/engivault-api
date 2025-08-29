@@ -1,11 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { zQuantity } from '@/schemas/common';
-import { 
-  calculateCavitationRisk, 
+import {
+  calculateCavitationRisk,
   NPSHCalculationInput,
   validateNPSHInputs,
-  resolveAtmosphericPressure
+  resolveAtmosphericPressure,
 } from '@/logic/npsh';
 import { ErrorHelper } from '@/utils/errorHelper';
 import { handleError } from '@/utils/errorHandler';

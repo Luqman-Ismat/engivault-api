@@ -58,11 +58,17 @@ export function createLogger(config: LogConfig) {
         stack: err.stack,
       }),
     },
-    redact: config.redactPII ? {
-      paths: ['req.headers.authorization', 'req.headers.cookie', 'req.body.password'],
-      censor: '[REDACTED]',
-      remove: false,
-    } : undefined,
+    redact: config.redactPII
+      ? {
+          paths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'req.body.password',
+          ],
+          censor: '[REDACTED]',
+          remove: false,
+        }
+      : undefined,
   };
 
   if (config.prettyPrint) {
@@ -96,7 +102,10 @@ export function createRequestLogger(
 }
 
 // Sanitize request data for logging
-export function sanitizeRequestData(data: any, redactPII: boolean): any {
+export function sanitizeRequestData(
+  data: unknown,
+  redactPII: boolean
+): unknown {
   if (!redactPII || !data) {
     return data;
   }

@@ -36,9 +36,7 @@ const zFlowInput = z.object({
 const zMinorLossesRequest = z.object({
   fluid: zFluid,
   pipe: zPipe,
-  fittings: z
-    .array(zMinorLossItem)
-    .min(1, 'At least one fitting is required'),
+  fittings: z.array(zMinorLossItem).min(1, 'At least one fitting is required'),
   velocity: zQuantity.optional(),
   flow: zQuantity.optional(),
   diameter: zQuantity.optional(),

@@ -8,10 +8,8 @@ import {
   calculateNodeHeads,
   type NetworkInput,
   type Node,
-  type Pipe,
   type Loop,
 } from './networks';
-import { convert } from '@/utils/units';
 
 describe('Networks Module', () => {
   describe('calculatePipeResistance', () => {

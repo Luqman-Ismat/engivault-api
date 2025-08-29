@@ -7,7 +7,7 @@ import {
 
 describe('Batch Processor', () => {
   // Mock calculator function for testing
-  const mockCalculator = (input: any) => {
+  const mockCalculator = (input: { value: number }) => {
     if (input.value < 0) {
       throw new Error('Value must be positive');
     }
@@ -15,7 +15,7 @@ describe('Batch Processor', () => {
   };
 
   // Mock reply object
-  const mockReply = {} as any;
+  const mockReply = {} as unknown;
 
   describe('processBatchOrSingle', () => {
     it('should process single item request', async () => {
@@ -130,7 +130,7 @@ describe('Batch Processor', () => {
         ],
       };
 
-      const calculatorWithStringError = (input: any) => {
+      const calculatorWithStringError = (input: { value: number }) => {
         if (typeof input.value !== 'number') {
           throw 'Invalid input type'; // String error
         }

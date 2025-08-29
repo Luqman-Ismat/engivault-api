@@ -13,7 +13,7 @@ export interface BatchResponse<T, R> {
 }
 
 export interface SingleResponse<R> {
-  [key: string]: any;
+  [key: string]: R | unknown;
 }
 
 export type CalculatorFunction<T, R> = (input: T) => R;
@@ -26,7 +26,7 @@ export type CalculatorFunction<T, R> = (input: T) => R;
  * @returns Promise that resolves to the processed result
  */
 export async function processBatchOrSingle<T, R>(
-  payload: any,
+  payload: unknown,
   calculator: CalculatorFunction<T, R>,
   reply: FastifyReply
 ): Promise<BatchResponse<T, R> | SingleResponse<R>> {
@@ -49,7 +49,7 @@ export async function processBatchOrSingle<T, R>(
           error: errorMessage,
         });
         // Add null to results to maintain index alignment
-        results.push(null as any);
+        results.push(null as R);
       }
     }
 
@@ -75,7 +75,9 @@ export async function processBatchOrSingle<T, R>(
  * @param payload - The request payload
  * @returns True if it's a valid batch request
  */
-export function isBatchRequest(payload: any): payload is BatchRequest<any> {
+export function isBatchRequest(
+  payload: unknown
+): payload is BatchRequest<unknown> {
   return (
     payload !== null &&
     payload !== undefined &&
@@ -90,7 +92,7 @@ export function isBatchRequest(payload: any): payload is BatchRequest<any> {
  * @param payload - The request payload
  * @returns True if it's a single request
  */
-export function isSingleRequest(payload: any): boolean {
+export function isSingleRequest(payload: unknown): boolean {
   return (
     payload !== null &&
     payload !== undefined &&

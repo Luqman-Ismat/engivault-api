@@ -69,14 +69,19 @@ export default async function npshRoutes(fastify: FastifyInstance) {
         const inputs: NpshInput = request.body;
         // @ts-ignore
         const results = calculateCavitationRisk({
-          atmosphericPressure: { value: inputs.atmosphericPressure, unit: 'Pa' },
+          atmosphericPressure: {
+            value: inputs.atmosphericPressure,
+            unit: 'Pa',
+          },
           vaporPressure: { value: inputs.vaporPressure, unit: 'Pa' },
           // @ts-ignore
           fluidDensity: { value: inputs.fluidDensity, unit: 'kg/m3' },
           staticHead: { value: inputs.staticHead, unit: 'm' },
           losses: { value: inputs.frictionLosses, unit: 'Pa' },
-          flowRate: inputs.flowRate ? { value: inputs.flowRate, unit: 'm3/s' } : undefined,
-          npshCurve: { points: [] }
+          flowRate: inputs.flowRate
+            ? { value: inputs.flowRate, unit: 'm3/s' }
+            : undefined,
+          npshCurve: { points: [] },
         });
 
         // Add engineering hints based on NPSH results

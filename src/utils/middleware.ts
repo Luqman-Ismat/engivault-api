@@ -10,7 +10,10 @@ import { config } from '@/config/environment';
 export interface RequestContext {
   requestId: string;
   startTime: number;
-  logger: any;
+  logger: {
+    info: (data: unknown) => void;
+    error: (data: unknown) => void;
+  };
 }
 
 declare module 'fastify' {
@@ -33,7 +36,7 @@ export async function requestLoggingMiddleware(
     requestId: request.id,
     method: request.method,
     url: request.url,
-    userAgent: Array.isArray(request.headers['user-agent']) 
+    userAgent: Array.isArray(request.headers['user-agent'])
       ? request.headers['user-agent'][0] || 'unknown'
       : request.headers['user-agent'] || 'unknown',
     ip: request.ip,
@@ -41,7 +44,11 @@ export async function requestLoggingMiddleware(
   };
 
   // Create child logger for this request
-  const requestLogger = createRequestLogger(request.log as any, request, context);
+  const requestLogger = createRequestLogger(
+    request.log as any,
+    request,
+    context
+  );
 
   // Store context in request
   request.context = {
@@ -137,7 +144,10 @@ export async function registerMiddleware(
 }
 
 // Helper function to get request logger
-export function getRequestLogger(request: FastifyRequest): any {
+export function getRequestLogger(request: FastifyRequest): {
+  info: (data: unknown) => void;
+  error: (data: unknown) => void;
+} {
   return request.context?.logger || request.log;
 }
 
