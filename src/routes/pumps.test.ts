@@ -3,7 +3,7 @@ import { build } from '../index';
 import { transcriptService } from '@/services/runs';
 
 describe('Pump Routes', () => {
-  let app: any;
+  let app: Awaited<ReturnType<typeof build>>;
 
   beforeAll(async () => {
     app = await build();
@@ -66,7 +66,7 @@ describe('Pump Routes', () => {
 
       // Should have warnings for far operation
       const farWarnings = result.warnings.filter(
-        (w: any) => w.type === 'far_from_bep'
+        (w: { type: string }) => w.type === 'far_from_bep'
       );
       expect(farWarnings.length).toBeGreaterThanOrEqual(0);
     });
@@ -97,7 +97,7 @@ describe('Pump Routes', () => {
 
       // Should have warnings for operation outside range
       const rangeWarnings = result.warnings.filter(
-        (w: any) => w.type === 'outside_curve_range'
+        (w: { type: string }) => w.type === 'outside_curve_range'
       );
       expect(rangeWarnings.length).toBeGreaterThanOrEqual(0);
     });
@@ -128,7 +128,7 @@ describe('Pump Routes', () => {
 
       // Should have efficiency warnings
       const efficiencyWarnings = result.warnings.filter(
-        (w: any) => w.type === 'low_efficiency'
+        (w: { type: string }) => w.type === 'low_efficiency'
       );
       expect(efficiencyWarnings.length).toBeGreaterThanOrEqual(0);
     });
@@ -160,7 +160,7 @@ describe('Pump Routes', () => {
 
       // Should have minimal warnings for close operation
       const farWarnings = result.warnings.filter(
-        (w: any) => w.type === 'far_from_bep'
+        (w: { type: string }) => w.type === 'far_from_bep'
       );
       expect(farWarnings.length).toBe(0);
     });
@@ -198,7 +198,7 @@ describe('Pump Routes', () => {
 
       // Should have warning about no efficiency data
       const efficiencyWarnings = result.warnings.filter(
-        (w: any) => w.type === 'no_efficiency_data'
+        (w: { type: string }) => w.type === 'no_efficiency_data'
       );
       expect(efficiencyWarnings.length).toBeGreaterThanOrEqual(0);
     });
@@ -554,20 +554,22 @@ describe('Pump Routes', () => {
         expect(result.results[3]).toBeNull(); // invalidEfficiency
 
         // Check error details
-        const errorIndexes = result.errors.map((e: any) => e.index);
+        const errorIndexes = result.errors.map(
+          (e: { index: number }) => e.index
+        );
         expect(errorIndexes).toContain(2);
         expect(errorIndexes).toContain(3);
 
         // Verify error messages
         const missingFieldsError = result.errors.find(
-          (e: any) => e.index === 2
+          (e: { index: number }) => e.index === 2
         );
         expect(missingFieldsError.error).toBe(
           'Missing required fields: operatingPoint and curve'
         );
 
         const invalidEfficiencyError = result.errors.find(
-          (e: any) => e.index === 3
+          (e: { index: number }) => e.index === 3
         );
         expect(invalidEfficiencyError.error).toBe(
           'Efficiency must be between 0 and 1'

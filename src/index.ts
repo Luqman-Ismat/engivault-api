@@ -7,6 +7,7 @@ import { registerMiddleware } from '@/utils/middleware';
 // Import plugins
 import { registerPerformancePlugins } from '@/utils/plugins/performance';
 import { registerSwagger } from '@/utils/plugins/swagger';
+import { registerAuthentication } from '@/utils/plugins/authentication';
 
 // Import routes
 import { registerRoutes } from '@/routes';
@@ -43,6 +44,7 @@ export async function createFastifyInstance(): Promise<FastifyInstance> {
   // Register plugins
   await registerPerformancePlugins(fastify);
   await registerSwagger(fastify);
+  await registerAuthentication(fastify);
 
   // Register schemas
   await registerSchemas(fastify);

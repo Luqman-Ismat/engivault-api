@@ -204,11 +204,15 @@ class TranscriptService {
 
     if (!input) return units;
 
+    const isObjectWithUnit = (value: unknown): value is { unit: string } => {
+      return typeof value === 'object' && value !== null && 'unit' in value;
+    };
+
     const extractFromObject = (obj: unknown, prefix = '') => {
       for (const [key, value] of Object.entries(obj)) {
         if (typeof value === 'object' && value !== null) {
-          if ((value as any).unit) {
-            units[`${prefix}${key}`] = (value as any).unit;
+          if (isObjectWithUnit(value)) {
+            units[`${prefix}${key}`] = value.unit;
           } else {
             extractFromObject(value, `${prefix}${key}.`);
           }

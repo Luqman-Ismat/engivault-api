@@ -515,7 +515,7 @@ describe('Valve Logic', () => {
     it('should reject missing trim characteristic', () => {
       const invalidInput: ValveSizingInput = {
         ...validInput,
-        trimCharacteristic: { type: '' as any },
+        trimCharacteristic: { type: '' as never },
       };
 
       const result = validateValveSizingInputs(invalidInput);

@@ -232,7 +232,7 @@ export function calculateAnnualEnergy(
       speed: point.speed,
       power: powerResult.power,
       energy: { value: energy_kWh, unit: 'kWh' },
-      cost: { value: cost, unit: '$' },
+      cost: { value: cost, unit: 'USD' }
     };
   });
 
@@ -258,7 +258,1575 @@ export function calculateAnnualEnergy(
   let avgVfdEfficiency = 0;
   let avgTotalEfficiency = 0;
 
-  profileResults.forEach((point, index) => {
+  profileResults.forEach(point => {
+    const Q_value = convert(point.Qset, 'm³/s').value;
+    const powerResult = powerCalculator(Q_value, point.speed);
+    const weight = point.energy.value / totalEnergyWeighted;
+
+    avgPumpEfficiency += powerResult.efficiency.pump * weight;
+    avgMotorEfficiency += powerResult.efficiency.motor * weight;
+    if (powerResult.efficiency.vfd !== undefined) {
+      avgVfdEfficiency += powerResult.efficiency.vfd * weight;
+    }
+    avgTotalEfficiency += powerResult.efficiency.total * weight;
+  });
+
+  // Generate efficiency warnings
+  if (avgTotalEfficiency < 0.5) {
+    warnings.push(
+      `Low average efficiency: ${(avgTotalEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgPumpEfficiency < 0.6) {
+    warnings.push(
+      `Low pump efficiency: ${(avgPumpEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgMotorEfficiency < 0.8) {
+    warnings.push(
+      `Low motor efficiency: ${(avgMotorEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  return {
+    totalEnergy: { value: totalEnergy, unit: 'kWh/year' },
+    totalCost: { value: totalCost, unit: '$/year' },
+    averagePower: { value: averagePower, unit: 'W' },
+    loadProfile: profileResults,
+    efficiency: {
+      averagePumpEfficiency: avgPumpEfficiency,
+      averageMotorEfficiency: avgMotorEfficiency,
+      averageVfdEfficiency: avgVfdEfficiency > 0 ? avgVfdEfficiency : undefined,
+      averageTotalEfficiency: avgTotalEfficiency,
+    },
+    warnings,
+    metadata: {
+      tariff,
+      totalHours,
+      operatingPoints: loadProfile.length,
+    },
+  };
+}
+
+/**
+ * Calculate annual energy for a pump system
+ * @param input Energy calculation input parameters
+ * @returns Annual energy analysis result
+ */
+export function calculatePumpEnergy(
+  input: EnergyCalculationInput
+): AnnualEnergyResult {
+  const warnings: (string | Warning)[] = [];
+
+  // Extract and convert input values
+  const rho = convert(input.fluid.density, 'kg/m³').value;
+  const H = convert(input.head, 'm').value;
+  const g = 9.81; // m/s²
+
+  // Validate efficiencies
+  if (input.pumpEfficiency <= 0 || input.pumpEfficiency > 1) {
+    throw new Error('Pump efficiency must be between 0 and 1');
+  }
+
+  if (input.motorEfficiency <= 0 || input.motorEfficiency > 1) {
+    throw new Error('Motor efficiency must be between 0 and 1');
+  }
+
+  if (
+    input.vfdEfficiency !== undefined &&
+    (input.vfdEfficiency <= 0 || input.vfdEfficiency > 1)
+  ) {
+    throw new Error('VFD efficiency must be between 0 and 1');
+  }
+
+  // Create power calculator function
+  const powerCalculator = (
+    Q: number,
+    speed?: number
+  ): PowerCalculationResult => {
+    // Apply speed scaling if provided
+    let effectiveQ = Q;
+    let effectiveH = H;
+
+    if (speed !== undefined) {
+      if (speed < 0 || speed > 1) {
+        throw new Error('Speed ratio must be between 0 and 1');
+      }
+      // Affinity laws: Q ~ speed, H ~ speed²
+      effectiveQ = Q * speed;
+      effectiveH = H * speed * speed;
+    }
+
+    return calculatePowerWithBreakdown(rho, g, effectiveQ, effectiveH, {
+      pumpEfficiency: input.pumpEfficiency,
+      motorEfficiency: input.motorEfficiency,
+      vfdEfficiency: input.vfdEfficiency,
+    });
+  };
+
+  // Calculate annual energy
+  const result = calculateAnnualEnergy(
+    input.loadProfile,
+    input.tariff,
+    powerCalculator
+  );
+
+  // Add fluid-specific warnings
+  if (input.fluid.name === 'water' && rho < 990) {
+    warnings.push('Water density below expected range - check temperature');
+  }
+
+  if (input.fluid.name === 'air' && rho > 1.3) {
+    warnings.push(
+      'Air density above expected range - check pressure and temperature'
+    );
+  }
+
+  return {
+    ...result,
+    warnings: [...result.warnings, ...warnings],
+  };
+}
+
+/**
+ * Validate energy calculation inputs
+ * @param input Energy calculation input
+ * @returns Validation result
+ */
+export function validateEnergyInputs(input: EnergyCalculationInput): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  // Check required fields
+  if (!input.fluid.density || input.fluid.density.value <= 0) {
+    errors.push('Fluid density must be positive');
+  }
+
+  if (!input.head || input.head.value <= 0) {
+    errors.push('Head must be positive');
+  }
+
+  if (!input.loadProfile || input.loadProfile.length === 0) {
+    errors.push('Load profile must have at least one operating point');
+  }
+
+  if (!input.tariff || input.tariff.rate <= 0) {
+    errors.push('Energy tariff rate must be positive');
+  }
+
+  // Check load profile points
+  if (input.loadProfile) {
+    for (let i = 0; i < input.loadProfile.length; i++) {
+      const point = input.loadProfile[i];
+
+      if (point.hours <= 0) {
+        errors.push(`Load profile point ${i + 1}: Hours must be positive`);
+      }
+
+      if (!point.Qset || point.Qset.value <= 0) {
+        errors.push(`Load profile point ${i + 1}: Flow rate must be positive`);
+      }
+
+      if (point.speed !== undefined && (point.speed < 0 || point.speed > 1)) {
+        errors.push(
+          `Load profile point ${i + 1}: Speed ratio must be between 0 and 1`
+        );
+      }
+    }
+  }
+
+  // Check total hours
+  if (input.loadProfile) {
+    const totalHours = input.loadProfile.reduce(
+      (sum, point) => sum + point.hours,
+      0
+    );
+    if (totalHours > 8760 * 1.1) {
+      // Allow 10% tolerance
+      errors.push(
+        'Total hours in load profile cannot exceed 9636 hours (8760 + 10%)'
+      );
+    }
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
+ },
+ },
+    };
+  });
+
+  // Calculate totals
+  const totalEnergy = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+  const totalCost = profileResults.reduce(
+    (sum, point) => sum + point.cost.value,
+    0
+  );
+  const averagePower = (totalEnergy * 1000) / totalHours; // Convert kWh to W·h, then divide by hours
+
+  // Calculate average efficiencies (weighted by energy consumption)
+  const totalEnergyWeighted = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+
+  let avgPumpEfficiency = 0;
+  let avgMotorEfficiency = 0;
+  let avgVfdEfficiency = 0;
+  let avgTotalEfficiency = 0;
+
+  profileResults.forEach(point => {
+    const Q_value = convert(point.Qset, 'm³/s').value;
+    const powerResult = powerCalculator(Q_value, point.speed);
+    const weight = point.energy.value / totalEnergyWeighted;
+
+    avgPumpEfficiency += powerResult.efficiency.pump * weight;
+    avgMotorEfficiency += powerResult.efficiency.motor * weight;
+    if (powerResult.efficiency.vfd !== undefined) {
+      avgVfdEfficiency += powerResult.efficiency.vfd * weight;
+    }
+    avgTotalEfficiency += powerResult.efficiency.total * weight;
+  });
+
+  // Generate efficiency warnings
+  if (avgTotalEfficiency < 0.5) {
+    warnings.push(
+      `Low average efficiency: ${(avgTotalEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgPumpEfficiency < 0.6) {
+    warnings.push(
+      `Low pump efficiency: ${(avgPumpEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgMotorEfficiency < 0.8) {
+    warnings.push(
+      `Low motor efficiency: ${(avgMotorEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  return {
+    totalEnergy: { value: totalEnergy, unit: 'kWh/year' },
+    totalCost: { value: totalCost, unit: '$/year' },
+    averagePower: { value: averagePower, unit: 'W' },
+    loadProfile: profileResults,
+    efficiency: {
+      averagePumpEfficiency: avgPumpEfficiency,
+      averageMotorEfficiency: avgMotorEfficiency,
+      averageVfdEfficiency: avgVfdEfficiency > 0 ? avgVfdEfficiency : undefined,
+      averageTotalEfficiency: avgTotalEfficiency,
+    },
+    warnings,
+    metadata: {
+      tariff,
+      totalHours,
+      operatingPoints: loadProfile.length,
+    },
+  };
+}
+
+/**
+ * Calculate annual energy for a pump system
+ * @param input Energy calculation input parameters
+ * @returns Annual energy analysis result
+ */
+export function calculatePumpEnergy(
+  input: EnergyCalculationInput
+): AnnualEnergyResult {
+  const warnings: (string | Warning)[] = [];
+
+  // Extract and convert input values
+  const rho = convert(input.fluid.density, 'kg/m³').value;
+  const H = convert(input.head, 'm').value;
+  const g = 9.81; // m/s²
+
+  // Validate efficiencies
+  if (input.pumpEfficiency <= 0 || input.pumpEfficiency > 1) {
+    throw new Error('Pump efficiency must be between 0 and 1');
+  }
+
+  if (input.motorEfficiency <= 0 || input.motorEfficiency > 1) {
+    throw new Error('Motor efficiency must be between 0 and 1');
+  }
+
+  if (
+    input.vfdEfficiency !== undefined &&
+    (input.vfdEfficiency <= 0 || input.vfdEfficiency > 1)
+  ) {
+    throw new Error('VFD efficiency must be between 0 and 1');
+  }
+
+  // Create power calculator function
+  const powerCalculator = (
+    Q: number,
+    speed?: number
+  ): PowerCalculationResult => {
+    // Apply speed scaling if provided
+    let effectiveQ = Q;
+    let effectiveH = H;
+
+    if (speed !== undefined) {
+      if (speed < 0 || speed > 1) {
+        throw new Error('Speed ratio must be between 0 and 1');
+      }
+      // Affinity laws: Q ~ speed, H ~ speed²
+      effectiveQ = Q * speed;
+      effectiveH = H * speed * speed;
+    }
+
+    return calculatePowerWithBreakdown(rho, g, effectiveQ, effectiveH, {
+      pumpEfficiency: input.pumpEfficiency,
+      motorEfficiency: input.motorEfficiency,
+      vfdEfficiency: input.vfdEfficiency,
+    });
+  };
+
+  // Calculate annual energy
+  const result = calculateAnnualEnergy(
+    input.loadProfile,
+    input.tariff,
+    powerCalculator
+  );
+
+  // Add fluid-specific warnings
+  if (input.fluid.name === 'water' && rho < 990) {
+    warnings.push('Water density below expected range - check temperature');
+  }
+
+  if (input.fluid.name === 'air' && rho > 1.3) {
+    warnings.push(
+      'Air density above expected range - check pressure and temperature'
+    );
+  }
+
+  return {
+    ...result,
+    warnings: [...result.warnings, ...warnings],
+  };
+}
+
+/**
+ * Validate energy calculation inputs
+ * @param input Energy calculation input
+ * @returns Validation result
+ */
+export function validateEnergyInputs(input: EnergyCalculationInput): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  // Check required fields
+  if (!input.fluid.density || input.fluid.density.value <= 0) {
+    errors.push('Fluid density must be positive');
+  }
+
+  if (!input.head || input.head.value <= 0) {
+    errors.push('Head must be positive');
+  }
+
+  if (!input.loadProfile || input.loadProfile.length === 0) {
+    errors.push('Load profile must have at least one operating point');
+  }
+
+  if (!input.tariff || input.tariff.rate <= 0) {
+    errors.push('Energy tariff rate must be positive');
+  }
+
+  // Check load profile points
+  if (input.loadProfile) {
+    for (let i = 0; i < input.loadProfile.length; i++) {
+      const point = input.loadProfile[i];
+
+      if (point.hours <= 0) {
+        errors.push(`Load profile point ${i + 1}: Hours must be positive`);
+      }
+
+      if (!point.Qset || point.Qset.value <= 0) {
+        errors.push(`Load profile point ${i + 1}: Flow rate must be positive`);
+      }
+
+      if (point.speed !== undefined && (point.speed < 0 || point.speed > 1)) {
+        errors.push(
+          `Load profile point ${i + 1}: Speed ratio must be between 0 and 1`
+        );
+      }
+    }
+  }
+
+  // Check total hours
+  if (input.loadProfile) {
+    const totalHours = input.loadProfile.reduce(
+      (sum, point) => sum + point.hours,
+      0
+    );
+    if (totalHours > 8760 * 1.1) {
+      // Allow 10% tolerance
+      errors.push(
+        'Total hours in load profile cannot exceed 9636 hours (8760 + 10%)'
+      );
+    }
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
+ },
+ },
+    };
+  });
+
+  // Calculate totals
+  const totalEnergy = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+  const totalCost = profileResults.reduce(
+    (sum, point) => sum + point.cost.value,
+    0
+  );
+  const averagePower = (totalEnergy * 1000) / totalHours; // Convert kWh to W·h, then divide by hours
+
+  // Calculate average efficiencies (weighted by energy consumption)
+  const totalEnergyWeighted = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+
+  let avgPumpEfficiency = 0;
+  let avgMotorEfficiency = 0;
+  let avgVfdEfficiency = 0;
+  let avgTotalEfficiency = 0;
+
+  profileResults.forEach(point => {
+    const Q_value = convert(point.Qset, 'm³/s').value;
+    const powerResult = powerCalculator(Q_value, point.speed);
+    const weight = point.energy.value / totalEnergyWeighted;
+
+    avgPumpEfficiency += powerResult.efficiency.pump * weight;
+    avgMotorEfficiency += powerResult.efficiency.motor * weight;
+    if (powerResult.efficiency.vfd !== undefined) {
+      avgVfdEfficiency += powerResult.efficiency.vfd * weight;
+    }
+    avgTotalEfficiency += powerResult.efficiency.total * weight;
+  });
+
+  // Generate efficiency warnings
+  if (avgTotalEfficiency < 0.5) {
+    warnings.push(
+      `Low average efficiency: ${(avgTotalEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgPumpEfficiency < 0.6) {
+    warnings.push(
+      `Low pump efficiency: ${(avgPumpEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgMotorEfficiency < 0.8) {
+    warnings.push(
+      `Low motor efficiency: ${(avgMotorEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  return {
+    totalEnergy: { value: totalEnergy, unit: 'kWh/year' },
+    totalCost: { value: totalCost, unit: '$/year' },
+    averagePower: { value: averagePower, unit: 'W' },
+    loadProfile: profileResults,
+    efficiency: {
+      averagePumpEfficiency: avgPumpEfficiency,
+      averageMotorEfficiency: avgMotorEfficiency,
+      averageVfdEfficiency: avgVfdEfficiency > 0 ? avgVfdEfficiency : undefined,
+      averageTotalEfficiency: avgTotalEfficiency,
+    },
+    warnings,
+    metadata: {
+      tariff,
+      totalHours,
+      operatingPoints: loadProfile.length,
+    },
+  };
+}
+
+/**
+ * Calculate annual energy for a pump system
+ * @param input Energy calculation input parameters
+ * @returns Annual energy analysis result
+ */
+export function calculatePumpEnergy(
+  input: EnergyCalculationInput
+): AnnualEnergyResult {
+  const warnings: (string | Warning)[] = [];
+
+  // Extract and convert input values
+  const rho = convert(input.fluid.density, 'kg/m³').value;
+  const H = convert(input.head, 'm').value;
+  const g = 9.81; // m/s²
+
+  // Validate efficiencies
+  if (input.pumpEfficiency <= 0 || input.pumpEfficiency > 1) {
+    throw new Error('Pump efficiency must be between 0 and 1');
+  }
+
+  if (input.motorEfficiency <= 0 || input.motorEfficiency > 1) {
+    throw new Error('Motor efficiency must be between 0 and 1');
+  }
+
+  if (
+    input.vfdEfficiency !== undefined &&
+    (input.vfdEfficiency <= 0 || input.vfdEfficiency > 1)
+  ) {
+    throw new Error('VFD efficiency must be between 0 and 1');
+  }
+
+  // Create power calculator function
+  const powerCalculator = (
+    Q: number,
+    speed?: number
+  ): PowerCalculationResult => {
+    // Apply speed scaling if provided
+    let effectiveQ = Q;
+    let effectiveH = H;
+
+    if (speed !== undefined) {
+      if (speed < 0 || speed > 1) {
+        throw new Error('Speed ratio must be between 0 and 1');
+      }
+      // Affinity laws: Q ~ speed, H ~ speed²
+      effectiveQ = Q * speed;
+      effectiveH = H * speed * speed;
+    }
+
+    return calculatePowerWithBreakdown(rho, g, effectiveQ, effectiveH, {
+      pumpEfficiency: input.pumpEfficiency,
+      motorEfficiency: input.motorEfficiency,
+      vfdEfficiency: input.vfdEfficiency,
+    });
+  };
+
+  // Calculate annual energy
+  const result = calculateAnnualEnergy(
+    input.loadProfile,
+    input.tariff,
+    powerCalculator
+  );
+
+  // Add fluid-specific warnings
+  if (input.fluid.name === 'water' && rho < 990) {
+    warnings.push('Water density below expected range - check temperature');
+  }
+
+  if (input.fluid.name === 'air' && rho > 1.3) {
+    warnings.push(
+      'Air density above expected range - check pressure and temperature'
+    );
+  }
+
+  return {
+    ...result,
+    warnings: [...result.warnings, ...warnings],
+  };
+}
+
+/**
+ * Validate energy calculation inputs
+ * @param input Energy calculation input
+ * @returns Validation result
+ */
+export function validateEnergyInputs(input: EnergyCalculationInput): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  // Check required fields
+  if (!input.fluid.density || input.fluid.density.value <= 0) {
+    errors.push('Fluid density must be positive');
+  }
+
+  if (!input.head || input.head.value <= 0) {
+    errors.push('Head must be positive');
+  }
+
+  if (!input.loadProfile || input.loadProfile.length === 0) {
+    errors.push('Load profile must have at least one operating point');
+  }
+
+  if (!input.tariff || input.tariff.rate <= 0) {
+    errors.push('Energy tariff rate must be positive');
+  }
+
+  // Check load profile points
+  if (input.loadProfile) {
+    for (let i = 0; i < input.loadProfile.length; i++) {
+      const point = input.loadProfile[i];
+
+      if (point.hours <= 0) {
+        errors.push(`Load profile point ${i + 1}: Hours must be positive`);
+      }
+
+      if (!point.Qset || point.Qset.value <= 0) {
+        errors.push(`Load profile point ${i + 1}: Flow rate must be positive`);
+      }
+
+      if (point.speed !== undefined && (point.speed < 0 || point.speed > 1)) {
+        errors.push(
+          `Load profile point ${i + 1}: Speed ratio must be between 0 and 1`
+        );
+      }
+    }
+  }
+
+  // Check total hours
+  if (input.loadProfile) {
+    const totalHours = input.loadProfile.reduce(
+      (sum, point) => sum + point.hours,
+      0
+    );
+    if (totalHours > 8760 * 1.1) {
+      // Allow 10% tolerance
+      errors.push(
+        'Total hours in load profile cannot exceed 9636 hours (8760 + 10%)'
+      );
+    }
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
+ },
+ },
+    };
+  });
+
+  // Calculate totals
+  const totalEnergy = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+  const totalCost = profileResults.reduce(
+    (sum, point) => sum + point.cost.value,
+    0
+  );
+  const averagePower = (totalEnergy * 1000) / totalHours; // Convert kWh to W·h, then divide by hours
+
+  // Calculate average efficiencies (weighted by energy consumption)
+  const totalEnergyWeighted = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+
+  let avgPumpEfficiency = 0;
+  let avgMotorEfficiency = 0;
+  let avgVfdEfficiency = 0;
+  let avgTotalEfficiency = 0;
+
+  profileResults.forEach(point => {
+    const Q_value = convert(point.Qset, 'm³/s').value;
+    const powerResult = powerCalculator(Q_value, point.speed);
+    const weight = point.energy.value / totalEnergyWeighted;
+
+    avgPumpEfficiency += powerResult.efficiency.pump * weight;
+    avgMotorEfficiency += powerResult.efficiency.motor * weight;
+    if (powerResult.efficiency.vfd !== undefined) {
+      avgVfdEfficiency += powerResult.efficiency.vfd * weight;
+    }
+    avgTotalEfficiency += powerResult.efficiency.total * weight;
+  });
+
+  // Generate efficiency warnings
+  if (avgTotalEfficiency < 0.5) {
+    warnings.push(
+      `Low average efficiency: ${(avgTotalEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgPumpEfficiency < 0.6) {
+    warnings.push(
+      `Low pump efficiency: ${(avgPumpEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgMotorEfficiency < 0.8) {
+    warnings.push(
+      `Low motor efficiency: ${(avgMotorEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  return {
+    totalEnergy: { value: totalEnergy, unit: 'kWh/year' },
+    totalCost: { value: totalCost, unit: '$/year' },
+    averagePower: { value: averagePower, unit: 'W' },
+    loadProfile: profileResults,
+    efficiency: {
+      averagePumpEfficiency: avgPumpEfficiency,
+      averageMotorEfficiency: avgMotorEfficiency,
+      averageVfdEfficiency: avgVfdEfficiency > 0 ? avgVfdEfficiency : undefined,
+      averageTotalEfficiency: avgTotalEfficiency,
+    },
+    warnings,
+    metadata: {
+      tariff,
+      totalHours,
+      operatingPoints: loadProfile.length,
+    },
+  };
+}
+
+/**
+ * Calculate annual energy for a pump system
+ * @param input Energy calculation input parameters
+ * @returns Annual energy analysis result
+ */
+export function calculatePumpEnergy(
+  input: EnergyCalculationInput
+): AnnualEnergyResult {
+  const warnings: (string | Warning)[] = [];
+
+  // Extract and convert input values
+  const rho = convert(input.fluid.density, 'kg/m³').value;
+  const H = convert(input.head, 'm').value;
+  const g = 9.81; // m/s²
+
+  // Validate efficiencies
+  if (input.pumpEfficiency <= 0 || input.pumpEfficiency > 1) {
+    throw new Error('Pump efficiency must be between 0 and 1');
+  }
+
+  if (input.motorEfficiency <= 0 || input.motorEfficiency > 1) {
+    throw new Error('Motor efficiency must be between 0 and 1');
+  }
+
+  if (
+    input.vfdEfficiency !== undefined &&
+    (input.vfdEfficiency <= 0 || input.vfdEfficiency > 1)
+  ) {
+    throw new Error('VFD efficiency must be between 0 and 1');
+  }
+
+  // Create power calculator function
+  const powerCalculator = (
+    Q: number,
+    speed?: number
+  ): PowerCalculationResult => {
+    // Apply speed scaling if provided
+    let effectiveQ = Q;
+    let effectiveH = H;
+
+    if (speed !== undefined) {
+      if (speed < 0 || speed > 1) {
+        throw new Error('Speed ratio must be between 0 and 1');
+      }
+      // Affinity laws: Q ~ speed, H ~ speed²
+      effectiveQ = Q * speed;
+      effectiveH = H * speed * speed;
+    }
+
+    return calculatePowerWithBreakdown(rho, g, effectiveQ, effectiveH, {
+      pumpEfficiency: input.pumpEfficiency,
+      motorEfficiency: input.motorEfficiency,
+      vfdEfficiency: input.vfdEfficiency,
+    });
+  };
+
+  // Calculate annual energy
+  const result = calculateAnnualEnergy(
+    input.loadProfile,
+    input.tariff,
+    powerCalculator
+  );
+
+  // Add fluid-specific warnings
+  if (input.fluid.name === 'water' && rho < 990) {
+    warnings.push('Water density below expected range - check temperature');
+  }
+
+  if (input.fluid.name === 'air' && rho > 1.3) {
+    warnings.push(
+      'Air density above expected range - check pressure and temperature'
+    );
+  }
+
+  return {
+    ...result,
+    warnings: [...result.warnings, ...warnings],
+  };
+}
+
+/**
+ * Validate energy calculation inputs
+ * @param input Energy calculation input
+ * @returns Validation result
+ */
+export function validateEnergyInputs(input: EnergyCalculationInput): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  // Check required fields
+  if (!input.fluid.density || input.fluid.density.value <= 0) {
+    errors.push('Fluid density must be positive');
+  }
+
+  if (!input.head || input.head.value <= 0) {
+    errors.push('Head must be positive');
+  }
+
+  if (!input.loadProfile || input.loadProfile.length === 0) {
+    errors.push('Load profile must have at least one operating point');
+  }
+
+  if (!input.tariff || input.tariff.rate <= 0) {
+    errors.push('Energy tariff rate must be positive');
+  }
+
+  // Check load profile points
+  if (input.loadProfile) {
+    for (let i = 0; i < input.loadProfile.length; i++) {
+      const point = input.loadProfile[i];
+
+      if (point.hours <= 0) {
+        errors.push(`Load profile point ${i + 1}: Hours must be positive`);
+      }
+
+      if (!point.Qset || point.Qset.value <= 0) {
+        errors.push(`Load profile point ${i + 1}: Flow rate must be positive`);
+      }
+
+      if (point.speed !== undefined && (point.speed < 0 || point.speed > 1)) {
+        errors.push(
+          `Load profile point ${i + 1}: Speed ratio must be between 0 and 1`
+        );
+      }
+    }
+  }
+
+  // Check total hours
+  if (input.loadProfile) {
+    const totalHours = input.loadProfile.reduce(
+      (sum, point) => sum + point.hours,
+      0
+    );
+    if (totalHours > 8760 * 1.1) {
+      // Allow 10% tolerance
+      errors.push(
+        'Total hours in load profile cannot exceed 9636 hours (8760 + 10%)'
+      );
+    }
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
+ },
+ },
+    };
+  });
+
+  // Calculate totals
+  const totalEnergy = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+  const totalCost = profileResults.reduce(
+    (sum, point) => sum + point.cost.value,
+    0
+  );
+  const averagePower = (totalEnergy * 1000) / totalHours; // Convert kWh to W·h, then divide by hours
+
+  // Calculate average efficiencies (weighted by energy consumption)
+  const totalEnergyWeighted = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+
+  let avgPumpEfficiency = 0;
+  let avgMotorEfficiency = 0;
+  let avgVfdEfficiency = 0;
+  let avgTotalEfficiency = 0;
+
+  profileResults.forEach(point => {
+    const Q_value = convert(point.Qset, 'm³/s').value;
+    const powerResult = powerCalculator(Q_value, point.speed);
+    const weight = point.energy.value / totalEnergyWeighted;
+
+    avgPumpEfficiency += powerResult.efficiency.pump * weight;
+    avgMotorEfficiency += powerResult.efficiency.motor * weight;
+    if (powerResult.efficiency.vfd !== undefined) {
+      avgVfdEfficiency += powerResult.efficiency.vfd * weight;
+    }
+    avgTotalEfficiency += powerResult.efficiency.total * weight;
+  });
+
+  // Generate efficiency warnings
+  if (avgTotalEfficiency < 0.5) {
+    warnings.push(
+      `Low average efficiency: ${(avgTotalEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgPumpEfficiency < 0.6) {
+    warnings.push(
+      `Low pump efficiency: ${(avgPumpEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgMotorEfficiency < 0.8) {
+    warnings.push(
+      `Low motor efficiency: ${(avgMotorEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  return {
+    totalEnergy: { value: totalEnergy, unit: 'kWh/year' },
+    totalCost: { value: totalCost, unit: '$/year' },
+    averagePower: { value: averagePower, unit: 'W' },
+    loadProfile: profileResults,
+    efficiency: {
+      averagePumpEfficiency: avgPumpEfficiency,
+      averageMotorEfficiency: avgMotorEfficiency,
+      averageVfdEfficiency: avgVfdEfficiency > 0 ? avgVfdEfficiency : undefined,
+      averageTotalEfficiency: avgTotalEfficiency,
+    },
+    warnings,
+    metadata: {
+      tariff,
+      totalHours,
+      operatingPoints: loadProfile.length,
+    },
+  };
+}
+
+/**
+ * Calculate annual energy for a pump system
+ * @param input Energy calculation input parameters
+ * @returns Annual energy analysis result
+ */
+export function calculatePumpEnergy(
+  input: EnergyCalculationInput
+): AnnualEnergyResult {
+  const warnings: (string | Warning)[] = [];
+
+  // Extract and convert input values
+  const rho = convert(input.fluid.density, 'kg/m³').value;
+  const H = convert(input.head, 'm').value;
+  const g = 9.81; // m/s²
+
+  // Validate efficiencies
+  if (input.pumpEfficiency <= 0 || input.pumpEfficiency > 1) {
+    throw new Error('Pump efficiency must be between 0 and 1');
+  }
+
+  if (input.motorEfficiency <= 0 || input.motorEfficiency > 1) {
+    throw new Error('Motor efficiency must be between 0 and 1');
+  }
+
+  if (
+    input.vfdEfficiency !== undefined &&
+    (input.vfdEfficiency <= 0 || input.vfdEfficiency > 1)
+  ) {
+    throw new Error('VFD efficiency must be between 0 and 1');
+  }
+
+  // Create power calculator function
+  const powerCalculator = (
+    Q: number,
+    speed?: number
+  ): PowerCalculationResult => {
+    // Apply speed scaling if provided
+    let effectiveQ = Q;
+    let effectiveH = H;
+
+    if (speed !== undefined) {
+      if (speed < 0 || speed > 1) {
+        throw new Error('Speed ratio must be between 0 and 1');
+      }
+      // Affinity laws: Q ~ speed, H ~ speed²
+      effectiveQ = Q * speed;
+      effectiveH = H * speed * speed;
+    }
+
+    return calculatePowerWithBreakdown(rho, g, effectiveQ, effectiveH, {
+      pumpEfficiency: input.pumpEfficiency,
+      motorEfficiency: input.motorEfficiency,
+      vfdEfficiency: input.vfdEfficiency,
+    });
+  };
+
+  // Calculate annual energy
+  const result = calculateAnnualEnergy(
+    input.loadProfile,
+    input.tariff,
+    powerCalculator
+  );
+
+  // Add fluid-specific warnings
+  if (input.fluid.name === 'water' && rho < 990) {
+    warnings.push('Water density below expected range - check temperature');
+  }
+
+  if (input.fluid.name === 'air' && rho > 1.3) {
+    warnings.push(
+      'Air density above expected range - check pressure and temperature'
+    );
+  }
+
+  return {
+    ...result,
+    warnings: [...result.warnings, ...warnings],
+  };
+}
+
+/**
+ * Validate energy calculation inputs
+ * @param input Energy calculation input
+ * @returns Validation result
+ */
+export function validateEnergyInputs(input: EnergyCalculationInput): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  // Check required fields
+  if (!input.fluid.density || input.fluid.density.value <= 0) {
+    errors.push('Fluid density must be positive');
+  }
+
+  if (!input.head || input.head.value <= 0) {
+    errors.push('Head must be positive');
+  }
+
+  if (!input.loadProfile || input.loadProfile.length === 0) {
+    errors.push('Load profile must have at least one operating point');
+  }
+
+  if (!input.tariff || input.tariff.rate <= 0) {
+    errors.push('Energy tariff rate must be positive');
+  }
+
+  // Check load profile points
+  if (input.loadProfile) {
+    for (let i = 0; i < input.loadProfile.length; i++) {
+      const point = input.loadProfile[i];
+
+      if (point.hours <= 0) {
+        errors.push(`Load profile point ${i + 1}: Hours must be positive`);
+      }
+
+      if (!point.Qset || point.Qset.value <= 0) {
+        errors.push(`Load profile point ${i + 1}: Flow rate must be positive`);
+      }
+
+      if (point.speed !== undefined && (point.speed < 0 || point.speed > 1)) {
+        errors.push(
+          `Load profile point ${i + 1}: Speed ratio must be between 0 and 1`
+        );
+      }
+    }
+  }
+
+  // Check total hours
+  if (input.loadProfile) {
+    const totalHours = input.loadProfile.reduce(
+      (sum, point) => sum + point.hours,
+      0
+    );
+    if (totalHours > 8760 * 1.1) {
+      // Allow 10% tolerance
+      errors.push(
+        'Total hours in load profile cannot exceed 9636 hours (8760 + 10%)'
+      );
+    }
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
+ },
+ },
+    };
+  });
+
+  // Calculate totals
+  const totalEnergy = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+  const totalCost = profileResults.reduce(
+    (sum, point) => sum + point.cost.value,
+    0
+  );
+  const averagePower = (totalEnergy * 1000) / totalHours; // Convert kWh to W·h, then divide by hours
+
+  // Calculate average efficiencies (weighted by energy consumption)
+  const totalEnergyWeighted = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+
+  let avgPumpEfficiency = 0;
+  let avgMotorEfficiency = 0;
+  let avgVfdEfficiency = 0;
+  let avgTotalEfficiency = 0;
+
+  profileResults.forEach(point => {
+    const Q_value = convert(point.Qset, 'm³/s').value;
+    const powerResult = powerCalculator(Q_value, point.speed);
+    const weight = point.energy.value / totalEnergyWeighted;
+
+    avgPumpEfficiency += powerResult.efficiency.pump * weight;
+    avgMotorEfficiency += powerResult.efficiency.motor * weight;
+    if (powerResult.efficiency.vfd !== undefined) {
+      avgVfdEfficiency += powerResult.efficiency.vfd * weight;
+    }
+    avgTotalEfficiency += powerResult.efficiency.total * weight;
+  });
+
+  // Generate efficiency warnings
+  if (avgTotalEfficiency < 0.5) {
+    warnings.push(
+      `Low average efficiency: ${(avgTotalEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgPumpEfficiency < 0.6) {
+    warnings.push(
+      `Low pump efficiency: ${(avgPumpEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgMotorEfficiency < 0.8) {
+    warnings.push(
+      `Low motor efficiency: ${(avgMotorEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  return {
+    totalEnergy: { value: totalEnergy, unit: 'kWh/year' },
+    totalCost: { value: totalCost, unit: '$/year' },
+    averagePower: { value: averagePower, unit: 'W' },
+    loadProfile: profileResults,
+    efficiency: {
+      averagePumpEfficiency: avgPumpEfficiency,
+      averageMotorEfficiency: avgMotorEfficiency,
+      averageVfdEfficiency: avgVfdEfficiency > 0 ? avgVfdEfficiency : undefined,
+      averageTotalEfficiency: avgTotalEfficiency,
+    },
+    warnings,
+    metadata: {
+      tariff,
+      totalHours,
+      operatingPoints: loadProfile.length,
+    },
+  };
+}
+
+/**
+ * Calculate annual energy for a pump system
+ * @param input Energy calculation input parameters
+ * @returns Annual energy analysis result
+ */
+export function calculatePumpEnergy(
+  input: EnergyCalculationInput
+): AnnualEnergyResult {
+  const warnings: (string | Warning)[] = [];
+
+  // Extract and convert input values
+  const rho = convert(input.fluid.density, 'kg/m³').value;
+  const H = convert(input.head, 'm').value;
+  const g = 9.81; // m/s²
+
+  // Validate efficiencies
+  if (input.pumpEfficiency <= 0 || input.pumpEfficiency > 1) {
+    throw new Error('Pump efficiency must be between 0 and 1');
+  }
+
+  if (input.motorEfficiency <= 0 || input.motorEfficiency > 1) {
+    throw new Error('Motor efficiency must be between 0 and 1');
+  }
+
+  if (
+    input.vfdEfficiency !== undefined &&
+    (input.vfdEfficiency <= 0 || input.vfdEfficiency > 1)
+  ) {
+    throw new Error('VFD efficiency must be between 0 and 1');
+  }
+
+  // Create power calculator function
+  const powerCalculator = (
+    Q: number,
+    speed?: number
+  ): PowerCalculationResult => {
+    // Apply speed scaling if provided
+    let effectiveQ = Q;
+    let effectiveH = H;
+
+    if (speed !== undefined) {
+      if (speed < 0 || speed > 1) {
+        throw new Error('Speed ratio must be between 0 and 1');
+      }
+      // Affinity laws: Q ~ speed, H ~ speed²
+      effectiveQ = Q * speed;
+      effectiveH = H * speed * speed;
+    }
+
+    return calculatePowerWithBreakdown(rho, g, effectiveQ, effectiveH, {
+      pumpEfficiency: input.pumpEfficiency,
+      motorEfficiency: input.motorEfficiency,
+      vfdEfficiency: input.vfdEfficiency,
+    });
+  };
+
+  // Calculate annual energy
+  const result = calculateAnnualEnergy(
+    input.loadProfile,
+    input.tariff,
+    powerCalculator
+  );
+
+  // Add fluid-specific warnings
+  if (input.fluid.name === 'water' && rho < 990) {
+    warnings.push('Water density below expected range - check temperature');
+  }
+
+  if (input.fluid.name === 'air' && rho > 1.3) {
+    warnings.push(
+      'Air density above expected range - check pressure and temperature'
+    );
+  }
+
+  return {
+    ...result,
+    warnings: [...result.warnings, ...warnings],
+  };
+}
+
+/**
+ * Validate energy calculation inputs
+ * @param input Energy calculation input
+ * @returns Validation result
+ */
+export function validateEnergyInputs(input: EnergyCalculationInput): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  // Check required fields
+  if (!input.fluid.density || input.fluid.density.value <= 0) {
+    errors.push('Fluid density must be positive');
+  }
+
+  if (!input.head || input.head.value <= 0) {
+    errors.push('Head must be positive');
+  }
+
+  if (!input.loadProfile || input.loadProfile.length === 0) {
+    errors.push('Load profile must have at least one operating point');
+  }
+
+  if (!input.tariff || input.tariff.rate <= 0) {
+    errors.push('Energy tariff rate must be positive');
+  }
+
+  // Check load profile points
+  if (input.loadProfile) {
+    for (let i = 0; i < input.loadProfile.length; i++) {
+      const point = input.loadProfile[i];
+
+      if (point.hours <= 0) {
+        errors.push(`Load profile point ${i + 1}: Hours must be positive`);
+      }
+
+      if (!point.Qset || point.Qset.value <= 0) {
+        errors.push(`Load profile point ${i + 1}: Flow rate must be positive`);
+      }
+
+      if (point.speed !== undefined && (point.speed < 0 || point.speed > 1)) {
+        errors.push(
+          `Load profile point ${i + 1}: Speed ratio must be between 0 and 1`
+        );
+      }
+    }
+  }
+
+  // Check total hours
+  if (input.loadProfile) {
+    const totalHours = input.loadProfile.reduce(
+      (sum, point) => sum + point.hours,
+      0
+    );
+    if (totalHours > 8760 * 1.1) {
+      // Allow 10% tolerance
+      errors.push(
+        'Total hours in load profile cannot exceed 9636 hours (8760 + 10%)'
+      );
+    }
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
+ },
+ },
+    };
+  });
+
+  // Calculate totals
+  const totalEnergy = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+  const totalCost = profileResults.reduce(
+    (sum, point) => sum + point.cost.value,
+    0
+  );
+  const averagePower = (totalEnergy * 1000) / totalHours; // Convert kWh to W·h, then divide by hours
+
+  // Calculate average efficiencies (weighted by energy consumption)
+  const totalEnergyWeighted = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+
+  let avgPumpEfficiency = 0;
+  let avgMotorEfficiency = 0;
+  let avgVfdEfficiency = 0;
+  let avgTotalEfficiency = 0;
+
+  profileResults.forEach(point => {
+    const Q_value = convert(point.Qset, 'm³/s').value;
+    const powerResult = powerCalculator(Q_value, point.speed);
+    const weight = point.energy.value / totalEnergyWeighted;
+
+    avgPumpEfficiency += powerResult.efficiency.pump * weight;
+    avgMotorEfficiency += powerResult.efficiency.motor * weight;
+    if (powerResult.efficiency.vfd !== undefined) {
+      avgVfdEfficiency += powerResult.efficiency.vfd * weight;
+    }
+    avgTotalEfficiency += powerResult.efficiency.total * weight;
+  });
+
+  // Generate efficiency warnings
+  if (avgTotalEfficiency < 0.5) {
+    warnings.push(
+      `Low average efficiency: ${(avgTotalEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgPumpEfficiency < 0.6) {
+    warnings.push(
+      `Low pump efficiency: ${(avgPumpEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  if (avgMotorEfficiency < 0.8) {
+    warnings.push(
+      `Low motor efficiency: ${(avgMotorEfficiency * 100).toFixed(1)}%`
+    );
+  }
+
+  return {
+    totalEnergy: { value: totalEnergy, unit: 'kWh/year' },
+    totalCost: { value: totalCost, unit: '$/year' },
+    averagePower: { value: averagePower, unit: 'W' },
+    loadProfile: profileResults,
+    efficiency: {
+      averagePumpEfficiency: avgPumpEfficiency,
+      averageMotorEfficiency: avgMotorEfficiency,
+      averageVfdEfficiency: avgVfdEfficiency > 0 ? avgVfdEfficiency : undefined,
+      averageTotalEfficiency: avgTotalEfficiency,
+    },
+    warnings,
+    metadata: {
+      tariff,
+      totalHours,
+      operatingPoints: loadProfile.length,
+    },
+  };
+}
+
+/**
+ * Calculate annual energy for a pump system
+ * @param input Energy calculation input parameters
+ * @returns Annual energy analysis result
+ */
+export function calculatePumpEnergy(
+  input: EnergyCalculationInput
+): AnnualEnergyResult {
+  const warnings: (string | Warning)[] = [];
+
+  // Extract and convert input values
+  const rho = convert(input.fluid.density, 'kg/m³').value;
+  const H = convert(input.head, 'm').value;
+  const g = 9.81; // m/s²
+
+  // Validate efficiencies
+  if (input.pumpEfficiency <= 0 || input.pumpEfficiency > 1) {
+    throw new Error('Pump efficiency must be between 0 and 1');
+  }
+
+  if (input.motorEfficiency <= 0 || input.motorEfficiency > 1) {
+    throw new Error('Motor efficiency must be between 0 and 1');
+  }
+
+  if (
+    input.vfdEfficiency !== undefined &&
+    (input.vfdEfficiency <= 0 || input.vfdEfficiency > 1)
+  ) {
+    throw new Error('VFD efficiency must be between 0 and 1');
+  }
+
+  // Create power calculator function
+  const powerCalculator = (
+    Q: number,
+    speed?: number
+  ): PowerCalculationResult => {
+    // Apply speed scaling if provided
+    let effectiveQ = Q;
+    let effectiveH = H;
+
+    if (speed !== undefined) {
+      if (speed < 0 || speed > 1) {
+        throw new Error('Speed ratio must be between 0 and 1');
+      }
+      // Affinity laws: Q ~ speed, H ~ speed²
+      effectiveQ = Q * speed;
+      effectiveH = H * speed * speed;
+    }
+
+    return calculatePowerWithBreakdown(rho, g, effectiveQ, effectiveH, {
+      pumpEfficiency: input.pumpEfficiency,
+      motorEfficiency: input.motorEfficiency,
+      vfdEfficiency: input.vfdEfficiency,
+    });
+  };
+
+  // Calculate annual energy
+  const result = calculateAnnualEnergy(
+    input.loadProfile,
+    input.tariff,
+    powerCalculator
+  );
+
+  // Add fluid-specific warnings
+  if (input.fluid.name === 'water' && rho < 990) {
+    warnings.push('Water density below expected range - check temperature');
+  }
+
+  if (input.fluid.name === 'air' && rho > 1.3) {
+    warnings.push(
+      'Air density above expected range - check pressure and temperature'
+    );
+  }
+
+  return {
+    ...result,
+    warnings: [...result.warnings, ...warnings],
+  };
+}
+
+/**
+ * Validate energy calculation inputs
+ * @param input Energy calculation input
+ * @returns Validation result
+ */
+export function validateEnergyInputs(input: EnergyCalculationInput): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  // Check required fields
+  if (!input.fluid.density || input.fluid.density.value <= 0) {
+    errors.push('Fluid density must be positive');
+  }
+
+  if (!input.head || input.head.value <= 0) {
+    errors.push('Head must be positive');
+  }
+
+  if (!input.loadProfile || input.loadProfile.length === 0) {
+    errors.push('Load profile must have at least one operating point');
+  }
+
+  if (!input.tariff || input.tariff.rate <= 0) {
+    errors.push('Energy tariff rate must be positive');
+  }
+
+  // Check load profile points
+  if (input.loadProfile) {
+    for (let i = 0; i < input.loadProfile.length; i++) {
+      const point = input.loadProfile[i];
+
+      if (point.hours <= 0) {
+        errors.push(`Load profile point ${i + 1}: Hours must be positive`);
+      }
+
+      if (!point.Qset || point.Qset.value <= 0) {
+        errors.push(`Load profile point ${i + 1}: Flow rate must be positive`);
+      }
+
+      if (point.speed !== undefined && (point.speed < 0 || point.speed > 1)) {
+        errors.push(
+          `Load profile point ${i + 1}: Speed ratio must be between 0 and 1`
+        );
+      }
+    }
+  }
+
+  // Check total hours
+  if (input.loadProfile) {
+    const totalHours = input.loadProfile.reduce(
+      (sum, point) => sum + point.hours,
+      0
+    );
+    if (totalHours > 8760 * 1.1) {
+      // Allow 10% tolerance
+      errors.push(
+        'Total hours in load profile cannot exceed 9636 hours (8760 + 10%)'
+      );
+    }
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
+ },
+ },
+    };
+  });
+
+  // Calculate totals
+  const totalEnergy = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+  const totalCost = profileResults.reduce(
+    (sum, point) => sum + point.cost.value,
+    0
+  );
+  const averagePower = (totalEnergy * 1000) / totalHours; // Convert kWh to W·h, then divide by hours
+
+  // Calculate average efficiencies (weighted by energy consumption)
+  const totalEnergyWeighted = profileResults.reduce(
+    (sum, point) => sum + point.energy.value,
+    0
+  );
+
+  let avgPumpEfficiency = 0;
+  let avgMotorEfficiency = 0;
+  let avgVfdEfficiency = 0;
+  let avgTotalEfficiency = 0;
+
+  profileResults.forEach(point => {
     const Q_value = convert(point.Qset, 'm³/s').value;
     const powerResult = powerCalculator(Q_value, point.speed);
     const weight = point.energy.value / totalEnergyWeighted;

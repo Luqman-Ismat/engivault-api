@@ -8,17 +8,17 @@ const zTranscriptResponse = z.object({
   timestamp: z.date(),
   endpoint: z.string(),
   method: z.string(),
-  normalizedInputs: z.any(),
+  normalizedInputs: z.record(z.string(), z.unknown()),
   selectedEquations: z.array(z.string()),
-  intermediateValues: z.record(z.string(), z.any()),
+  intermediateValues: z.record(z.string(), z.unknown()),
   warnings: z.array(z.string()),
   metadata: z.object({
-    input: z.record(z.string(), z.any()),
+    input: z.record(z.string(), z.unknown()),
     units: z.record(z.string(), z.string()),
     userAgent: z.string().optional(),
     contentType: z.string().optional(),
   }),
-  result: z.any(),
+  result: z.record(z.string(), z.unknown()),
 });
 
 const zTranscriptListResponse = z.object({

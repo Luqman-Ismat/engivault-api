@@ -175,7 +175,7 @@ describe('Transients Route', () => {
     // Should have warnings about exceeding rating
     expect(
       result.warnings.some(
-        (w: any) =>
+        (w: { message?: string }) =>
           typeof w === 'object' &&
           w.message &&
           w.message.includes('exceeds pipe rating')

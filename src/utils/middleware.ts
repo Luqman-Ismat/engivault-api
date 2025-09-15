@@ -44,11 +44,7 @@ export async function requestLoggingMiddleware(
   };
 
   // Create child logger for this request
-  const requestLogger = createRequestLogger(
-    request.log as any,
-    request,
-    context
-  );
+  const requestLogger = createRequestLogger(request.log, request, context);
 
   // Store context in request
   request.context = {

@@ -8,7 +8,6 @@ import {
   calculateCavitationRisk,
   validateNPSHInputs,
   resolveAtmosphericPressure,
-  NPSHCurvePoint,
   NPSHCurve,
 } from './npsh';
 

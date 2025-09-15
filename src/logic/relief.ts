@@ -36,7 +36,7 @@ export interface ReliefValveResult {
 export interface Warning {
   code: string;
   message: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 /**

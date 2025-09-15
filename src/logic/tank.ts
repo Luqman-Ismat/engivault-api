@@ -205,7 +205,7 @@ export function calculateOutflow(
   pumpOn: boolean = true
 ): number {
   switch (outflow.type) {
-    case 'orifice':
+    case 'orifice': {
       if (!outflow.orifice) {
         throw new Error('Orifice configuration required for orifice outflow');
       }
@@ -215,8 +215,8 @@ export function calculateOutflow(
         orificeArea,
         level
       );
-
-    case 'pump':
+    }
+    case 'pump': {
       if (!outflow.pump) {
         throw new Error('Pump configuration required for pump outflow');
       }
@@ -224,15 +224,15 @@ export function calculateOutflow(
         return 0;
       }
       return interpolatePumpCurve(outflow.pump.curve, level);
-
-    case 'constant':
+    }
+    case 'constant': {
       if (!outflow.constant) {
         throw new Error(
           'Constant flow configuration required for constant outflow'
         );
       }
       return convert(outflow.constant.flow, 'm³/s').value;
-
+    }
     default:
       throw new Error(`Unknown outflow type: ${outflow.type}`);
   }
@@ -321,17 +321,19 @@ export function simulateTank(input: TankSimulationInput): TankSimulationResult {
     // Calculate inflow
     let inflow = 0;
     switch (input.inflow.type) {
-      case 'constant':
+      case 'constant': {
         if (input.inflow.value) {
           inflow = convert(input.inflow.value, 'm³/s').value;
         }
         break;
-      case 'curve':
+      }
+      case 'curve': {
         if (input.inflow.curve) {
           inflow = interpolateInflowCurve(input.inflow.curve, time);
         }
         break;
-      case 'function':
+      }
+      case 'function': {
         // Future enhancement for mathematical functions
         warnings.push({
           type: 'general',
@@ -339,6 +341,7 @@ export function simulateTank(input: TankSimulationInput): TankSimulationResult {
           severity: 'medium',
         });
         break;
+      }
     }
 
     // Determine pump state

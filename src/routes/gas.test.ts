@@ -290,10 +290,10 @@ describe('Gas Routes', () => {
 
       // Should have warning about choked flow
       const hasChokedWarning = result.warnings.some(
-        (w: any) =>
+        (w: { message?: string }) =>
           typeof w === 'object' &&
           'message' in w &&
-          w.message.includes('choked')
+          w.message?.includes('choked')
       );
       expect(hasChokedWarning).toBe(true);
     });
@@ -419,8 +419,12 @@ describe('Gas Routes', () => {
       const result = JSON.parse(response.payload);
 
       // Check monotonic trends
-      const machNumbers = result.states.map((s: { machNumber: number }) => s.machNumber);
-      const velocities = result.states.map((s: { velocity: number }) => s.velocity);
+      const machNumbers = result.states.map(
+        (s: { machNumber: number }) => s.machNumber
+      );
+      const velocities = result.states.map(
+        (s: { velocity: number }) => s.velocity
+      );
 
       // Mach number should increase
       for (let i = 1; i < machNumbers.length; i++) {
@@ -608,8 +612,12 @@ describe('Gas Routes', () => {
       const result = JSON.parse(response.payload);
 
       // Check trends for heat addition
-      const temperatures = result.states.map((s: any) => s.temperature);
-      const machNumbers = result.states.map((s: any) => s.machNumber);
+      const temperatures = result.states.map(
+        (s: { temperature: number }) => s.temperature
+      );
+      const machNumbers = result.states.map(
+        (s: { machNumber: number }) => s.machNumber
+      );
 
       // Temperature should increase with heat addition
       for (let i = 1; i < temperatures.length; i++) {
@@ -647,8 +655,12 @@ describe('Gas Routes', () => {
       const result = JSON.parse(response.payload);
 
       // Check trends for heat removal
-      const temperatures = result.states.map((s: any) => s.temperature);
-      const machNumbers = result.states.map((s: any) => s.machNumber);
+      const temperatures = result.states.map(
+        (s: { temperature: number }) => s.temperature
+      );
+      const machNumbers = result.states.map(
+        (s: { machNumber: number }) => s.machNumber
+      );
 
       // Temperature should decrease with heat removal
       for (let i = 1; i < temperatures.length; i++) {

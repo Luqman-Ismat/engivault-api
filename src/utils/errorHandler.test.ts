@@ -53,7 +53,7 @@ describe('handleError', () => {
     };
 
     const error = new ValidationError('Invalid input', { field: 'test' });
-    handleError(error, mockReply as any);
+    handleError(error, mockReply as unknown);
 
     expect(mockReply.status).toHaveBeenCalledWith(400);
     expect(mockReply.send).toHaveBeenCalledWith({
@@ -72,7 +72,7 @@ describe('handleError', () => {
     const error = new CalculationError('Calculation failed', {
       reason: 'overflow',
     });
-    handleError(error, mockReply as any);
+    handleError(error, mockReply as unknown);
 
     expect(mockReply.status).toHaveBeenCalledWith(422);
     expect(mockReply.send).toHaveBeenCalledWith({
@@ -89,7 +89,7 @@ describe('handleError', () => {
     };
 
     const error = new Error('Generic error');
-    handleError(error, mockReply as any);
+    handleError(error, mockReply as unknown);
 
     expect(mockReply.status).toHaveBeenCalledWith(500);
     expect(mockReply.send).toHaveBeenCalledWith({
@@ -105,7 +105,7 @@ describe('handleError', () => {
     };
 
     const error = 'String error';
-    handleError(error, mockReply as any);
+    handleError(error, mockReply as unknown);
 
     expect(mockReply.status).toHaveBeenCalledWith(500);
     expect(mockReply.send).toHaveBeenCalledWith({

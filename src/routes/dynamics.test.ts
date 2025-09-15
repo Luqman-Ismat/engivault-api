@@ -99,7 +99,9 @@ describe('Dynamics Routes', () => {
       expect(result.timeSeries).toHaveLength(101);
 
       // Check that pump states are recorded
-      const pumpStates = result.timeSeries.map((point: { pumpOn: boolean }) => point.pumpOn);
+      const pumpStates = result.timeSeries.map(
+        (point: { pumpOn: boolean }) => point.pumpOn
+      );
       expect(pumpStates).toBeDefined();
       expect(pumpStates.length).toBeGreaterThan(0);
 

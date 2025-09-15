@@ -106,8 +106,16 @@ export default async function npshRoutes(fastify: FastifyInstance) {
       } catch (error) {
         // Add engineering hints to error response
         const hints = ErrorHelper.addEngineeringHints('npsh', {
-          npsha: (error as any)?.npshAvailable?.value,
-          npshr: (error as any)?.npshRequired?.value,
+          npsha:
+            error && typeof error === 'object' && 'npshAvailable' in error
+              ? (error as { npshAvailable?: { value?: number } }).npshAvailable
+                  ?.value
+              : undefined,
+          npshr:
+            error && typeof error === 'object' && 'npshRequired' in error
+              ? (error as { npshRequired?: { value?: number } }).npshRequired
+                  ?.value
+              : undefined,
         });
 
         handleError(error, reply, hints);

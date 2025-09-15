@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { build } from '@/index';
 
 describe('Performance Integration Tests', () => {
-  let app: any;
+  let app: Awaited<ReturnType<typeof build>>;
 
   beforeEach(async () => {
     app = await build();

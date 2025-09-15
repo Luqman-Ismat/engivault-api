@@ -3,7 +3,7 @@ import Fastify from 'fastify';
 import pressureProfileRoutes from './pressureProfile';
 
 describe('Pressure Profile API Routes', () => {
-  let fastify: any;
+  let fastify: FastifyInstance;
 
   beforeEach(async () => {
     fastify = Fastify();

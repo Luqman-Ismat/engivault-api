@@ -114,8 +114,12 @@ describe('Runs Routes', () => {
       expect(result.count).toBe(2);
       expect(result.transcripts).toHaveLength(2);
 
-      const transcript1 = result.transcripts.find((t: { id: string }) => t.id === 'id1');
-      const transcript2 = result.transcripts.find((t: { id: string }) => t.id === 'id2');
+      const transcript1 = result.transcripts.find(
+        (t: { id: string }) => t.id === 'id1'
+      );
+      const transcript2 = result.transcripts.find(
+        (t: { id: string }) => t.id === 'id2'
+      );
 
       expect(transcript1).toBeDefined();
       expect(transcript1.endpoint).toBe('/api/v1/test1');

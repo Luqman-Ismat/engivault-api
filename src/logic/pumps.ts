@@ -1,5 +1,3 @@
-import { Quantity } from '@/schemas/common';
-
 export interface PumpCurvePoint {
   q: number; // flow rate (m³/s)
   h: number; // head (m)

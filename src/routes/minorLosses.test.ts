@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Fastify from 'fastify';
+import Fastify, { FastifyInstance } from 'fastify';
 import minorLossesRoutes from './minorLosses';
 
 describe('Minor Losses API Routes', () => {
-  let fastify: any;
+  let fastify: FastifyInstance;
 
   beforeEach(async () => {
     fastify = Fastify();

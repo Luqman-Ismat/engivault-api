@@ -420,17 +420,25 @@ describe('Operating Point API Routes', () => {
       expect(Array.isArray(result.arrangements)).toBe(true);
       expect(result.arrangements).toHaveLength(3);
 
-      const arrangementTypes = result.arrangements.map((a: { type: string }) => a.type);
+      const arrangementTypes = result.arrangements.map(
+        (a: { type: string }) => a.type
+      );
       expect(arrangementTypes).toContain('single');
       expect(arrangementTypes).toContain('parallel');
       expect(arrangementTypes).toContain('series');
 
       // Check that each arrangement has required properties
-      result.arrangements.forEach((arrangement: { type: string; description: string; characteristics: unknown }) => {
-        expect(arrangement.type).toBeDefined();
-        expect(arrangement.description).toBeDefined();
-        expect(arrangement.characteristics).toBeDefined();
-      });
+      result.arrangements.forEach(
+        (arrangement: {
+          type: string;
+          description: string;
+          characteristics: unknown;
+        }) => {
+          expect(arrangement.type).toBeDefined();
+          expect(arrangement.description).toBeDefined();
+          expect(arrangement.characteristics).toBeDefined();
+        }
+      );
     });
   });
 });

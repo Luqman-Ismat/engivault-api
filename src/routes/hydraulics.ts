@@ -61,7 +61,7 @@ const zPipeSizingResponse = z.object({
     })
   ),
   metadata: z.object({
-    input: z.any(),
+    input: zPipeSizingRequest, // Replaced z.any() with zPipeSizingRequest
     calculations: z.object({
       method: z.string(),
       iterations: z.number(),
@@ -73,79 +73,40 @@ const zPipeSizingResponse = z.object({
 
 export default async function hydraulicsRoutes(fastify: FastifyInstance) {
   // POST /api/v1/hydraulics/size-pipe
-  fastify.post('/api/v1/hydraulics/size-pipe', async (request, reply) => {
-    try {
-      const input = request.body as z.infer<typeof zPipeSizingRequest>;
+  fastify.post(
+    '/api/v1/hydraulics/size-pipe',
+    {
+      schema: {
+        body: zPipeSizingRequest,
+        response: {
+          200: zPipeSizingResponse,
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const input = request.body as z.infer<typeof zPipeSizingRequest>;
 
-      // Basic validation
-      if (!input || typeof input !== 'object') {
-        return reply.status(400).send({
-          error: 'Invalid request body',
-        });
-      }
-
-      if (
-        !input.flow ||
-        !input.target ||
-        !input.value ||
-        !input.fluid ||
-        !input.length
-      ) {
-        return reply.status(400).send({
-          error: 'Missing required fields',
-        });
-      }
-
-      // Validate positive values
-      if (input.flow.value <= 0) {
-        return reply.status(400).send({
-          error: 'Flow rate must be positive',
-        });
-      }
-
-      if (input.value.value <= 0) {
-        return reply.status(400).send({
-          error: 'Target value must be positive',
-        });
-      }
-
-      if (input.length.value <= 0) {
-        return reply.status(400).send({
-          error: 'Pipe length must be positive',
-        });
-      }
-
-      if (input.fluid.density.value <= 0) {
-        return reply.status(400).send({
-          error: 'Fluid density must be positive',
-        });
-      }
-
-      if (input.fluid.viscosity.value <= 0) {
-        return reply.status(400).send({
-          error: 'Fluid viscosity must be positive',
-        });
-      }
-
-      // Validate target value unit based on target type
-      if (input.target === 'velocity') {
-        if (!['m/s', 'ft/s', 'km/h'].includes(input.value.unit)) {
-          return reply.status(400).send({
-            error: 'Invalid velocity unit. Use m/s, ft/s, or km/h.',
-          });
+        // Validate target value unit based on target type
+        if (input.target === 'velocity') {
+          if (!['m/s', 'ft/s', 'km/h'].includes(input.value.unit)) {
+            return reply.status(400).send({
+              error: 'Invalid velocity unit. Use m/s, ft/s, or km/h.',
+            });
+          }
+        } else {
+          if (!['Pa', 'kPa', 'bar', 'psi'].includes(input.value.unit)) {
+            return reply.status(400).send({
+              error: 'Invalid pressure unit. Use Pa, kPa, bar, or psi.',
+            });
+          }
         }
-      } else {
-        if (!['Pa', 'kPa', 'bar', 'psi'].includes(input.value.unit)) {
-          return reply.status(400).send({
-            error: 'Invalid pressure unit. Use Pa, kPa, bar, or psi.',
-          });
-        }
-      }
 
-      const result = sizePipeForTarget(input);
-      return reply.send(result);
-    } catch (error) {
-      return handleError(error, reply);
+        const result = sizePipeForTarget(input);
+        return reply.send(result);
+      } catch (error) {
+        return handleError(error, reply);
+      }
     }
-  });
+  );
 }

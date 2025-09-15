@@ -926,7 +926,9 @@ describe('Operations Routes', () => {
         expect(result.results[3]).toBeNull(); // invalidOperation
 
         // Check error details
-        const errorIndexes = result.errors.map((e: { index: number }) => e.index);
+        const errorIndexes = result.errors.map(
+          (e: { index: number }) => e.index
+        );
         expect(errorIndexes).toContain(2);
         expect(errorIndexes).toContain(3);
 

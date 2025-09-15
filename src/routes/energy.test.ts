@@ -132,7 +132,9 @@ describe('Energy API', () => {
       expect(result.loadProfile).toHaveLength(3);
 
       // Lower speeds should result in lower power consumption
-      const powers = result.loadProfile.map((p: { power: { value: number } }) => p.power.value);
+      const powers = result.loadProfile.map(
+        (p: { power: { value: number } }) => p.power.value
+      );
       expect(powers[0]).toBeGreaterThan(powers[1]); // Full speed > half speed
       expect(powers[1]).toBeGreaterThan(powers[2]); // Half speed > quarter speed
     });
@@ -439,11 +441,13 @@ describe('Energy API', () => {
       expect(profileNames).toContain('Variable Speed');
 
       // Check that each profile has points
-      result.profiles.forEach((profile: { description: string; points: unknown[] }) => {
-        expect(profile.description).toBeDefined();
-        expect(profile.points).toBeInstanceOf(Array);
-        expect(profile.points.length).toBeGreaterThan(0);
-      });
+      result.profiles.forEach(
+        (profile: { description: string; points: unknown[] }) => {
+          expect(profile.description).toBeDefined();
+          expect(profile.points).toBeInstanceOf(Array);
+          expect(profile.points.length).toBeGreaterThan(0);
+        }
+      );
     });
   });
 
@@ -469,11 +473,13 @@ describe('Energy API', () => {
       expect(tariffNames).toContain('Low Rate');
 
       // Check that each tariff has required fields
-      result.tariffs.forEach((tariff: { rate: number; description: string; region: string }) => {
-        expect(tariff.rate).toBeGreaterThan(0);
-        expect(tariff.description).toBeDefined();
-        expect(tariff.region).toBeDefined();
-      });
+      result.tariffs.forEach(
+        (tariff: { rate: number; description: string; region: string }) => {
+          expect(tariff.rate).toBeGreaterThan(0);
+          expect(tariff.description).toBeDefined();
+          expect(tariff.region).toBeDefined();
+        }
+      );
     });
   });
 });

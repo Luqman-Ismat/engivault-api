@@ -378,14 +378,21 @@ describe('Valve API', () => {
       expect(types).toContain('modified-parabolic');
 
       // Check that each characteristic has required fields
-      result.characteristics.forEach((characteristic: { name: string; description: string; typicalFL: number; applications: unknown[] }) => {
-        expect(characteristic.name).toBeDefined();
-        expect(characteristic.description).toBeDefined();
-        expect(characteristic.typicalFL).toBeGreaterThan(0);
-        expect(characteristic.typicalFL).toBeLessThan(1);
-        expect(characteristic.applications).toBeInstanceOf(Array);
-        expect(characteristic.applications.length).toBeGreaterThan(0);
-      });
+      result.characteristics.forEach(
+        (characteristic: {
+          name: string;
+          description: string;
+          typicalFL: number;
+          applications: unknown[];
+        }) => {
+          expect(characteristic.name).toBeDefined();
+          expect(characteristic.description).toBeDefined();
+          expect(characteristic.typicalFL).toBeGreaterThan(0);
+          expect(characteristic.typicalFL).toBeLessThan(1);
+          expect(characteristic.applications).toBeInstanceOf(Array);
+          expect(characteristic.applications.length).toBeGreaterThan(0);
+        }
+      );
     });
   });
 
@@ -410,14 +417,24 @@ describe('Valve API', () => {
       expect(names).toContain('High Pressure Steam');
 
       // Check that each example has required fields
-      result.examples.forEach((example: { description: string; scenario: { flow: unknown; pressureDrop: unknown; specificGravity: unknown; trimCharacteristic: unknown } }) => {
-        expect(example.description).toBeDefined();
-        expect(example.scenario).toBeDefined();
-        expect(example.scenario.flow).toBeDefined();
-        expect(example.scenario.pressureDrop).toBeDefined();
-        expect(example.scenario.specificGravity).toBeDefined();
-        expect(example.scenario.trimCharacteristic).toBeDefined();
-      });
+      result.examples.forEach(
+        (example: {
+          description: string;
+          scenario: {
+            flow: unknown;
+            pressureDrop: unknown;
+            specificGravity: unknown;
+            trimCharacteristic: unknown;
+          };
+        }) => {
+          expect(example.description).toBeDefined();
+          expect(example.scenario).toBeDefined();
+          expect(example.scenario.flow).toBeDefined();
+          expect(example.scenario.pressureDrop).toBeDefined();
+          expect(example.scenario.specificGravity).toBeDefined();
+          expect(example.scenario.trimCharacteristic).toBeDefined();
+        }
+      );
     });
   });
 });

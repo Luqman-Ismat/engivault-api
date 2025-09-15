@@ -3,11 +3,9 @@ import { z } from 'zod';
 import { zQuantity } from '@/schemas/common';
 import {
   calculateCavitationRisk,
-  NPSHCalculationInput,
   validateNPSHInputs,
   resolveAtmosphericPressure,
 } from '@/logic/npsh';
-import { ErrorHelper } from '@/utils/errorHelper';
 import { handleError } from '@/utils/errorHandler';
 
 const zNPSHCurvePoint = z.object({

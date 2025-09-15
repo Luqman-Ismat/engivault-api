@@ -67,14 +67,19 @@ async function npshRoutes(fastify) {
             const inputs = request.body;
             // @ts-ignore
             const results = (0, npsh_1.calculateCavitationRisk)({
-                atmosphericPressure: { value: inputs.atmosphericPressure, unit: 'Pa' },
+                atmosphericPressure: {
+                    value: inputs.atmosphericPressure,
+                    unit: 'Pa',
+                },
                 vaporPressure: { value: inputs.vaporPressure, unit: 'Pa' },
                 // @ts-ignore
                 fluidDensity: { value: inputs.fluidDensity, unit: 'kg/m3' },
                 staticHead: { value: inputs.staticHead, unit: 'm' },
                 losses: { value: inputs.frictionLosses, unit: 'Pa' },
-                flowRate: inputs.flowRate ? { value: inputs.flowRate, unit: 'm3/s' } : undefined,
-                npshCurve: { points: [] }
+                flowRate: inputs.flowRate
+                    ? { value: inputs.flowRate, unit: 'm3/s' }
+                    : undefined,
+                npshCurve: { points: [] },
             });
             // Add engineering hints based on NPSH results
             const hints = errorHelper_1.ErrorHelper.addEngineeringHints('npsh', {
@@ -97,8 +102,14 @@ async function npshRoutes(fastify) {
         catch (error) {
             // Add engineering hints to error response
             const hints = errorHelper_1.ErrorHelper.addEngineeringHints('npsh', {
-                npsha: error?.npshAvailable?.value,
-                npshr: error?.npshRequired?.value,
+                npsha: error && typeof error === 'object' && 'npshAvailable' in error
+                    ? error.npshAvailable
+                        ?.value
+                    : undefined,
+                npshr: error && typeof error === 'object' && 'npshRequired' in error
+                    ? error.npshRequired
+                        ?.value
+                    : undefined,
             });
             (0, errorHandler_1.handleError)(error, reply, hints);
         }

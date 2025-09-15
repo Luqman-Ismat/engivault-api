@@ -192,7 +192,7 @@ describe('Energy Logic', () => {
         },
       ];
 
-      const powerCalculator = (Q: number) => ({
+      const powerCalculator = () => ({
         power: { value: 1000, unit: 'W' },
         efficiency: { pump: 0.75, motor: 0.9, total: 0.675 },
         breakdown: {
@@ -267,7 +267,7 @@ describe('Energy Logic', () => {
         },
       ];
 
-      const powerCalculator = (Q: number) => ({
+      const powerCalculator = () => ({
         power: { value: 1000, unit: 'W' },
         efficiency: { pump: 0.75, motor: 0.9, total: 0.675 },
         breakdown: {
@@ -297,7 +297,7 @@ describe('Energy Logic', () => {
         },
       ];
 
-      const powerCalculator = (Q: number) => ({
+      const powerCalculator = () => ({
         power: { value: 1000, unit: 'W' },
         efficiency: { pump: 0.75, motor: 0.9, total: 0.675 },
         breakdown: {

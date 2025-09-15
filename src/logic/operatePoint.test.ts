@@ -118,7 +118,7 @@ describe('Operating Point Logic', () => {
     });
 
     it('should throw error for invalid arrangement', () => {
-      expect(() => combinePumps([samplePump1], 'invalid' as any)).toThrow(
+      expect(() => combinePumps([samplePump1], 'invalid' as never)).toThrow(
         'Invalid arrangement'
       );
     });
@@ -397,7 +397,7 @@ describe('Operating Point Logic', () => {
     it('should reject invalid arrangement', () => {
       const result = validateOperatingPointInputs(
         [samplePump1],
-        'invalid' as any,
+        'invalid' as 'single' | 'parallel' | 'series',
         sampleSystem
       );
 
@@ -434,7 +434,7 @@ describe('Operating Point Logic', () => {
     it('should validate polynomial coefficients', () => {
       const invalidSystem = {
         ...sampleSystem,
-        polynomial: [5, 'invalid' as any, 3],
+        polynomial: [5, NaN, 3],
       };
       const result = validateOperatingPointInputs(
         [samplePump1],

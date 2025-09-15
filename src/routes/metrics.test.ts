@@ -3,7 +3,7 @@ import { build } from '../index';
 import { resetMetrics } from '@/utils/metrics';
 
 describe('Metrics Routes', () => {
-  let app: any;
+  let app: Awaited<ReturnType<typeof build>>;
 
   beforeEach(async () => {
     app = await build();

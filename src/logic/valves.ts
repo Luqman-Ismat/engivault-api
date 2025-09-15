@@ -249,7 +249,7 @@ export function getVaporPressure(
 ): number {
   // Simplified vapor pressure correlations
   switch (fluidName.toLowerCase()) {
-    case 'water':
+    case 'water': {
       // Antoine equation for water (simplified)
       const T_C = temperature - 273.15;
       if (T_C >= 0 && T_C <= 100) {
@@ -258,8 +258,8 @@ export function getVaporPressure(
         return P_vap_mmHg * 133.322; // Convert mmHg to Pa
       }
       return 0; // Default for out-of-range temperatures
-
-    case 'ethanol':
+    }
+    case 'ethanol': {
       // Simplified for ethanol
       const T_C_ethanol = temperature - 273.15;
       if (T_C_ethanol >= 0 && T_C_ethanol <= 100) {
@@ -270,7 +270,7 @@ export function getVaporPressure(
         return P_vap_mmHg * 133.322;
       }
       return 0;
-
+    }
     default:
       return 0; // Unknown fluid, assume non-volatile
   }

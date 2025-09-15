@@ -1,0 +1,85 @@
+// EngiVault API Database Schema
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String    @map("password_hash")
+  companyName       String?   @map("company_name")
+  subscriptionTier  String    @default("free") @map("subscription_tier")
+  subscriptionStatus String   @default("active") @map("subscription_status")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  apiKeys           ApiKey[]
+  usage             ApiUsage[]
+  
+  @@map("users")
+}
+
+model ApiKey {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  keyName           String    @map("key_name")
+  apiKey            String    @unique @map("api_key")
+  keyHash           String    @map("key_hash")
+  permissions       Json      @default("{}")
+  rateLimitPerMinute Int      @default(100) @map("rate_limit_per_minute")
+  rateLimitPerDay   Int       @default(10000) @map("rate_limit_per_day")
+  usageCountToday   Int       @default(0) @map("usage_count_today")
+  usageCountTotal   BigInt    @default(0) @map("usage_count_total")
+  lastUsedAt        DateTime? @map("last_used_at")
+  expiresAt         DateTime? @map("expires_at")
+  isActive          Boolean   @default(true) @map("is_active")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usage             ApiUsage[]
+  
+  @@map("api_keys")
+}
+
+model ApiUsage {
+  id               String   @id @default(uuid())
+  apiKeyId         String   @map("api_key_id")
+  userId           String   @map("user_id")
+  endpoint         String
+  method           String
+  statusCode       Int      @map("status_code")
+  responseTimeMs   Int?     @map("response_time_ms")
+  requestSizeBytes Int?     @map("request_size_bytes")
+  responseSizeBytes Int?    @map("response_size_bytes")
+  ipAddress        String?  @map("ip_address")
+  userAgent        String?  @map("user_agent")
+  createdAt        DateTime @default(now()) @map("created_at")
+  
+  apiKey           ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("api_usage")
+}
+
+model SubscriptionPlan {
+  id                String    @id @default(uuid())
+  name              String
+  tier              String    @unique
+  monthlyPrice      Decimal?  @map("monthly_price") @db.Decimal(10, 2)
+  annualPrice       Decimal?  @map("annual_price") @db.Decimal(10, 2)
+  requestsPerMonth  Int?      @map("requests_per_month")
+  requestsPerDay    Int?      @map("requests_per_day")
+  requestsPerMinute Int?      @map("requests_per_minute")
+  features          Json      @default("{}")
+  isActive          Boolean   @default(true) @map("is_active")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  
+  @@map("subscription_plans")
+}

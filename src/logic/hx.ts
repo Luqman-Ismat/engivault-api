@@ -84,18 +84,9 @@ export function hxPressureDrop(
   // Convert input parameters to SI units
   const tubeDiameter = convert(input.geometry.tubeDiameter, 'm').value;
   const tubeLength = convert(input.geometry.tubeLength, 'm').value;
-  const tubePitch = convert(input.geometry.tubePitch, 'm').value;
-  const tubeThickness = convert(input.geometry.tubeThickness, 'm').value;
-  const shellDiameter = convert(input.geometry.shellDiameter, 'm').value;
-  const baffleSpacing = convert(input.geometry.baffleSpacing, 'm').value;
   const massFlux = convert(input.massFlux, 'kg/(m²·s)').value;
   const density = convert(input.fluidProperties.density, 'kg/m³').value;
   const viscosity = convert(input.fluidProperties.viscosity, 'Pa·s').value;
-
-  // Use provided roughness or default to drawn tube
-  const roughness = input.roughness
-    ? convert(input.roughness, 'm').value
-    : STANDARD_ROUGHNESS['drawn-tube'];
 
   // Validate inputs
   if (

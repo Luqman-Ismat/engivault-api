@@ -20,6 +20,8 @@ export async function registerSwagger(fastify: FastifyInstance): Promise<void> {
       tags: [
         { name: 'Health', description: 'Health check and monitoring endpoints' },
         { name: 'Monitoring', description: 'Prometheus metrics and system monitoring' },
+        { name: 'Authentication', description: 'User authentication, API key management, and account operations' },
+        { name: 'Analytics', description: 'Usage analytics, statistics, and performance metrics' },
         { name: 'Hydraulics', description: 'Hydraulic calculations including pressure drop, friction factors, and flow analysis' },
         { name: 'Pumps', description: 'Pump performance analysis, NPSH calculations, and operating point determination' },
         { name: 'Valves', description: 'Valve sizing, flow coefficients, and pressure drop calculations' },
@@ -31,6 +33,16 @@ export async function registerSwagger(fastify: FastifyInstance): Promise<void> {
         { name: 'Operations', description: 'Operational calculations including fill/drain times and batch processing' },
         { name: 'Utilities', description: 'Utility functions including curve fitting and calculation transcripts' },
       ],
+      components: {
+        securitySchemes: {
+          apiKey: {
+            type: 'apiKey',
+            name: 'X-API-Key',
+            in: 'header',
+            description: 'API Key for authentication'
+          }
+        }
+      },
     },
   });
 

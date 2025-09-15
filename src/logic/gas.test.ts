@@ -299,8 +299,6 @@ describe('Gas Module', () => {
       const result = fannoLine(input);
 
       // Check monotonic trends
-      const pressures = result.states.map(s => s.pressure);
-      const temperatures = result.states.map(s => s.temperature);
       const velocities = result.states.map(s => s.velocity);
       const machNumbers = result.states.map(s => s.machNumber);
 

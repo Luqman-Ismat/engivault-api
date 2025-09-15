@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { build } from '../app';
 
 describe('Relief Valve API Routes', () => {
-  let fastify: any;
+  let fastify: FastifyInstance;
 
   beforeAll(async () => {
     fastify = await build();

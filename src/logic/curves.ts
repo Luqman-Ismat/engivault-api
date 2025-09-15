@@ -410,14 +410,6 @@ function solveCubicSystem(matrix: number[][], rhs: number[]): number[] | null {
   return solution;
 }
 
-
-
-
-
-
-
-
-
 /**
  * Predict head value for a given flow rate using fitted coefficients
  */

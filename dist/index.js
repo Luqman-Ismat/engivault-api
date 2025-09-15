@@ -12,6 +12,7 @@ const middleware_1 = require("@/utils/middleware");
 // Import plugins
 const performance_1 = require("@/utils/plugins/performance");
 const swagger_1 = require("@/utils/plugins/swagger");
+const authentication_1 = require("@/utils/plugins/authentication");
 // Import routes
 const routes_1 = require("@/routes");
 const metrics_2 = __importDefault(require("@/routes/metrics"));
@@ -40,6 +41,7 @@ async function createFastifyInstance() {
     // Register plugins
     await (0, performance_1.registerPerformancePlugins)(fastify);
     await (0, swagger_1.registerSwagger)(fastify);
+    await (0, authentication_1.registerAuthentication)(fastify);
     // Register schemas
     await (0, schemas_1.registerSchemas)(fastify);
     // Register utilities
@@ -63,7 +65,7 @@ async function startServer() {
         fastifyInstance.log.info(`Health check available at http://${host}:${port}/health`);
     }
     catch (err) {
-        if (err.code === 'EADDRINUSE') {
+        if (err && typeof err === 'object' && 'code' in err && err.code === 'EADDRINUSE') {
             console.error(`Port ${environment_1.config.PORT} is already in use. Please try a different port or stop the existing server.`);
             console.error('You can set a different port using the PORT environment variable.');
         }

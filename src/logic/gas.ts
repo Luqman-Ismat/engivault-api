@@ -601,7 +601,6 @@ export function gasStateAtMach(
     -gamma / (gamma - 1)
   );
   const temperatureRatio = Math.pow(1 + ((gamma - 1) * M2) / 2, -1);
-  const densityRatio = Math.pow(1 + ((gamma - 1) * M2) / 2, -1 / (gamma - 1));
 
   const pressure = stagnationPressure * pressureRatio;
   const temperature = stagnationTemperature * temperatureRatio;
@@ -677,12 +676,8 @@ export function fannoLine(input: FannoLineInput): DuctFlowResult {
 
   for (let i = 0; i <= numPoints; i++) {
     const fraction = i / numPoints;
-    const currentLength = fraction * Math.min(length, maxLength);
-
     // Calculate Mach number at current length using Fanno relations
     // Use the Fanno line equation: fL*/D = (1-M²)/(γM²) + (γ+1)/(2γ) * ln((γ+1)M²/(2+(γ-1)M²))
-    const fLStar = (4 * f * currentLength) / D;
-
     // For simplicity, use a linear interpolation of Mach number
     // In a real implementation, this would require solving the Fanno equation iteratively
     const M = M0 + fraction * (0.99 - M0); // Linear interpolation to near-sonic
@@ -802,7 +797,6 @@ export function rayleighLine(input: RayleighLineInput): DuctFlowResult {
   const { state0 } = input;
   const gamma = input.specificHeatRatio;
   const q = heatTransferRate;
-  const D = diameter;
 
   // Calculate initial Mach number if not provided
   let M0 = state0.machNumber;
@@ -825,7 +819,6 @@ export function rayleighLine(input: RayleighLineInput): DuctFlowResult {
 
   for (let i = 0; i <= numPoints; i++) {
     const fraction = i / numPoints;
-    const currentHeatTransfer = fraction * Math.abs(q);
 
     // Calculate Mach number at current heat transfer using Rayleigh relations
     // For simplicity, use a linear interpolation based on heat transfer direction
@@ -868,8 +861,6 @@ export function rayleighLine(input: RayleighLineInput): DuctFlowResult {
   if (states.length > 1) {
     const pressures = states.map(s => s.pressure);
     const temperatures = states.map(s => s.temperature);
-    const velocities = states.map(s => s.velocity);
-    const machNumbers = states.map(s => s.machNumber);
 
     // Check monotonic trends based on heat transfer direction
     if (q > 0) {

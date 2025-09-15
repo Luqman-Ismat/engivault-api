@@ -3,7 +3,7 @@ import { transcriptService } from '@/services/runs';
 
 export interface TranscriptCaptureOptions {
   selectedEquations?: string[];
-  intermediateValues?: Record<string, any>;
+  intermediateValues?: Record<string, unknown>;
   warnings?: Array<{
     type: string;
     message: string;
@@ -14,7 +14,7 @@ export interface TranscriptCaptureOptions {
 /**
  * Decorator function to wrap route handlers with transcript capture
  */
-export function withTranscriptCapture<T = any>(
+export function withTranscriptCapture<T = unknown>(
   handler: (request: FastifyRequest, reply: FastifyReply) => Promise<T>,
   options: TranscriptCaptureOptions = {}
 ) {
@@ -75,7 +75,7 @@ export function withTranscriptCapture<T = any>(
 export function createTranscriptOptions(
   calculationType: string,
   equations: string[] = [],
-  intermediates: Record<string, any> = {},
+  intermediates: Record<string, unknown> = {},
   warnings: Array<{
     type: string;
     message: string;

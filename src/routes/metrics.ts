@@ -28,11 +28,11 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
         return reply.send(metrics);
       } catch (error) {
         // @ts-ignore
-        request.log.error('Error generating metrics:', error as any);
+        request.log.error('Error generating metrics:', error as unknown);
         // @ts-ignore
         return reply
           .status(500)
-          .send({ error: 'Failed to generate metrics' } as any);
+          .send({ error: 'Failed to generate metrics' } as unknown);
       }
     }
   );

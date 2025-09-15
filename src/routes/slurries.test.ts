@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { build } from '../index';
 
 describe('Slurries Routes', () => {
-  let app: any;
+  let app: Awaited<ReturnType<typeof build>>;
 
   beforeAll(async () => {
     app = await build();

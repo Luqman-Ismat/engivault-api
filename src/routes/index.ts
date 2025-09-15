@@ -26,6 +26,10 @@ import runsRoutes from './runs';
 import metricsRoutes from './metrics';
 // import errorHelperDemoRoutes from './errorHelperDemo';
 
+// SaaS Authentication and Analytics routes
+import authRoutes from './auth';
+import analyticsRoutes from './analytics';
+
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Health check endpoint
   fastify.get(
@@ -106,6 +110,10 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
       };
     }
   );
+
+  // Register SaaS Authentication and Analytics routes (no prefix needed)
+  await fastify.register(authRoutes);
+  await fastify.register(analyticsRoutes);
 
   // Register API routes with proper tags for documentation
   // await fastify.register(pressureDropRoutes, { prefix: '/api/v1' });
