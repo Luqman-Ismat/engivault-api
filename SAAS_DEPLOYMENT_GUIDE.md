@@ -435,6 +435,12 @@ jobs:
 - Accessible via `/materials` endpoints
 - Categories: Metal, Polymer, Ceramic, Composite, Wood, Other
 
+#### Knowledge Base
+- Knowledge articles stored in-memory (14+ articles)
+- Accessible via `/knowledge` endpoints
+- Categories: Physics, Thermal, Fluid, Mechanical, Structural, Materials
+- Features: Search, filtering, related articles, difficulty levels
+
 ### Database Migrations
 ```bash
 # Generate new migration after schema changes
@@ -469,6 +475,7 @@ npm run db:seed
 - [ ] Rate limiting functioning
 - [ ] Project management (Pro/Enterprise)
 - [ ] Materials database accessible
+- [ ] Knowledge base accessible
 - [ ] Calculation endpoints responding
 
 ### ✅ Monitoring Setup

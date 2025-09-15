@@ -93,6 +93,11 @@ Choose the perfect plan for your engineering calculation needs. All plans includ
   - 50+ engineering materials
   - Advanced filtering and search
   - Material property comparisons
+- ✅ **Knowledge Base Access**
+  - 14+ comprehensive engineering guides
+  - Searchable educational content
+  - Related article recommendations
+  - Physics, Thermal, Fluid, Mechanical guides
 - ✅ **Unlimited API keys**
 - ✅ **Priority email support** (4-hour response)
 - ✅ **Advanced analytics dashboard**
@@ -137,7 +142,11 @@ Choose the perfect plan for your engineering calculation needs. All plans includ
 - ✅ **Full Materials Database**
   - Complete materials database access
   - Custom material property management
+- ✅ **Complete Knowledge Base**
+  - Full access to all educational content
   - Advanced search and filtering
+  - Custom article recommendations
+  - All engineering disciplines covered
   - Material comparison tools
 - ✅ **Unlimited API keys**
 - ✅ **Dedicated support team**
@@ -172,6 +181,9 @@ Choose the perfect plan for your engineering calculation needs. All plans includ
 | **User Calculation Tracking** | ❌ | ❌ | ✅ | ✅ |
 | **Materials Database** | ✅ | ✅ | ✅ | ✅ |
 | **Advanced Materials Search** | ❌ | ❌ | ✅ | ✅ |
+| **Knowledge Base** | ✅ | ✅ | ✅ | ✅ |
+| **Knowledge Base Search** | ❌ | ❌ | ✅ | ✅ |
+| **Related Articles** | ❌ | ❌ | ✅ | ✅ |
 | **Support Level** | Community | Email (24h) | Priority (4h) | Dedicated Team |
 | **Analytics** | Basic Stats | Detailed | Advanced Dashboard | Custom Reports |
 | **Bulk Operations** | ❌ | ❌ | ✅ | ✅ |

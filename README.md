@@ -104,6 +104,14 @@ A comprehensive engineering calculation API with project management features, bu
 - **API endpoints**: Full CRUD operations with pagination and sorting
 - **Categories**: Metals, Polymers, Ceramics, Composites, Wood, and Other materials
 
+### Knowledge Base ✅
+- **Educational articles**: 14+ comprehensive engineering guides and tutorials
+- **Categorized content**: Physics, Thermal, Fluid, Mechanical, Structural, and Materials engineering
+- **Search functionality**: Full-text search across articles with relevance scoring
+- **Related articles**: Intelligent article recommendations based on content similarity
+- **Difficulty levels**: Beginner, Intermediate, and Advanced content for all skill levels
+- **Topics covered**: NPSH, valve sizing, heat exchangers, pump performance, thermal analysis, and more
+
 ## 📋 Phase 2B Roadmap
 
 ### High Priority (Code Quality)
@@ -137,6 +145,7 @@ A comprehensive engineering calculation API with project management features, bu
 - **SaaS Authentication**: User management, API keys, subscription tiers
 - **Project Management**: Projects, tasks, sprints, team collaboration
 - **Materials Database**: Comprehensive material properties for engineering
+- **Knowledge Base**: Educational articles and engineering guides with search functionality
 - **User Analytics**: Calculation tracking and performance monitoring
 - **Validation**: Comprehensive input validation with helpful error messages
 - **Error Handling**: Centralized error management with engineering-specific hints
@@ -235,6 +244,13 @@ Once the server is running, visit:
 - `GET /materials/:id` - Get specific material
 - `GET /materials/categories` - Get material categories
 - `GET /materials/search` - Advanced material search
+
+### 📚 Knowledge Base Endpoints
+- `GET /knowledge` - List all knowledge articles with filtering
+- `GET /knowledge/:id` - Get specific knowledge article
+- `GET /knowledge/categories` - Get knowledge categories with article counts
+- `GET /knowledge/search` - Search knowledge articles by content
+- `GET /knowledge/:id/related` - Get related articles
 
 ### 📈 Analytics Endpoints
 - `GET /analytics/usage` - Usage statistics

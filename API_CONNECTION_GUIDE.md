@@ -59,6 +59,13 @@ Expected response:
 - `GET /materials/categories` - Get material categories
 - `GET /materials/search` - Advanced material search
 
+#### 📚 Knowledge Base
+- `GET /knowledge` - List all knowledge articles with filtering
+- `GET /knowledge/:id` - Get specific knowledge article
+- `GET /knowledge/categories` - Get knowledge categories with article counts
+- `GET /knowledge/search` - Search knowledge articles by content
+- `GET /knowledge/:id/related` - Get related articles
+
 #### 🔧 Engineering Calculations
 - `POST /hydraulics/pressure-drop` - Calculate pressure drop using Darcy-Weisbach equation
 - `POST /hydraulics/minor-losses` - Calculate minor losses in piping systems
@@ -222,6 +229,83 @@ curl http://localhost:3000/materials/2
 # - Material name and category
 # - Density, elastic modulus, Poisson's ratio
 # - Tensile strength, thermal conductivity
+```
+
+## 📚 Knowledge Base
+
+### Browse Knowledge Articles
+```bash
+# Get all knowledge articles
+curl http://localhost:3000/knowledge
+
+# Filter by category
+curl "http://localhost:3000/knowledge?category=physics"
+
+# Filter by difficulty
+curl "http://localhost:3000/knowledge?difficulty=beginner"
+
+# Search articles
+curl "http://localhost:3000/knowledge?search=pump"
+
+# Pagination
+curl "http://localhost:3000/knowledge?limit=10&offset=0"
+```
+
+### Get Specific Article
+```bash
+# Get article by ID
+curl http://localhost:3000/knowledge/gravity-newtons-second-law
+
+# Response includes:
+# - Article title, category, and difficulty
+# - Read time and author information
+# - Tags and related calculators
+# - Full article content
+# - Last updated date
+```
+
+### Search Knowledge Base
+```bash
+# Search with query
+curl "http://localhost:3000/knowledge/search?q=heat transfer"
+
+# Filter search results
+curl "http://localhost:3000/knowledge/search?q=valve&category=fluid&limit=5"
+
+# Response includes:
+# - Relevance scores
+# - Matched fields (title, summary, tags)
+# - Total results count
+```
+
+### Get Related Articles
+```bash
+# Get articles related to a specific article
+curl http://localhost:3000/knowledge/gravity-newtons-second-law/related
+
+# Response includes:
+# - Related articles based on:
+#   - Same category
+#   - Shared tags
+#   - Related calculators
+# - Sorted by relevance score
+```
+
+### Knowledge Categories
+```bash
+# Get all knowledge categories
+curl http://localhost:3000/knowledge/categories
+
+# Response includes:
+# - Category names and descriptions
+# - Article counts per category
+# - Available categories:
+#   - Physics (2 articles)
+#   - Thermal Engineering (3 articles)
+#   - Fluid Mechanics (5 articles)
+#   - Mechanical Engineering (2 articles)
+#   - Structural Engineering (1 article)
+#   - Materials Engineering (1 article)
 ```
 
 ## 💻 SDK Usage
