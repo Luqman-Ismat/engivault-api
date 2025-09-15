@@ -97,8 +97,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
           keyName: 'Default API Key',
           apiKey,
           keyHash,
-          rateLimitPerMinute: 100,
-          rateLimitPerDay: 1000
+          rateLimitPerMinute: 5,
+          rateLimitPerDay: 10
         }
       });
 
@@ -279,10 +279,10 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
       // Determine rate limits based on subscription tier
       const rateLimits = {
-        free: { perMinute: 100, perDay: 1000 },
-        basic: { perMinute: 500, perDay: 10000 },
-        pro: { perMinute: 2000, perDay: 100000 },
-        enterprise: { perMinute: 10000, perDay: 1000000 }
+        free: { perMinute: 5, perDay: 10 },
+        basic: { perMinute: 10, perDay: 50 },
+        pro: { perMinute: 50, perDay: 500 },
+        enterprise: { perMinute: 200, perDay: 5000 }
       };
 
       const limits = rateLimits[request.user.subscriptionTier as keyof typeof rateLimits] || rateLimits.free;
