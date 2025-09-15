@@ -79,6 +79,20 @@ Choose the perfect plan for your engineering calculation needs. All plans includ
   - Gas flow calculations
   - Transient analysis
   - Heat exchanger calculations
+- ✅ **Project Management**
+  - Create and manage unlimited projects
+  - Task management with phases and sprints
+  - Team collaboration and role-based access
+  - Project analytics and metrics
+- ✅ **User Calculation Tracking**
+  - Track every calculation per user
+  - Execution time monitoring
+  - Project and task association
+  - Detailed usage analytics
+- ✅ **Materials Database Access**
+  - 50+ engineering materials
+  - Advanced filtering and search
+  - Material property comparisons
 - ✅ **Unlimited API keys**
 - ✅ **Priority email support** (4-hour response)
 - ✅ **Advanced analytics dashboard**
@@ -108,6 +122,23 @@ Choose the perfect plan for your engineering calculation needs. All plans includ
   - Custom algorithms
   - Bespoke calculation methods
   - Large-scale batch processing
+- ✅ **Advanced Project Management**
+  - Unlimited projects with enterprise features
+  - Advanced task management and bulk operations
+  - Custom project templates and workflows
+  - Enterprise-grade team collaboration
+  - Advanced project analytics and reporting
+- ✅ **Enterprise User Analytics**
+  - Comprehensive calculation tracking
+  - Custom reporting and dashboards
+  - Advanced performance monitoring
+  - Detailed usage analytics and insights
+  - Integration with business intelligence tools
+- ✅ **Full Materials Database**
+  - Complete materials database access
+  - Custom material property management
+  - Advanced search and filtering
+  - Material comparison tools
 - ✅ **Unlimited API keys**
 - ✅ **Dedicated support team**
 - ✅ **Custom analytics and reporting**
@@ -135,8 +166,15 @@ Choose the perfect plan for your engineering calculation needs. All plans includ
 | **Daily API Requests** | 10 | 50 | 500 | 5,000 |
 | **Requests per Minute** | 5 | 10 | 50 | 200 |
 | **API Keys** | 1 | 5 | Unlimited | Unlimited |
+| **Project Management** | ❌ | ❌ | ✅ | ✅ |
+| **Task Management** | ❌ | ❌ | ✅ | ✅ |
+| **Team Collaboration** | ❌ | ❌ | ✅ | ✅ |
+| **User Calculation Tracking** | ❌ | ❌ | ✅ | ✅ |
+| **Materials Database** | ✅ | ✅ | ✅ | ✅ |
+| **Advanced Materials Search** | ❌ | ❌ | ✅ | ✅ |
 | **Support Level** | Community | Email (24h) | Priority (4h) | Dedicated Team |
 | **Analytics** | Basic Stats | Detailed | Advanced Dashboard | Custom Reports |
+| **Bulk Operations** | ❌ | ❌ | ✅ | ✅ |
 | **Webhooks** | ❌ | ❌ | ✅ | ✅ |
 | **Batch Processing** | ❌ | ❌ | ✅ | ✅ |
 | **Custom Integrations** | ❌ | ❌ | ✅ | ✅ |

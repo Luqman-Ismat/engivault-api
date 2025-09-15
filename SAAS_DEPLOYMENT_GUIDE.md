@@ -32,8 +32,15 @@ Railway is the easiest way to get your SaaS API running in production.
    # Set additional environment variables
    railway variables set NODE_ENV=production
    railway variables set JWT_SECRET=your-super-secret-jwt-key-here
+   railway variables set JWT_EXPIRES_IN=7d
    railway variables set BCRYPT_ROUNDS=12
    railway variables set API_KEY_LENGTH=32
+   
+   # Optional email configuration
+   railway variables set EMAIL_HOST=smtp.gmail.com
+   railway variables set EMAIL_PORT=587
+   railway variables set EMAIL_USER=your-email@gmail.com
+   railway variables set EMAIL_PASS=your-app-password
    ```
 
 ### Step 2: Deploy
@@ -45,9 +52,20 @@ railway up
 
 Railway will automatically:
 - Build your Docker container
-- Run database migrations
 - Start your API server
 - Provide HTTPS endpoint
+
+**Important**: You need to run database migrations and seeding manually:
+```bash
+# Connect to your Railway project
+railway connect
+
+# Run database migrations
+railway run npm run db:migrate
+
+# Seed initial data (subscription plans)
+railway run npm run db:seed
+```
 
 ### Step 3: Initialize Database
 
@@ -57,9 +75,23 @@ After deployment, run the database initialization:
 # Connect to your Railway deployment
 railway shell
 
-# Run database setup
+# Generate Prisma client
+npm run db:generate
+
+# Run database migrations
+npm run db:migrate
+
+# Seed initial data (subscription plans and materials)
 npm run db:seed
 ```
+
+This will create all necessary tables:
+- Users and authentication
+- API keys and usage tracking
+- Projects and tasks
+- User calculations tracking
+- Materials database
+- Subscription plans
 
 ## 🌐 Alternative Hosting Options
 
@@ -383,6 +415,67 @@ jobs:
         with:
           railway-token: ${{ secrets.RAILWAY_TOKEN }}
 ```
+
+## 🗄️ Database Schema Overview
+
+### Core Tables
+
+#### Users & Authentication
+- **users**: User accounts with subscription tiers
+- **api_keys**: API access keys with rate limiting
+- **subscription_plans**: Available subscription tiers
+
+#### Project Management (Pro/Enterprise)
+- **projects**: Project lifecycle and team management
+- **tasks**: Task management with phases and sprints
+- **user_calculations**: Calculation tracking and analytics
+
+#### Materials Database
+- Materials data is stored in-memory (50+ materials)
+- Accessible via `/materials` endpoints
+- Categories: Metal, Polymer, Ceramic, Composite, Wood, Other
+
+### Database Migrations
+```bash
+# Generate new migration after schema changes
+npm run db:generate
+
+# Apply migrations to database
+npm run db:migrate
+
+# Reset database (development only)
+npm run db:reset
+```
+
+### Seeding Data
+```bash
+# Seed subscription plans and initial data
+npm run db:seed
+```
+
+## 📋 Post-Deployment Checklist
+
+### ✅ Essential Steps
+- [ ] Database migrations completed
+- [ ] Subscription plans seeded
+- [ ] Environment variables configured
+- [ ] HTTPS endpoint working
+- [ ] API documentation accessible
+- [ ] Health check endpoint responding
+
+### ✅ Feature Testing
+- [ ] User registration working
+- [ ] API key generation working
+- [ ] Rate limiting functioning
+- [ ] Project management (Pro/Enterprise)
+- [ ] Materials database accessible
+- [ ] Calculation endpoints responding
+
+### ✅ Monitoring Setup
+- [ ] Application logs accessible
+- [ ] Database connection stable
+- [ ] Performance metrics tracked
+- [ ] Error monitoring configured
 
 ## 🆘 Troubleshooting
 

@@ -1,6 +1,6 @@
 # EngiVault API Connection Guide
 
-This comprehensive guide explains how to connect to and use the EngiVault API for engineering calculations.
+This comprehensive guide explains how to connect to and use the EngiVault API for engineering calculations, project management, and user analytics.
 
 ## 🚀 Quick Start
 
@@ -38,12 +38,31 @@ Expected response:
 
 ### Available Endpoints
 
-#### 🔧 Hydraulics
+#### 🔑 Authentication & User Management
+- `POST /auth/register` - Register new user account
+- `POST /auth/login` - User authentication
+- `GET/POST /auth/api-keys` - API key management
+- `DELETE /auth/api-keys/:id` - Revoke API key
+- `GET /analytics/usage` - Usage statistics and analytics
+
+#### 📊 Project Management (Pro/Enterprise)
+- `GET/POST /projects` - Project lifecycle management
+- `GET /projects/:id` - Project details and team info
+- `GET/POST /projects/:id/tasks` - Task management
+- `GET /projects/:id/metrics` - Project analytics
+- `GET/PUT/DELETE /tasks/:id` - Individual task operations
+- `PUT /tasks/bulk-update` - Bulk task operations
+
+#### 🗃️ Materials Database
+- `GET /materials` - List materials with filtering
+- `GET /materials/:id` - Get specific material properties
+- `GET /materials/categories` - Get material categories
+- `GET /materials/search` - Advanced material search
+
+#### 🔧 Engineering Calculations
 - `POST /hydraulics/pressure-drop` - Calculate pressure drop using Darcy-Weisbach equation
 - `POST /hydraulics/minor-losses` - Calculate minor losses in piping systems
 - `POST /hydraulics/pipe-sizing` - Size pipes for target velocity or pressure drop
-
-#### 🔄 Pumps
 - `POST /pumps/npsh` - Calculate Net Positive Suction Head
 - `POST /pumps/bep` - Check Best Efficiency Point
 - `POST /pumps/operating-point` - Determine pump operating point
@@ -70,34 +89,139 @@ Expected response:
 
 ## 🔐 Authentication & Security
 
-### Current Implementation
-The API currently operates **without authentication** for development purposes. However, it includes several security features:
+### SaaS Authentication System
+The API now includes a complete SaaS authentication system with user management and API keys:
 
-#### Rate Limiting
-- **Default**: 100 requests per minute per IP
-- **Headers**: Rate limit info included in responses
-- **Error**: Returns `429 Too Many Requests` when exceeded
-
-#### Request Logging
-- All requests are logged with request IDs
-- PII data is automatically redacted
-- Performance metrics are collected
-
-#### CORS & Headers
-- CORS enabled for cross-origin requests
-- Security headers applied via middleware
-- Request/response compression enabled
-
-### Adding Authentication (Future)
-When authentication is implemented, you'll need to include:
+#### User Registration & Login
 ```bash
-# Bearer token
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-     http://localhost:3000/api/endpoint
+# Register a new user
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securePassword123",
+    "companyName": "Engineering Corp"
+  }'
 
-# API key
+# Login to get JWT token
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securePassword123"
+  }'
+```
+
+#### API Key Authentication
+```bash
+# Create an API key
+curl -X POST http://localhost:3000/auth/api-keys \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "keyName": "Production API Key",
+    "expiresAt": "2024-12-31T23:59:59Z"
+  }'
+
+# Use API key for requests
 curl -H "X-API-Key: YOUR_API_KEY" \
-     http://localhost:3000/api/endpoint
+     http://localhost:3000/api/v1/pumps/energy
+```
+
+#### Subscription Tiers & Rate Limiting
+- **Free**: 100 requests/month, 10/day, 5/minute
+- **Basic**: 1,000 requests/month, 50/day, 10/minute  
+- **Pro**: 10,000 requests/month, 500/day, 50/minute
+- **Enterprise**: 100,000 requests/month, 5,000/day, 200/minute
+
+#### Security Features
+- **JWT Authentication**: Secure token-based authentication
+- **API Key Management**: Generate, revoke, and track API keys
+- **Rate Limiting**: Per-user and per-API-key limits based on subscription
+- **Request Logging**: All requests logged with performance metrics
+- **PII Protection**: Automatic redaction of sensitive data
+
+## 📊 Project Management (Pro/Enterprise)
+
+### Creating Projects
+```bash
+# Create a new project (Pro/Enterprise only)
+curl -X POST http://localhost:3000/projects \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Pump System Design",
+    "description": "Design new pump system for facility",
+    "startDate": "2024-01-01T00:00:00Z",
+    "teamMembers": ["user2@example.com", "user3@example.com"]
+  }'
+```
+
+### Task Management
+```bash
+# Create a task
+curl -X POST http://localhost:3000/projects/PROJECT_ID/tasks \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Calculate pump energy consumption",
+    "description": "Determine annual energy costs for pump system",
+    "priority": "high",
+    "assignee": "engineer@example.com",
+    "phase": "implementation",
+    "sprint": 1,
+    "estimatedHours": 8
+  }'
+
+# Update task status
+curl -X PUT http://localhost:3000/tasks/TASK_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "in-progress",
+    "actualHours": 6
+  }'
+```
+
+### Project Analytics
+```bash
+# Get project metrics (Pro/Enterprise)
+curl -X GET http://localhost:3000/projects/PROJECT_ID/metrics \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Response includes:
+# - Task completion statistics
+# - User calculation tracking
+# - Performance metrics
+# - Usage analytics
+```
+
+## 🗃️ Materials Database
+
+### Search Materials
+```bash
+# Get all materials
+curl http://localhost:3000/materials
+
+# Filter by category
+curl "http://localhost:3000/materials?category=Metal"
+
+# Search by name
+curl "http://localhost:3000/materials?search=aluminum"
+
+# Filter by properties
+curl "http://localhost:3000/materials?minDensity=2000&maxDensity=3000"
+```
+
+### Get Specific Material
+```bash
+# Get material by ID
+curl http://localhost:3000/materials/2
+
+# Response includes:
+# - Material name and category
+# - Density, elastic modulus, Poisson's ratio
+# - Tensile strength, thermal conductivity
 ```
 
 ## 💻 SDK Usage
