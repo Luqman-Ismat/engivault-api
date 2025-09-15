@@ -22,6 +22,7 @@ export async function registerSwagger(fastify: FastifyInstance): Promise<void> {
         { name: 'Monitoring', description: 'Prometheus metrics and system monitoring' },
         { name: 'Authentication', description: 'User authentication, API key management, and account operations' },
         { name: 'Analytics', description: 'Usage analytics, statistics, and performance metrics' },
+        { name: 'Materials Database', description: 'Comprehensive materials database with properties for engineering calculations' },
         { name: 'Hydraulics', description: 'Hydraulic calculations including pressure drop, friction factors, and flow analysis' },
         { name: 'Pumps', description: 'Pump performance analysis, NPSH calculations, and operating point determination' },
         { name: 'Valves', description: 'Valve sizing, flow coefficients, and pressure drop calculations' },

@@ -30,6 +30,9 @@ import metricsRoutes from './metrics';
 import authRoutes from './auth';
 import analyticsRoutes from './analytics';
 
+// Materials Database routes
+import materialsRoutes from './materials';
+
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Health check endpoint
   fastify.get(
@@ -114,6 +117,9 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Register SaaS Authentication and Analytics routes (no prefix needed)
   await fastify.register(authRoutes);
   await fastify.register(analyticsRoutes);
+  
+  // Register Materials Database routes (no prefix needed)
+  await fastify.register(materialsRoutes);
 
   // Register API routes with proper tags for documentation
   // await fastify.register(pressureDropRoutes, { prefix: '/api/v1' });
