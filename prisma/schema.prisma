@@ -33,7 +33,7 @@ model ApiKey {
   userId            String    @map("user_id")
   keyName           String    @map("key_name")
   apiKey            String    @unique @map("api_key")
-  keyHash           String    @map("key_hash")
+  keyHash           String    @unique @map("key_hash")
   permissions       Json      @default("{}")
   rateLimitPerMinute Int      @default(100) @map("rate_limit_per_minute")
   rateLimitPerDay   Int       @default(10000) @map("rate_limit_per_day")

@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import prisma from '@/utils/database';
+import { prisma } from '@/utils/database';
 
 export interface CalculationTrackingOptions {
   calculationType: string;

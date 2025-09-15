@@ -118,7 +118,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
         });
       }
 
-      fastify.log.error('Registration error:', error);
+      fastify.log.error('Registration error:', error as Error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',
@@ -228,7 +228,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
         });
       }
 
-      fastify.log.error('Login error:', error);
+      fastify.log.error('Login error:', error as Error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',
@@ -319,7 +319,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
         });
       }
 
-      fastify.log.error('API key creation error:', error);
+      fastify.log.error('API key creation error:', error as Error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',
@@ -390,7 +390,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       return reply.send({ apiKeys: formattedApiKeys });
 
     } catch (error) {
-      fastify.log.error('API keys list error:', error);
+      fastify.log.error('API keys list error:', error as Error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',
@@ -451,7 +451,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       });
 
     } catch (error) {
-      fastify.log.error('API key revocation error:', error);
+      fastify.log.error('API key revocation error:', error as Error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',
@@ -516,7 +516,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       });
 
     } catch (error) {
-      fastify.log.error('Profile retrieval error:', error);
+      fastify.log.error('Profile retrieval error:', error as Error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',

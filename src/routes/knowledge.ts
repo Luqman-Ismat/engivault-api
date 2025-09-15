@@ -226,7 +226,7 @@ export default async function knowledgeRoutes(fastify: FastifyInstance): Promise
       },
     },
   }, async (request, reply) => {
-    const { category, difficulty, search, limit, offset } = request.query;
+    const { category, difficulty, search, limit, offset } = request.query as any;
 
     let filteredArticles = knowledgeBase;
 
@@ -278,7 +278,7 @@ export default async function knowledgeRoutes(fastify: FastifyInstance): Promise
       },
     },
   }, async (request, reply) => {
-    const { id } = request.params;
+    const { id } = request.params as any;
 
     const article = knowledgeBase.find(a => a.id === id);
 
@@ -377,7 +377,7 @@ export default async function knowledgeRoutes(fastify: FastifyInstance): Promise
       },
     },
   }, async (request, reply) => {
-    const { q, category, difficulty, limit } = request.query;
+    const { q, category, difficulty, limit } = request.query as any;
 
     const searchTerms = q.toLowerCase().split(' ').filter(term => term.length > 0);
     let filteredArticles = knowledgeBase;
@@ -460,8 +460,8 @@ export default async function knowledgeRoutes(fastify: FastifyInstance): Promise
       },
     },
   }, async (request, reply) => {
-    const { id } = request.params;
-    const { limit } = request.query;
+    const { id } = request.params as any;
+    const { limit } = request.query as { limit?: number };
 
     const article = knowledgeBase.find(a => a.id === id);
 

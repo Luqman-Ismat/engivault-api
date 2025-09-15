@@ -324,7 +324,7 @@ export function sizeValve(input: ValveSizingInput): ValveSizingResult {
     isChoked: false,
     likelihood: 'none',
     criticalPressureDrop: { value: 0, unit: 'Pa' },
-    actualPressureDrop: input.pressureDrop,
+    actualPressureDrop: { value: input.pressureDrop?.value || 0, unit: input.pressureDrop?.unit || "Pa" },
   };
 
   if (input.upstreamPressure) {

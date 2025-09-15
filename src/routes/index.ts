@@ -14,7 +14,6 @@ import gasRoutes from './gas';
 import hxRoutes from './hx';
 import hydraulicsRoutes from './hydraulics';
 import networksRoutes from './networks';
-import slurriesRoutes from './slurries';
 import transientsRoutes from './transients';
 import energyRoutes from './energy';
 import operationsRoutes from './operations';
@@ -156,7 +155,6 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(networksRoutes);
   await fastify.register(transientsRoutes);
   await fastify.register(thermalRoutes);
-  await fastify.register(slurriesRoutes);
   await fastify.register(operationsRoutes);
   await fastify.register(pumpRoutes);
   await fastify.register(runsRoutes);

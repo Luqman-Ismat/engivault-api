@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import prisma from '@/utils/database';
+import { prisma } from '@/utils/database';
 import type { Task, Project, Sprint, CreateTaskRequest, UpdateTaskRequest, CreateProjectRequest, UpdateProjectRequest } from '@/types/project';
 
 // Validation schemas
@@ -111,7 +111,7 @@ export default async function projectsRoutes(fastify: FastifyInstance): Promise<
       return reply.send({ projects });
       
     } catch (error) {
-      fastify.log.error('Error fetching projects:', error);
+      fastify.log.error('Error fetching projects:', error as Error);
       return reply.status(500).send({
         error: 'Internal server error',
         message: 'Failed to fetch projects'
@@ -191,7 +191,7 @@ export default async function projectsRoutes(fastify: FastifyInstance): Promise<
       return reply.status(201).send({ project });
       
     } catch (error) {
-      fastify.log.error('Error creating project:', error);
+      fastify.log.error('Error creating project:', error as Error);
       if (error instanceof z.ZodError) {
         return reply.status(400).send({
           error: 'Validation error',
@@ -276,7 +276,7 @@ export default async function projectsRoutes(fastify: FastifyInstance): Promise<
       return reply.send({ project });
       
     } catch (error) {
-      fastify.log.error('Error fetching project:', error);
+      fastify.log.error('Error fetching project:', error as Error);
       return reply.status(500).send({
         error: 'Internal server error',
         message: 'Failed to fetch project'
@@ -379,7 +379,7 @@ export default async function projectsRoutes(fastify: FastifyInstance): Promise<
       return reply.send({ tasks });
       
     } catch (error) {
-      fastify.log.error('Error fetching tasks:', error);
+      fastify.log.error('Error fetching tasks:', error as Error);
       return reply.status(500).send({
         error: 'Internal server error',
         message: 'Failed to fetch tasks'
@@ -477,7 +477,7 @@ export default async function projectsRoutes(fastify: FastifyInstance): Promise<
       return reply.status(201).send({ task });
       
     } catch (error) {
-      fastify.log.error('Error creating task:', error);
+      fastify.log.error('Error creating task:', error as Error);
       if (error instanceof z.ZodError) {
         return reply.status(400).send({
           error: 'Validation error',
@@ -616,7 +616,7 @@ export default async function projectsRoutes(fastify: FastifyInstance): Promise<
       return reply.send({ projectMetrics });
       
     } catch (error) {
-      fastify.log.error('Error fetching project metrics:', error);
+      fastify.log.error('Error fetching project metrics:', error as Error);
       return reply.status(500).send({
         error: 'Internal server error',
         message: 'Failed to fetch project metrics'

@@ -202,7 +202,7 @@ export default async function materialsRoutes(fastify: FastifyInstance): Promise
       return reply.send(response);
       
     } catch (error) {
-      fastify.log.error('Error fetching materials:', error);
+      fastify.log.error('Error fetching materials:', error as Error);
       return reply.status(400).send({
         error: 'Invalid request parameters',
         message: error instanceof Error ? error.message : 'Unknown error'
@@ -265,7 +265,7 @@ export default async function materialsRoutes(fastify: FastifyInstance): Promise
       return reply.send(material);
       
     } catch (error) {
-      fastify.log.error('Error fetching material:', error);
+      fastify.log.error('Error fetching material:', error as Error);
       return reply.status(400).send({
         error: 'Invalid request parameters',
         message: error instanceof Error ? error.message : 'Unknown error'
@@ -323,7 +323,7 @@ export default async function materialsRoutes(fastify: FastifyInstance): Promise
       return reply.send({ categories });
       
     } catch (error) {
-      fastify.log.error('Error fetching categories:', error);
+      fastify.log.error('Error fetching categories:', error as Error);
       return reply.status(500).send({
         error: 'Internal server error',
         message: 'Failed to fetch material categories'
@@ -442,7 +442,7 @@ export default async function materialsRoutes(fastify: FastifyInstance): Promise
       });
       
     } catch (error) {
-      fastify.log.error('Error in material search:', error);
+      fastify.log.error('Error in material search:', error as Error);
       return reply.status(400).send({
         error: 'Invalid search parameters',
         message: error instanceof Error ? error.message : 'Unknown error'

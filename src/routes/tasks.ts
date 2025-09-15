@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import prisma from '@/utils/database';
+import { prisma } from '@/utils/database';
 import type { Task, UpdateTaskRequest } from '@/types/project';
 
 // Validation schemas
@@ -138,7 +138,7 @@ export default async function tasksRoutes(fastify: FastifyInstance): Promise<voi
       });
       
     } catch (error) {
-      fastify.log.error('Error fetching tasks:', error);
+      fastify.log.error('Error fetching tasks:', error as Error);
       return reply.status(500).send({
         error: 'Internal server error',
         message: 'Failed to fetch tasks'
@@ -222,7 +222,7 @@ export default async function tasksRoutes(fastify: FastifyInstance): Promise<voi
       return reply.send({ task });
       
     } catch (error) {
-      fastify.log.error('Error fetching task:', error);
+      fastify.log.error('Error fetching task:', error as Error);
       return reply.status(500).send({
         error: 'Internal server error',
         message: 'Failed to fetch task'
@@ -331,7 +331,7 @@ export default async function tasksRoutes(fastify: FastifyInstance): Promise<voi
       return reply.send({ task: updatedTask });
       
     } catch (error) {
-      fastify.log.error('Error updating task:', error);
+      fastify.log.error('Error updating task:', error as Error);
       if (error instanceof z.ZodError) {
         return reply.status(400).send({
           error: 'Validation error',
@@ -404,7 +404,7 @@ export default async function tasksRoutes(fastify: FastifyInstance): Promise<voi
       return reply.status(204).send();
       
     } catch (error) {
-      fastify.log.error('Error deleting task:', error);
+      fastify.log.error('Error deleting task:', error as Error);
       return reply.status(500).send({
         error: 'Internal server error',
         message: 'Failed to delete task'
@@ -524,7 +524,7 @@ export default async function tasksRoutes(fastify: FastifyInstance): Promise<voi
       });
       
     } catch (error) {
-      fastify.log.error('Error bulk updating tasks:', error);
+      fastify.log.error('Error bulk updating tasks:', error as Error);
       if (error instanceof z.ZodError) {
         return reply.status(400).send({
           error: 'Validation error',

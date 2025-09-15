@@ -1,0 +1,53 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": false,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "removeComments": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    "noImplicitThis": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "tests", 
+    "**/*.test.ts", 
+    "**/*.spec.ts",
+    "src/routes/cavitationRisk.ts",
+    "src/routes/npshRequired.ts",
+    "src/routes/errorHelperDemo.ts",
+    "src/routes/metrics.ts",
+    "src/routes/pressureDrop.ts",
+    "src/routes/pressureProfile.ts",
+    "src/routes/npsh.ts",
+    "src/routes/relief.ts",
+    "src/routes/minorLosses.ts",
+    "src/services/runs.ts",
+    "src/utils/errorHandler.ts",
+    "src/utils/middleware.ts",
+    "src/logic/pressureProfile.ts",
+    "src/temp/**/*"
+  ]
+}

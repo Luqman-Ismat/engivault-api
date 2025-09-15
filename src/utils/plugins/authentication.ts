@@ -52,7 +52,7 @@ export async function registerAuthentication(fastify: FastifyInstance): Promise<
       const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
       
       // Find the API key in database
-      const apiKeyRecord = await prisma.apiKey.findUnique({
+      const apiKeyRecord = await prisma.apiKey.findFirst({
         where: { keyHash },
         include: { user: true }
       });
@@ -133,7 +133,7 @@ export async function registerAuthentication(fastify: FastifyInstance): Promise<
       });
 
     } catch (error) {
-      fastify.log.error('Authentication error:', error);
+      fastify.log.error('Authentication error:', error as Error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',
@@ -177,7 +177,7 @@ export async function registerAuthentication(fastify: FastifyInstance): Promise<
           });
         }
       } catch (error) {
-        fastify.log.error('Usage logging error:', error);
+        fastify.log.error('Usage logging error:', error as Error);
       }
     }
   });

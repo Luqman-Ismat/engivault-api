@@ -181,7 +181,7 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
       });
 
     } catch (error) {
-      fastify.log.error('Analytics error:', error);
+      fastify.log.error('Analytics error:', error as Error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',
@@ -258,7 +258,7 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
       return reply.send({ apiKeys: apiKeyStats });
 
     } catch (error) {
-      fastify.log.error('API key analytics error:', error);
+      fastify.log.error('API key analytics error:', error as Error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',
@@ -380,7 +380,7 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
       });
 
     } catch (error) {
-      fastify.log.error('Limits analytics error:', error);
+      fastify.log.error('Limits analytics error:', error as Error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',
