@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { zQuantity } from '@/schemas/common';
 import { calculatePumpEnergy, validateEnergyInputs } from '@/logic/energy';
 import { handleError } from '@/utils/errorHandler';
+import { createCalculationTracker } from '@/utils/userCalculationTracker';
 
 const zLoadProfilePoint = z.object({
   hours: z.number().positive(),
@@ -266,6 +267,9 @@ export default async function energyRoutes(fastify: FastifyInstance) {
           },
         },
       },
+    },
+    {
+      preHandler: [createCalculationTracker('pump_energy', '/api/v1/pumps/energy')]
     },
     async (request, reply) => {
       try {

@@ -22,6 +22,8 @@ model User {
   
   apiKeys           ApiKey[]
   usage             ApiUsage[]
+  ownedProjects     Project[] @relation("ProjectOwner")
+  userCalculations  UserCalculation[]
   
   @@map("users")
 }
@@ -82,4 +84,65 @@ model SubscriptionPlan {
   createdAt         DateTime  @default(now()) @map("created_at")
   
   @@map("subscription_plans")
+}
+
+model Project {
+  id                String    @id @default(uuid())
+  name              String
+  description       String
+  status            String    @default("active") // active, completed, on-hold, cancelled
+  startDate         DateTime  @map("start_date")
+  endDate           DateTime? @map("end_date")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  ownerId           String    @map("owner_id")
+  teamMembers       String[]  @map("team_members") // Array of user IDs
+  currentSprint     Int?      @map("current_sprint")
+  totalSprints      Int?      @map("total_sprints")
+  
+  owner             User      @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  tasks             Task[]
+  userCalculations  UserCalculation[]
+  
+  @@map("projects")
+}
+
+model Task {
+  id                String    @id @default(uuid())
+  title             String
+  description       String
+  status            String    @default("todo") // todo, in-progress, done
+  priority          String    @default("medium") // low, medium, high
+  assignee          String
+  phase             String?   // requirements, design, implementation, testing, deployment
+  sprint            Int?
+  dueDate           DateTime? @map("due_date")
+  estimatedHours    Int?      @map("estimated_hours")
+  actualHours       Int?      @map("actual_hours")
+  tags              String[]  @default([])
+  projectId         String    @map("project_id")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  project           Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@map("tasks")
+}
+
+model UserCalculation {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  calculationType   String    @map("calculation_type")
+  endpoint          String
+  requestData       Json      @map("request_data")
+  responseData      Json      @map("response_data")
+  executionTime     Int       @map("execution_time") // milliseconds
+  timestamp         DateTime  @default(now())
+  projectId         String?   @map("project_id")
+  taskId            String?   @map("task_id")
+  
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project           Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  @@map("user_calculations")
 }
