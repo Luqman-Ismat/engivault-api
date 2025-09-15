@@ -6,20 +6,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createFastifyInstance = createFastifyInstance;
 exports.build = build;
 const fastify_1 = __importDefault(require("fastify"));
-const environment_1 = require("@/config/environment");
-const metrics_1 = require("@/utils/metrics");
-const middleware_1 = require("@/utils/middleware");
+const environment_1 = require("./config/environment");
+const metrics_1 = require("./utils/metrics");
+const middleware_1 = require("./utils/middleware");
 // Import plugins
-const performance_1 = require("@/utils/plugins/performance");
-const swagger_1 = require("@/utils/plugins/swagger");
-const authentication_1 = require("@/utils/plugins/authentication");
+const performance_1 = require("./utils/plugins/performance");
+const swagger_1 = require("./utils/plugins/swagger");
+const authentication_1 = require("./utils/plugins/authentication");
 // Import routes
-const routes_1 = require("@/routes");
-const metrics_2 = __importDefault(require("@/routes/metrics"));
+const routes_1 = require("./routes");
+const metrics_2 = __importDefault(require("./routes/metrics"));
 // Import schemas
-const schemas_1 = require("@/schemas");
+const schemas_1 = require("./schemas");
 // Import utilities
-const utils_1 = require("@/utils");
+const utils_1 = require("./utils");
 async function createFastifyInstance() {
     // Initialize metrics if enabled
     if (environment_1.config.ENABLE_METRICS) {

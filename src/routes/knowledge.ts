@@ -209,20 +209,26 @@ export default async function knowledgeRoutes(fastify: FastifyInstance): Promise
       tags: ['Knowledge Base'],
       summary: 'Get all knowledge articles',
       description: 'Retrieve all knowledge articles with optional filtering',
-      querystring: z.object({
-        category: z.enum(['physics', 'mechanical', 'thermal', 'fluid', 'structural', 'materials']).optional(),
-        difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
-        search: z.string().optional(),
-        limit: z.coerce.number().min(1).max(100).default(20),
-        offset: z.coerce.number().min(0).default(0),
-      }),
+      querystring: {
+        type: 'object',
+        properties: {
+          category: { type: 'string', enum: ['physics', 'mechanical', 'thermal', 'fluid', 'structural', 'materials'] },
+          difficulty: { type: 'string', enum: ['beginner', 'intermediate', 'advanced'] },
+          search: { type: 'string' },
+          limit: { type: 'number', minimum: 1, maximum: 100, default: 20 },
+          offset: { type: 'number', minimum: 0, default: 0 },
+        }
+      },
       response: {
-        200: z.object({
-          articles: z.array(KnowledgeArticleSchema),
-          total: z.number(),
-          limit: z.number(),
-          offset: z.number(),
-        }),
+        200: {
+          type: 'object',
+          properties: {
+            articles: { type: 'array' },
+            total: { type: 'number' },
+            limit: { type: 'number' },
+            offset: { type: 'number' },
+          }
+        }
       },
     },
   }, async (request, reply) => {
@@ -266,15 +272,22 @@ export default async function knowledgeRoutes(fastify: FastifyInstance): Promise
       tags: ['Knowledge Base'],
       summary: 'Get specific knowledge article',
       description: 'Retrieve a specific knowledge article by ID',
-      params: z.object({
-        id: z.string(),
-      }),
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      },
       response: {
-        200: KnowledgeArticleSchema,
-        404: z.object({
-          error: z.string(),
-          message: z.string(),
-        }),
+        200: { type: 'object' },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+            message: { type: 'string' }
+          }
+        }
       },
     },
   }, async (request, reply) => {

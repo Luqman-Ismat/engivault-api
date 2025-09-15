@@ -8,8 +8,8 @@ exports.getWaterVaporPressure = getWaterVaporPressure;
 exports.calculateCavitationRisk = calculateCavitationRisk;
 exports.validateNPSHInputs = validateNPSHInputs;
 exports.resolveAtmosphericPressure = resolveAtmosphericPressure;
-const props_1 = require("@/props");
-const units_1 = require("@/utils/units");
+const props_1 = require("../props");
+const units_1 = require("../utils/units");
 /**
  * Calculate available NPSH using the formula:
  * NPSHa = (P_atm/ρg) + z_static - (P_vap/ρg) - (losses_Pa/ρg)

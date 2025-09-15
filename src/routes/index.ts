@@ -37,7 +37,7 @@ import projectsRoutes from './projects';
 import tasksRoutes from './tasks';
 
 // Knowledge Base routes
-import knowledgeRoutes from './knowledge';
+// import knowledgeRoutes from './knowledge'; // Temporarily disabled
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Health check endpoint
@@ -132,7 +132,7 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(tasksRoutes);
 
   // Register Knowledge Base routes (no prefix needed)
-  await fastify.register(knowledgeRoutes);
+  // await fastify.register(knowledgeRoutes); // Temporarily disabled
 
   // Register API routes with proper tags for documentation
   // await fastify.register(pressureDropRoutes, { prefix: '/api/v1' });

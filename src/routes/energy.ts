@@ -268,9 +268,10 @@ export default async function energyRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    {
-      preHandler: [createCalculationTracker('pump_energy', '/api/v1/pumps/energy')]
-    },
+    // Temporarily disabled calculation tracker
+    // {
+    //   preHandler: [createCalculationTracker('pump_energy', '/api/v1/pumps/energy')]
+    // },
     async (request, reply) => {
       try {
         const body = zEnergyRequest.parse(request.body);
