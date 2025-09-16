@@ -89,6 +89,7 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ## 📈 Performance
 
 ### Railway Optimizations
+- **Auto-Detection**: Railway automatically detects Node.js project
 - **Cold Start**: Optimized for Railway's cold start requirements
 - **Memory**: Minimal memory footprint (~50MB)
 - **CPU**: Efficient calculations with minimal CPU usage
@@ -119,6 +120,9 @@ railway logs
 
 # Test build locally
 npm run build
+
+# If Nixpacks issues, Railway will auto-detect Node.js
+# No custom nixpacks.toml needed
 ```
 
 #### Authentication Issues
