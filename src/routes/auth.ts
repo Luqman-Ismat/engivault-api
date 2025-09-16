@@ -1,9 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { prisma } from '@/utils/database';
-import { hashPassword, verifyPassword, generateApiKey, hashApiKey, generateUserId } from '@/utils/auth';
-import { UserRegistrationSchema, UserLoginSchema, ApiKeyCreateSchema } from '@/types';
-import { createSuccessResponse, AppError, handleAsync } from '@/utils/errorHandler';
-import logger from '@/utils/logger';
+import { prisma } from '../utils/database';
+import { hashPassword, verifyPassword, generateApiKey, hashApiKey, generateUserId } from '../utils/auth';
+import { UserRegistrationSchema, UserLoginSchema, ApiKeyCreateSchema } from '../types';
+import { createSuccessResponse, AppError, handleAsync } from '../utils/errorHandler';
+import logger from '../utils/logger';
 
 export default async function authRoutes(fastify: FastifyInstance): Promise<void> {
   // User Registration

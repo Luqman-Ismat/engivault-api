@@ -1,8 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { calculatePressureDrop, calculatePumpPerformance, calculateNPSH, calculateFlowRate } from '@/logic/calculations';
-import { PressureDropSchema, PumpPerformanceSchema, NPSHSchema } from '@/types';
-import { createSuccessResponse, AppError, handleAsync } from '@/utils/errorHandler';
-import logger from '@/utils/logger';
+import { calculatePressureDrop, calculatePumpPerformance, calculateNPSH, calculateFlowRate } from '../logic/calculations';
+import { PressureDropSchema, PumpPerformanceSchema, NPSHSchema } from '../types';
+import { createSuccessResponse, AppError, handleAsync } from '../utils/errorHandler';
+import logger from '../utils/logger';
 
 export default async function calculationRoutes(fastify: FastifyInstance): Promise<void> {
   // Pressure Drop Calculation

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { prisma } from '@/utils/database';
-import { createSuccessResponse, AppError, handleAsync } from '@/utils/errorHandler';
+import { prisma } from '../utils/database';
+import { createSuccessResponse, AppError, handleAsync } from '../utils/errorHandler';
 // import logger from '@/utils/logger';
 
 export default async function analyticsRoutes(fastify: FastifyInstance): Promise<void> {

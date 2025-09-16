@@ -1,6 +1,6 @@
 import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import logger from './logger';
-import { ApiResponse } from '@/types';
+import { ApiResponse } from '../types';
 
 export class AppError extends Error {
   public readonly statusCode: number;

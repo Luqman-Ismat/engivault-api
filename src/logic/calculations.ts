@@ -1,4 +1,4 @@
-import { PressureDropInput, PumpPerformanceInput, NPSHInput } from '@/types';
+import { PressureDropInput, PumpPerformanceInput, NPSHInput } from '../types';
 
 // Pressure Drop Calculation (Darcy-Weisbach equation)
 export function calculatePressureDrop(input: PressureDropInput): {

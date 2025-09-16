@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
-import { config } from '@/config/environment';
+import { config } from '../config/environment';
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, config.BCRYPT_ROUNDS);

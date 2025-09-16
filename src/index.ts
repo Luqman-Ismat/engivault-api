@@ -1,9 +1,9 @@
 import Fastify, { FastifyInstance } from 'fastify';
-import { config } from '@/config/environment';
-import { connectDatabase, disconnectDatabase } from '@/utils/database';
-import { registerRoutes } from '@/routes';
-import { errorHandler } from '@/utils/errorHandler';
-import logger from '@/utils/logger';
+import { config } from './config/environment';
+import { connectDatabase, disconnectDatabase } from './utils/database';
+import { registerRoutes } from './routes';
+import { errorHandler } from './utils/errorHandler';
+import logger from './utils/logger';
 
 export async function createFastifyInstance(): Promise<FastifyInstance> {
   const fastify = Fastify({
