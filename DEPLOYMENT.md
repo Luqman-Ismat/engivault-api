@@ -20,16 +20,25 @@ railway link
 
 ### Step 2: Add PostgreSQL Database
 ```bash
-# Add PostgreSQL service
+# Add PostgreSQL service to your Railway project
 railway add postgresql
+
+# This will automatically set the DATABASE_URL environment variable
+# You can verify it was set with:
+railway variables
 ```
 
-### Step 3: Set Environment Variables
+### Step 3: Set Required Environment Variables
 ```bash
-# Set required environment variables
-railway variables set JWT_SECRET=your-super-secret-jwt-key-change-this
+# Set JWT secret (REQUIRED)
+railway variables set JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
+
+# Set other environment variables
 railway variables set NODE_ENV=production
 railway variables set LOG_LEVEL=info
+
+# Verify all variables are set
+railway variables
 ```
 
 ### Step 4: Deploy
@@ -40,10 +49,13 @@ railway up
 
 ### Step 5: Setup Database
 ```bash
+# Generate Prisma client
+railway run npm run db:generate
+
 # Run database migrations
 railway run npm run db:migrate
 
-# Seed initial data
+# Seed initial data (subscription plans)
 railway run npm run db:seed
 ```
 
@@ -106,11 +118,19 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 
 #### Database Connection Failed
 ```bash
-# Check database URL
+# Check if DATABASE_URL is set
+railway variables
+
+# If DATABASE_URL is missing, add PostgreSQL service
+railway add postgresql
+
+# Verify DATABASE_URL is now set
 railway variables
 
 # Test database connection
 railway run npm run db:generate
+
+# If still failing, check Railway dashboard for database status
 ```
 
 #### Build Failed
