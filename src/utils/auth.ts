@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { v4 as uuidv4 } from 'uuid';
+import { randomBytes, randomUUID } from 'crypto';
 import { config } from '../config/environment';
 
 export async function hashPassword(password: string): Promise<string> {
@@ -11,7 +11,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export function generateApiKey(): string {
-  return uuidv4().replace(/-/g, '');
+  return randomBytes(32).toString('hex');
 }
 
 export function hashApiKey(apiKey: string): string {
@@ -23,5 +23,5 @@ export async function verifyApiKey(apiKey: string, hash: string): Promise<boolea
 }
 
 export function generateUserId(): string {
-  return uuidv4();
+  return randomUUID();
 }
