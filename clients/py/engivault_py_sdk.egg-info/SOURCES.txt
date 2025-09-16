@@ -1,7 +1,0 @@
-README.md
-setup.py
-engivault_py_sdk.egg-info/PKG-INFO
-engivault_py_sdk.egg-info/SOURCES.txt
-engivault_py_sdk.egg-info/dependency_links.txt
-engivault_py_sdk.egg-info/requires.txt
-engivault_py_sdk.egg-info/top_level.txt

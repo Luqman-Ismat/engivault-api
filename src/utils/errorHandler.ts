@@ -1,93 +1,74 @@
-import { FastifyReply } from 'fastify';
-import { z } from 'zod';
-import { ErrorHelper, ErrorHint } from './errorHelper';
+import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
+import logger from './logger';
+import { ApiResponse } from '@/types';
 
-export interface ApiError {
-  error: string;
-  code?: string;
-  details?: unknown;
-  hints?: ErrorHint[];
-}
+export class AppError extends Error {
+  public readonly statusCode: number;
+  public readonly isOperational: boolean;
 
-export class ValidationError extends Error {
-  constructor(
-    message: string,
-    public details?: unknown
-  ) {
+  constructor(message: string, statusCode: number = 500, isOperational: boolean = true) {
     super(message);
-    this.name = 'ValidationError';
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
+
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 
-export class CalculationError extends Error {
-  constructor(
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = 'CalculationError';
-  }
+export function createErrorResponse(error: string, _statusCode: number = 500): ApiResponse {
+  return {
+    success: false,
+    error,
+    timestamp: new Date().toISOString(),
+  };
 }
 
-export function handleError(
-  error: unknown,
-  reply: FastifyReply,
-  hints?: ErrorHint[]
-): void {
-  if (error instanceof z.ZodError) {
-    const enhancedError = ErrorHelper.createError(
-      'Validation error',
-      'VALIDATION_ERROR',
-      // @ts-ignore
-      error.errors as unknown,
-      hints
-    );
-    reply.status(400).send(enhancedError);
-  } else if (error instanceof ValidationError) {
-    const enhancedError = ErrorHelper.createError(
-      error.message,
-      'VALIDATION_ERROR',
-      error.details,
-      hints
-    );
-    reply.status(400).send(enhancedError);
-  } else if (error instanceof CalculationError) {
-    const enhancedError = ErrorHelper.createError(
-      error.message,
-      'CALCULATION_ERROR',
-      error.details,
-      hints
-    );
-    reply.status(422).send(enhancedError);
-  } else if (error instanceof Error) {
-    const enhancedError = ErrorHelper.createError(
-      'Internal server error',
-      'INTERNAL_ERROR',
-      undefined,
-      hints
-    );
-    reply.status(500).send(enhancedError);
-  } else {
-    const enhancedError = ErrorHelper.createError(
-      'Unknown error occurred',
-      'UNKNOWN_ERROR',
-      undefined,
-      hints
-    );
-    reply.status(500).send(enhancedError);
-  }
+export function createSuccessResponse<T>(data: T): ApiResponse<T> {
+  return {
+    success: true,
+    data,
+    timestamp: new Date().toISOString(),
+  };
 }
 
-export function createValidationError(
-  message: string,
-  details?: unknown
-): ValidationError {
-  return new ValidationError(message, details);
+export async function errorHandler(
+  error: FastifyError,
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  const statusCode = error.statusCode || 500;
+  const message = error.message || 'Internal Server Error';
+
+  // Log error
+  logger.error({
+    error: {
+      message: error.message,
+      stack: error.stack,
+      statusCode,
+    },
+    request: {
+      method: request.method,
+      url: request.url,
+      headers: request.headers,
+    },
+  }, 'Request error');
+
+  // Create error response
+  const errorResponse = createErrorResponse(message, statusCode);
+
+  // Send response
+  await reply.status(statusCode).send(errorResponse);
 }
 
-export function createCalculationError(
-  message: string,
-  details?: unknown
-): CalculationError {
-  return new CalculationError(message, details);
+export function handleAsync<T extends any[], R>(
+  fn: (...args: T) => Promise<R>
+) {
+  return (...args: T): Promise<R> => {
+    return fn(...args).catch((error) => {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError(error.message || 'Internal Server Error', 500);
+    });
+  };
 }

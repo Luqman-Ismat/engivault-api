@@ -1,20 +1,14 @@
-import { FastifyRequest } from 'fastify';
+import { FastifyRequest, FastifyInstance } from 'fastify';
 
 declare module 'fastify' {
   interface FastifyRequest {
     user?: {
-      id: string;
+      userId: string;
       email: string;
-      subscriptionTier: string;
-      subscriptionStatus: string;
     };
-    apiKey?: {
-      id: string;
-      keyName: string;
-      permissions: any;
-      rateLimitPerMinute: number;
-      rateLimitPerDay: number;
-      usageCountToday: number;
-    };
+  }
+
+  interface FastifyInstance {
+    authenticate: (request: FastifyRequest, reply: any) => Promise<void>;
   }
 }
