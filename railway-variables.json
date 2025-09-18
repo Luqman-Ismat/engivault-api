@@ -1,0 +1,12 @@
+{
+  "NODE_ENV": "production",
+  "PORT": "3000",
+  "HOST": "0.0.0.0",
+  "LOG_LEVEL": "info",
+  "JWT_SECRET": "REPLACE_WITH_SECURE_RANDOM_STRING",
+  "JWT_EXPIRES_IN": "7d",
+  "BCRYPT_ROUNDS": "12",
+  "RATE_LIMIT_MAX": "100",
+  "RATE_LIMIT_TIME_WINDOW": "60000"
+}
+

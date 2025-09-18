@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import authRoutes from './auth';
 import calculationRoutes from './calculations';
 import analyticsRoutes from './analytics';
+import heatTransferRoutes from './heatTransfer';
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Health check endpoint
@@ -82,4 +83,5 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(authRoutes);
   await fastify.register(calculationRoutes);
   await fastify.register(analyticsRoutes);
+  await fastify.register(heatTransferRoutes);
 }
