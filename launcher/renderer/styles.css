@@ -1,3 +1,69 @@
+/* Import ENGiVAULT Design System */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600&display=swap');
+
+/* ENGiVAULT Design System Variables */
+:root {
+  /* Primary Colors */
+  --background: #ffffff;
+  --foreground: #000000;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  
+  /* Secondary Colors */
+  --secondary: #f8f9fa;
+  --secondary-foreground: #000000;
+  --muted: #f8f9fa;
+  --muted-foreground: #6c757d;
+  
+  /* Interactive Elements */
+  --accent: #000000;
+  --accent-foreground: #ffffff;
+  --border: #e9ecef;
+  --input: #ffffff;
+  --ring: rgba(0, 0, 0, 0.2);
+  
+  /* Status Colors */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  
+  /* Chart Colors */
+  --chart-1: #000000;
+  --chart-2: #6c757d;
+  --chart-3: #dc2626;
+  --chart-4: #495057;
+  --chart-5: #343a40;
+  
+  /* Design Tokens */
+  --font-montserrat: 'Montserrat', system-ui, sans-serif;
+  --radius: 0.5rem;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* Dark Mode */
+.dark {
+  --background: #000000;
+  --foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --secondary: #111111;
+  --secondary-foreground: #ffffff;
+  --muted: #111111;
+  --muted-foreground: #a1a1aa;
+  --accent: #ffffff;
+  --accent-foreground: #000000;
+  --border: #333333;
+  --input: #111111;
+  --ring: rgba(255, 255, 255, 0.2);
+}
+
 /* Reset and base styles */
 * {
     margin: 0;
@@ -6,11 +72,14 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #333;
+    font-family: var(--font-montserrat);
+    font-weight: 200; /* Extra light - ENGiVAULT standard */
+    letter-spacing: -0.01em;
+    background: var(--background);
+    color: var(--foreground);
     overflow: hidden;
     height: 100vh;
+    line-height: 1.5;
 }
 
 /* App Container */
@@ -18,16 +87,19 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: white;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    background: var(--background);
+    box-shadow: var(--shadow-2xl);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
 }
 
 /* Header */
 .header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--primary);
+    color: var(--primary-foreground);
     padding: 1rem 2rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid var(--border);
 }
 
 .header-content {
@@ -48,15 +120,18 @@ body {
 
 .logo h1 {
     font-size: 1.5rem;
-    font-weight: 600;
+    font-weight: 300; /* Light - ENGiVAULT standard */
+    letter-spacing: 0.05em;
 }
 
 .version {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--secondary);
+    color: var(--secondary-foreground);
     padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    border: 1px solid var(--border);
 }
 
 /* Main Content */
@@ -91,15 +166,17 @@ body {
 }
 
 .screen-header h2 {
-    font-size: 1.75rem;
-    font-weight: 600;
+    font-size: 1.875rem; /* text-3xl */
+    font-weight: 300; /* Light - ENGiVAULT standard */
     margin-bottom: 0.5rem;
-    color: #2d3748;
+    color: var(--foreground);
+    letter-spacing: -0.02em;
 }
 
 .screen-header p {
-    color: #718096;
+    color: var(--muted-foreground);
     font-size: 1rem;
+    font-weight: 200; /* Extra light */
 }
 
 /* Welcome Screen */
@@ -115,20 +192,23 @@ body {
 
 .welcome-icon {
     font-size: 4rem;
-    color: #667eea;
+    color: var(--primary);
     margin-bottom: 1rem;
+    animation: float 4s ease-in-out infinite;
 }
 
 .welcome-header h2 {
-    font-size: 2.5rem;
-    font-weight: 700;
+    font-size: 3rem; /* text-5xl */
+    font-weight: 100; /* Ultra light - special headings */
     margin-bottom: 0.5rem;
-    color: #2d3748;
+    color: var(--foreground);
+    letter-spacing: -0.02em;
 }
 
 .welcome-header p {
-    font-size: 1.25rem;
-    color: #718096;
+    font-size: 1.25rem; /* text-xl */
+    color: var(--muted-foreground);
+    font-weight: 200; /* Extra light */
 }
 
 .features-grid {
@@ -139,35 +219,37 @@ body {
 }
 
 .feature-card {
-    background: #f7fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
+    background: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     padding: 2rem 1.5rem;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .feature-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    border-color: #667eea;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary);
 }
 
 .feature-card i {
     font-size: 2.5rem;
-    color: #667eea;
+    color: var(--primary);
     margin-bottom: 1rem;
 }
 
 .feature-card h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 400; /* Normal - emphasis text */
     margin-bottom: 0.5rem;
-    color: #2d3748;
+    color: var(--foreground);
+    letter-spacing: -0.01em;
 }
 
 .feature-card p {
-    color: #718096;
+    color: var(--muted-foreground);
     line-height: 1.5;
+    font-weight: 200; /* Extra light */
 }
 
 .welcome-actions {
@@ -176,20 +258,22 @@ body {
     justify-content: center;
 }
 
-/* Buttons */
+/* Buttons - ENGiVAULT Design System */
 .btn {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: var(--radius);
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 300; /* Light - ENGiVAULT standard */
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     text-decoration: none;
     white-space: nowrap;
+    font-family: var(--font-montserrat);
+    letter-spacing: -0.01em;
 }
 
 .btn:disabled {
@@ -198,36 +282,41 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: 1px solid var(--primary);
 }
 
 .btn-primary:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    transform: scale(1.05);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-secondary {
-    background: #e2e8f0;
-    color: #4a5568;
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--border);
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: #cbd5e0;
+    background: var(--muted);
+    transform: scale(1.05);
 }
 
 .btn-danger {
-    background: #fc8181;
-    color: white;
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+    border: 1px solid var(--destructive);
 }
 
 .btn-danger:hover:not(:disabled) {
-    background: #f56565;
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
 }
 
 .btn-small {
     padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+    font-size: 0.875rem; /* text-sm */
 }
 
 /* System Check Screen */
@@ -239,31 +328,34 @@ body {
 }
 
 .info-card {
-    background: #f7fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
+    background: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     padding: 1.5rem;
+    transition: all 0.3s ease;
 }
 
 .info-card h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 400; /* Normal - emphasis text */
     margin-bottom: 1rem;
-    color: #2d3748;
+    color: var(--foreground);
+    letter-spacing: -0.01em;
 }
 
 .requirements-check {
-    background: #f7fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
+    background: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     padding: 1.5rem;
 }
 
 .requirements-check h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 400; /* Normal - emphasis text */
     margin-bottom: 1rem;
-    color: #2d3748;
+    color: var(--foreground);
+    letter-spacing: -0.01em;
 }
 
 .requirement-item {
@@ -430,32 +522,35 @@ body {
 }
 
 .overall-progress h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 400; /* Normal - emphasis text */
     margin-bottom: 1rem;
-    color: #2d3748;
+    color: var(--foreground);
+    letter-spacing: -0.01em;
 }
 
 .progress-bar {
     width: 100%;
     height: 0.75rem;
-    background: #e2e8f0;
-    border-radius: 0.375rem;
+    background: var(--secondary);
+    border-radius: 9999px;
     overflow: hidden;
     margin-bottom: 0.5rem;
+    border: 1px solid var(--border);
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 0.375rem;
-    transition: width 0.3s ease;
+    background: var(--primary);
+    border-radius: 9999px;
+    transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     width: 0%;
 }
 
 .progress-text {
-    font-size: 0.875rem;
-    color: #718096;
+    font-size: 0.875rem; /* text-sm */
+    color: var(--muted-foreground);
+    font-weight: 200; /* Extra light */
 }
 
 .component-progress {
@@ -701,8 +796,8 @@ body {
 
 /* Footer */
 .footer {
-    background: #f7fafc;
-    border-top: 1px solid #e2e8f0;
+    background: var(--secondary);
+    border-top: 1px solid var(--border);
     padding: 1rem 2rem;
 }
 
@@ -718,19 +813,75 @@ body {
 }
 
 .footer-links a {
-    color: #718096;
+    color: var(--muted-foreground);
     text-decoration: none;
-    font-size: 0.875rem;
-    transition: color 0.3s ease;
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 200; /* Extra light */
+    transition: all 0.3s ease;
 }
 
 .footer-links a:hover {
-    color: #667eea;
+    color: var(--primary);
+    transform: scale(1.05);
 }
 
 .footer-text {
-    font-size: 0.875rem;
-    color: #a0aec0;
+    font-size: 0.875rem; /* text-sm */
+    color: var(--muted-foreground);
+    font-weight: 200; /* Extra light */
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--foreground) !important;
+    padding: 0.5rem !important;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    background: var(--muted) !important;
+    transform: scale(1.1) !important;
+}
+
+/* ENGiVAULT Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: var(--shadow-md); }
+    50% { box-shadow: var(--shadow-xl); }
+}
+
+/* Scroll animations */
+.scroll-animate {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    filter: blur(2px);
+}
+
+.scroll-animate.animate {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
 }
 
 /* Loading animation */
@@ -739,16 +890,24 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    color: #718096;
+    color: var(--muted-foreground);
+    font-weight: 200;
 }
 
 .fa-spin {
     animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+/* Shimmer loading effect */
+.animate-pulse {
+    background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+/* Floating animation for icons */
+.float-animation {
+    animation: float 4s ease-in-out infinite;
 }
 
 /* Responsive design */

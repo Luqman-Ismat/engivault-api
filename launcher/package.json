@@ -1,7 +1,7 @@
 {
   "name": "engivault-launcher",
   "version": "1.0.0",
-  "description": "Cross-platform installer for EngiVault SDK, Python package, and Excel integration",
+  "description": "Cross-platform installer for ENGiVAULT API - Professional engineering calculations platform",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -17,7 +17,7 @@
   },
   "build": {
     "appId": "com.engivault.launcher",
-    "productName": "EngiVault Installer",
+    "productName": "ENGiVAULT Installer",
     "directories": {
       "output": "dist"
     },
@@ -82,10 +82,10 @@
       "installerHeaderIcon": "assets/icons/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "EngiVault Installer"
+      "shortcutName": "ENGiVAULT Installer"
     },
     "dmg": {
-      "title": "EngiVault Installer",
+      "title": "ENGiVAULT Installer",
       "icon": "assets/icons/icon.icns",
       "background": "assets/dmg-background.png",
       "contents": [
@@ -102,7 +102,7 @@
       ]
     }
   },
-  "author": "EngiVault Team",
+  "author": "Luqman Ismat <luqman@engivault.com>",
   "license": "MIT",
   "devDependencies": {
     "electron": "^27.0.0",
