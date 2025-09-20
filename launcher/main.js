@@ -32,11 +32,12 @@ class EngiVaultLauncher {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
-        enableRemoteModule: true
+        enableRemoteModule: false
       },
       icon: path.join(__dirname, 'assets/icons/icon.png'),
       titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
-      show: false
+      show: false,
+      autoHideMenuBar: true
     });
 
     // Load the main interface
@@ -164,6 +165,9 @@ class EngiVaultLauncher {
   }
 
   async initialize() {
+    // Setup IPC handlers before app ready
+    this.setupIPC();
+
     // Ensure single instance
     const gotTheLock = app.requestSingleInstanceLock();
     
@@ -181,9 +185,8 @@ class EngiVaultLauncher {
     });
 
     // App event handlers
-    app.on('ready', async () => {
+    app.whenReady().then(async () => {
       await this.createMainWindow();
-      this.setupIPC();
     });
 
     app.on('window-all-closed', () => {
@@ -197,20 +200,22 @@ class EngiVaultLauncher {
         await this.createMainWindow();
       }
     });
-
-    // Handle app updates (future feature)
-    app.on('ready', () => {
-      // TODO: Implement auto-updater
-    });
   }
 }
 
 // Initialize and start the launcher
-const launcher = new EngiVaultLauncher();
-launcher.initialize().catch(error => {
-  console.error('Failed to initialize EngiVault Launcher:', error);
-  process.exit(1);
-});
+async function startLauncher() {
+  try {
+    const launcher = new EngiVaultLauncher();
+    await launcher.initialize();
+  } catch (error) {
+    console.error('Failed to initialize ENGiVAULT Launcher:', error);
+    process.exit(1);
+  }
+}
+
+// Start the launcher
+startLauncher();
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {

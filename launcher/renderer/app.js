@@ -1,4 +1,4 @@
-// EngiVault Launcher - Main Application Logic
+// ENGiVAULT Launcher - Main Application Logic
 const { ipcRenderer } = require('electron');
 
 class EngiVaultLauncherApp {
@@ -192,6 +192,12 @@ class EngiVaultLauncherApp {
       }
     } catch (error) {
       console.error('Failed to load initial data:', error);
+      // Use default path as fallback
+      this.installPath = require('os').homedir() + '/.engivault';
+      const pathInput = document.getElementById('install-path');
+      if (pathInput) {
+        pathInput.value = this.installPath;
+      }
     }
   }
 
@@ -249,13 +255,13 @@ class EngiVaultLauncherApp {
       this.systemInfo = systemInfo;
       this.requirements = requirements;
 
-      this.displaySystemInfo(systemInfo);
-      this.displayRequirements(requirements);
+      this.displaySystemInfo(this.systemInfo);
+      this.displayRequirements(this.requirements);
 
       // Enable continue button if requirements are met
       const continueBtn = document.getElementById('continue-to-options');
       if (continueBtn) {
-        continueBtn.disabled = !requirements.canProceed;
+        continueBtn.disabled = !this.requirements.canProceed;
       }
 
     } catch (error) {
