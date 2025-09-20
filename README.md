@@ -8,6 +8,8 @@ A simplified, high-performance engineering calculations API optimized for Railwa
 - **SaaS Authentication**: User registration, login, API key management
 - **Subscription Tiers**: Free, Basic, Pro, Enterprise with usage limits
 - **Analytics**: Usage tracking and performance monitoring
+- **Python SDK**: Official Python SDK for easy integration
+- **Excel Integration**: VBA modules for Excel integration
 - **Railway Ready**: Optimized for Railway deployment
 - **Type Safe**: Full TypeScript with Zod validation
 - **Fast**: Built with Fastify for high performance
@@ -77,6 +79,49 @@ npm run dev
 Once deployed, visit:
 - **Swagger UI**: `https://your-app.railway.app/documentation`
 - **Health Check**: `https://your-app.railway.app/health`
+
+## 🐍 Python SDK
+
+The official Python SDK is located in the `python-sdk/` directory. It provides easy-to-use Python bindings for all API endpoints.
+
+### Installation
+```bash
+cd python-sdk
+pip install -e .
+```
+
+### Quick Start
+```python
+from engivault import EngiVaultClient
+
+client = EngiVaultClient(api_key="your-api-key")
+result = client.fluid_mechanics.pressure_drop(
+    diameter=0.1,
+    length=100,
+    flow_rate=0.01,
+    fluid_viscosity=0.001
+)
+print(result.pressure_drop)
+```
+
+See `python-sdk/README.md` for complete documentation.
+
+## 📊 Excel Integration
+
+The Excel integration is located in the `excel-integration/` directory and provides VBA modules for seamless Excel integration.
+
+### Features
+- Direct API calls from Excel formulas
+- Pre-built calculation templates
+- Automated data validation
+- Chart generation capabilities
+
+### Installation
+1. Open Excel
+2. Import the VBA modules from `excel-integration/vba-modules/`
+3. Configure your API key in the settings
+
+See `excel-integration/README.md` for complete documentation.
 
 ### Authentication Endpoints
 - `POST /auth/register` - User registration
@@ -155,6 +200,10 @@ npm run db:seed      # Seed database with initial data
 - **Prisma**: Database ORM with PostgreSQL
 - **JWT**: Secure authentication
 - **bcrypt**: Password hashing
+
+### Client Libraries
+- **Python SDK**: Official Python client library (`python-sdk/`)
+- **Excel Integration**: VBA modules for Excel integration (`excel-integration/`)
 
 ### Database Schema
 - **Users**: Authentication and subscription management
