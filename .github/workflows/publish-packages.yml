@@ -1,0 +1,125 @@
+name: Publish Packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      publish_npm:
+        description: 'Publish NPM package'
+        required: true
+        default: true
+        type: boolean
+      publish_python:
+        description: 'Publish Python package'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  publish-npm:
+    if: github.event_name == 'release' || github.event.inputs.publish_npm == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Install dependencies
+      run: |
+        cd packages/engivault-js
+        npm ci
+        
+    - name: Run tests
+      run: |
+        cd packages/engivault-js
+        npm test
+        
+    - name: Build package
+      run: |
+        cd packages/engivault-js
+        npm run build
+        
+    - name: Publish to NPM
+      run: |
+        cd packages/engivault-js
+        npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-python:
+    if: github.event_name == 'release' || github.event.inputs.publish_python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+        
+    - name: Install package dependencies
+      run: |
+        cd python-sdk
+        pip install -e .[dev]
+        
+    - name: Run tests
+      run: |
+        cd python-sdk
+        pytest
+        
+    - name: Build package
+      run: |
+        cd python-sdk
+        python -m build
+        
+    - name: Check package
+      run: |
+        cd python-sdk
+        twine check dist/*
+        
+    - name: Publish to PyPI
+      run: |
+        cd python-sdk
+        twine upload dist/*
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  publish-test-pypi:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+        
+    - name: Build package
+      run: |
+        cd python-sdk
+        python -m build
+        
+    - name: Publish to Test PyPI
+      run: |
+        cd python-sdk
+        twine upload --repository testpypi dist/*
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}

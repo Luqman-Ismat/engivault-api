@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "engivault"
 version = "1.0.0"
 authors = [
-    {name = "Luqman Ismat", email = "luqman@engivault.com"},
+    {name = "EngiVault Team", email = "support@engivault.com"},
 ]
-description = "Python SDK for EngiVault Engineering Calculations API"
+description = "Official Python SDK for EngiVault - Engineering calculations made simple"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.8"
@@ -16,7 +16,10 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
     "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
@@ -24,44 +27,151 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
 ]
-keywords = ["engineering", "calculations", "hydraulics", "pumps", "pressure-drop", "npsh", "api", "sdk"]
+keywords = [
+    "engineering", 
+    "calculations", 
+    "fluid-mechanics", 
+    "heat-transfer",
+    "hydraulics", 
+    "pumps", 
+    "pressure-drop", 
+    "npsh", 
+    "api", 
+    "sdk",
+    "mechanical-engineering",
+    "chemical-engineering"
+]
 dependencies = [
     "requests>=2.25.0",
     "pydantic>=2.0.0",
     "typing-extensions>=4.0.0",
+    "httpx>=0.24.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
     "black>=22.0.0",
     "isort>=5.0.0",
     "flake8>=5.0.0",
     "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
 ]
 docs = [
     "sphinx>=5.0.0",
-    "sphinx-rtd-theme>=1.0.0",
+    "sphinx-rtd-theme>=1.2.0",
+    "sphinx-autodoc-typehints>=1.19.0",
+    "myst-parser>=0.18.0",
+]
+pandas = [
+    "pandas>=1.3.0",
+]
+jupyter = [
+    "jupyter>=1.0.0",
+    "ipywidgets>=8.0.0",
+    "matplotlib>=3.5.0",
+]
+cli = [
+    "click>=8.0.0",
+    "rich>=12.0.0",
+    "typer>=0.7.0",
+]
+all = [
+    "engivault[dev,docs,pandas,jupyter,cli]"
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/Luqman-Ismat/engivault-python-sdk"
-"Documentation" = "https://engivault-api-production.up.railway.app/documentation"
-"API" = "https://engivault-api-production.up.railway.app"
-"Bug Reports" = "https://github.com/Luqman-Ismat/engivault-python-sdk/issues"
+"Homepage" = "https://github.com/Luqman-Ismat/engivault-api"
+"Documentation" = "https://docs.engivault.com"
+"API Documentation" = "https://engivault-api.railway.app/documentation"
+"Repository" = "https://github.com/Luqman-Ismat/engivault-api"
+"Bug Reports" = "https://github.com/Luqman-Ismat/engivault-api/issues"
+"Changelog" = "https://github.com/Luqman-Ismat/engivault-api/blob/main/python-sdk/CHANGELOG.md"
+
+[project.scripts]
+engivault = "engivault.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["engivault*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+engivault = ["py.typed"]
 
 [tool.black]
 line-length = 88
 target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
+line_length = 88
+known_first_party = ["engivault"]
 
 [tool.mypy]
 python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["engivault"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
