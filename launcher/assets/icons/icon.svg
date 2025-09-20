@@ -1,0 +1,46 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#000000" rx="64"/>
+  
+  <!-- Main Icon - Calculator/Engineering Symbol -->
+  <g transform="translate(128, 128)">
+    <!-- Calculator body -->
+    <rect x="0" y="0" width="256" height="256" fill="none" stroke="#ffffff" stroke-width="8" rx="16"/>
+    
+    <!-- Display area -->
+    <rect x="16" y="16" width="224" height="64" fill="#ffffff" rx="8"/>
+    <text x="128" y="55" text-anchor="middle" fill="#000000" font-family="Montserrat, sans-serif" font-size="24" font-weight="300">ENGiVAULT</text>
+    
+    <!-- Button grid -->
+    <g fill="#ffffff">
+      <!-- Row 1 -->
+      <circle cx="48" cy="128" r="16"/>
+      <circle cx="96" cy="128" r="16"/>
+      <circle cx="144" cy="128" r="16"/>
+      <circle cx="192" cy="128" r="16"/>
+      
+      <!-- Row 2 -->
+      <circle cx="48" cy="176" r="16"/>
+      <circle cx="96" cy="176" r="16"/>
+      <circle cx="144" cy="176" r="16"/>
+      <circle cx="192" cy="176" r="16"/>
+      
+      <!-- Row 3 -->
+      <circle cx="48" cy="224" r="16"/>
+      <circle cx="96" cy="224" r="16"/>
+      <circle cx="144" cy="224" r="16"/>
+      <circle cx="192" cy="224" r="16"/>
+    </g>
+    
+    <!-- Engineering symbols -->
+    <g stroke="#ffffff" stroke-width="2" fill="none">
+      <!-- Flow arrow -->
+      <path d="M 20 100 L 60 100 M 50 90 L 60 100 L 50 110"/>
+      <!-- Heat transfer symbol -->
+      <path d="M 200 100 Q 220 90 240 100 Q 220 110 200 100"/>
+    </g>
+  </g>
+  
+  <!-- API indicator -->
+  <text x="256" y="480" text-anchor="middle" fill="#ffffff" font-family="Montserrat, sans-serif" font-size="32" font-weight="200">API</text>
+</svg>
