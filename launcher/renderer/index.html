@@ -110,90 +110,86 @@
                     <p>Choose what to install</p>
                 </div>
 
-                <div class="options-layout">
-                    <div class="options-left">
-                        <div class="installation-options">
-                            <div class="option-card">
-                                <div class="option-header">
-                                    <input type="checkbox" id="install-python" checked>
-                                    <label for="install-python">
-                                        <i class="fab fa-python"></i>
-                                        Python SDK
+                <div class="options-content">
+                    <div class="installation-options">
+                        <div class="option-card">
+                            <div class="option-header">
+                                <input type="checkbox" id="install-python" checked>
+                                <label for="install-python">
+                                    <i class="fab fa-python"></i>
+                                    Python SDK
+                                </label>
+                            </div>
+                            <div class="option-details">
+                                <p>Install the EngiVault Python package via pip</p>
+                                <div class="option-settings">
+                                    <label>
+                                        <input type="checkbox" id="python-global" checked>
+                                        Install globally (recommended)
                                     </label>
-                                </div>
-                                <div class="option-details">
-                                    <p>Install the EngiVault Python package via pip</p>
-                                    <div class="option-settings">
-                                        <label>
-                                            <input type="checkbox" id="python-global" checked>
-                                            Install globally (recommended)
-                                        </label>
-                                        <label>
-                                            <input type="checkbox" id="python-cli">
-                                            Include CLI tools
-                                        </label>
-                                    </div>
+                                    <label>
+                                        <input type="checkbox" id="python-cli">
+                                        Include CLI tools
+                                    </label>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="option-card">
-                                <div class="option-header">
-                                    <input type="checkbox" id="install-npm" checked>
-                                    <label for="install-npm">
-                                        <i class="fab fa-js-square"></i>
-                                        JavaScript SDK
+                        <div class="option-card">
+                            <div class="option-header">
+                                <input type="checkbox" id="install-npm" checked>
+                                <label for="install-npm">
+                                    <i class="fab fa-js-square"></i>
+                                    JavaScript SDK
+                                </label>
+                            </div>
+                            <div class="option-details">
+                                <p>Install the EngiVault NPM package</p>
+                                <div class="option-settings">
+                                    <label>
+                                        <input type="checkbox" id="npm-global" checked>
+                                        Install globally
                                     </label>
-                                </div>
-                                <div class="option-details">
-                                    <p>Install the EngiVault NPM package</p>
-                                    <div class="option-settings">
-                                        <label>
-                                            <input type="checkbox" id="npm-global" checked>
-                                            Install globally
-                                        </label>
-                                        <label>
-                                            <input type="checkbox" id="npm-types">
-                                            Include TypeScript definitions
-                                        </label>
-                                    </div>
+                                    <label>
+                                        <input type="checkbox" id="npm-types">
+                                        Include TypeScript definitions
+                                    </label>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="option-card">
-                                <div class="option-header">
-                                    <input type="checkbox" id="install-excel">
-                                    <label for="install-excel">
-                                        <i class="fas fa-file-excel"></i>
-                                        Excel Integration
+                        <div class="option-card">
+                            <div class="option-header">
+                                <input type="checkbox" id="install-excel">
+                                <label for="install-excel">
+                                    <i class="fas fa-file-excel"></i>
+                                    Excel Integration
+                                </label>
+                            </div>
+                            <div class="option-details">
+                                <p>Install VBA modules for Excel integration</p>
+                                <div class="option-settings">
+                                    <label>
+                                        <input type="checkbox" id="excel-templates">
+                                        Include calculation templates
                                     </label>
-                                </div>
-                                <div class="option-details">
-                                    <p>Install VBA modules for Excel integration</p>
-                                    <div class="option-settings">
-                                        <label>
-                                            <input type="checkbox" id="excel-templates">
-                                            Include calculation templates
-                                        </label>
-                                        <label>
-                                            <input type="checkbox" id="excel-examples">
-                                            Include example workbooks
-                                        </label>
-                                    </div>
+                                    <label>
+                                        <input type="checkbox" id="excel-examples">
+                                        Include example workbooks
+                                    </label>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="options-right">
-                        <div class="installation-path">
-                            <h3><i class="fas fa-folder"></i> Installation Path</h3>
-                            <div class="path-input">
-                                <input type="text" id="install-path" readonly>
-                                <button id="browse-path" class="btn btn-small">
-                                    <i class="fas fa-folder-open"></i>
-                                    Browse
-                                </button>
-                            </div>
+                    <div class="installation-path">
+                        <h3><i class="fas fa-folder"></i> Installation Path</h3>
+                        <div class="path-input">
+                            <input type="text" id="install-path" readonly>
+                            <button id="browse-path" class="btn btn-small">
+                                <i class="fas fa-folder-open"></i>
+                                Browse
+                            </button>
                         </div>
                     </div>
                 </div>
