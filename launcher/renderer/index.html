@@ -8,15 +8,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="dark">
+<body>
     <div class="app-container">
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-calculator"></i>
-                    <h1>ENGiVAULT<sup>API</sup></h1>
-                </div>
                 <div class="version">v1.0.0</div>
             </div>
         </header>
@@ -26,38 +22,42 @@
             <!-- Welcome Screen -->
             <div id="welcome-screen" class="screen active">
                 <div class="welcome-content">
-                    <div class="welcome-header">
-                        <h2>Welcome to ENGiVAULT<sup>API</sup></h2>
-                        <p>Professional Engineering Calculations Platform</p>
+                    <div class="welcome-left">
+                        <div class="welcome-header">
+                            <h1>ENGiVAULT</h1>
+                            <p>Professional Engineering Calculations Platform</p>
+                        </div>
+                        
+                        <div class="welcome-actions">
+                            <button id="start-install" class="btn btn-primary">
+                                <i class="fas fa-play"></i>
+                                Start Installation
+                            </button>
+                            <button id="custom-install" class="btn btn-secondary">
+                                <i class="fas fa-cogs"></i>
+                                Custom Installation
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="features-grid">
-                        <div class="feature-card">
-                            <i class="fab fa-python"></i>
-                            <h3>Python SDK</h3>
-                            <p>Complete Python library for engineering calculations</p>
+                    <div class="welcome-right">
+                        <div class="features-grid">
+                            <div class="feature-card">
+                                <i class="fab fa-python"></i>
+                                <h3>Python SDK</h3>
+                                <p>Complete Python library for engineering calculations</p>
+                            </div>
+                            <div class="feature-card">
+                                <i class="fab fa-js-square"></i>
+                                <h3>JavaScript SDK</h3>
+                                <p>NPM package for web and Node.js applications</p>
+                            </div>
+                            <div class="feature-card">
+                                <i class="fas fa-file-excel"></i>
+                                <h3>Excel Integration</h3>
+                                <p>VBA modules for seamless Excel integration</p>
+                            </div>
                         </div>
-                        <div class="feature-card">
-                            <i class="fab fa-js-square"></i>
-                            <h3>JavaScript SDK</h3>
-                            <p>NPM package for web and Node.js applications</p>
-                        </div>
-                        <div class="feature-card">
-                            <i class="fas fa-file-excel"></i>
-                            <h3>Excel Integration</h3>
-                            <p>VBA modules for seamless Excel integration</p>
-                        </div>
-                    </div>
-
-                    <div class="welcome-actions">
-                        <button id="start-install" class="btn btn-primary">
-                            <i class="fas fa-play"></i>
-                            Start Installation
-                        </button>
-                        <button id="custom-install" class="btn btn-secondary">
-                            <i class="fas fa-cogs"></i>
-                            Custom Installation
-                        </button>
                     </div>
                 </div>
             </div>

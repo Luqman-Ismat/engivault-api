@@ -673,87 +673,42 @@ class EngiVaultLauncherApp {
   }
 }
 
-// ENGiVAULT Theme Management
+// ENGiVAULT Theme Management - Automatic System Theme
 class ENGiVaultTheme {
   constructor() {
-    this.storageKey = 'engivault-theme';
     this.init();
   }
 
   init() {
-    const saved = localStorage.getItem(this.storageKey);
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (saved === 'dark' || (!saved && prefersDark)) {
-      this.setDark();
-    } else {
-      this.setLight();
-    }
+    // Always follow system theme
+    this.updateToSystemTheme();
 
     // Listen for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (!localStorage.getItem(this.storageKey)) {
-        e.matches ? this.setDark() : this.setLight();
-      }
+      this.updateToSystemTheme();
     });
   }
 
-  setLight() {
-    document.documentElement.classList.remove('dark');
-    localStorage.setItem(this.storageKey, 'light');
-    this.updateThemeElements();
-  }
-
-  setDark() {
-    document.documentElement.classList.add('dark');
-    localStorage.setItem(this.storageKey, 'dark');
-    this.updateThemeElements();
-  }
-
-  toggle() {
-    const isDark = document.documentElement.classList.contains('dark');
-    isDark ? this.setLight() : this.setDark();
+  updateToSystemTheme() {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (prefersDark) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+    }
   }
 
   getCurrentTheme() {
     return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-  }
-
-  updateThemeElements() {
-    // Update any theme-specific elements
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    if (themeToggleBtn) {
-      const isDark = this.getCurrentTheme() === 'dark';
-      themeToggleBtn.innerHTML = isDark 
-        ? '<i class="fas fa-sun"></i>' 
-        : '<i class="fas fa-moon"></i>';
-    }
-  }
-
-  createThemeToggle() {
-    const toggleBtn = document.createElement('button');
-    toggleBtn.id = 'theme-toggle';
-    toggleBtn.className = 'btn btn-small theme-toggle';
-    toggleBtn.innerHTML = this.getCurrentTheme() === 'dark' 
-      ? '<i class="fas fa-sun"></i>' 
-      : '<i class="fas fa-moon"></i>';
-    
-    toggleBtn.addEventListener('click', () => this.toggle());
-    
-    return toggleBtn;
   }
 }
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   window.engiVaultApp = new EngiVaultLauncherApp();
-  
-  // Add theme toggle to header if desired
-  const headerContent = document.querySelector('.header-content');
-  if (headerContent) {
-    const themeToggle = window.engiVaultApp.theme.createThemeToggle();
-    headerContent.appendChild(themeToggle);
-  }
 });
 
 // Handle unhandled errors
