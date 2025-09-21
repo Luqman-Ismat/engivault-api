@@ -76,13 +76,29 @@ function setupIPC() {
         name: 'Node.js',
         status: 'success',
         message: `Node.js ${process.version} is installed`,
+        details: `Found: ${process.version}, Required: >=14.0.0`,
         required: true
       },
       {
         name: 'Platform',
         status: 'success', 
         message: `Running on ${os.platform()} ${os.arch()}`,
+        details: 'Supported platform detected',
         required: true
+      },
+      {
+        name: 'Memory',
+        status: 'success',
+        message: `${Math.round(os.totalmem() / (1024 * 1024 * 1024))} GB RAM available`,
+        details: 'Sufficient memory for installation',
+        required: true
+      },
+      {
+        name: 'Internet Connection',
+        status: 'success',
+        message: 'Internet connection available',
+        details: 'Required for downloading packages',
+        required: false
       }
     ];
 
@@ -145,56 +161,6 @@ function setupIPC() {
 
   ipcMain.handle('quit-app', () => {
     app.quit();
-  });
-
-  // System info handler
-  ipcMain.handle('get-system-info', async () => {
-    return {
-      platform: `${os.platform()} ${os.arch()}`,
-      os: `${os.type()} ${os.release()}`,
-      nodeVersion: process.version,
-      memory: {
-        total: os.totalmem(),
-        free: os.freemem()
-      },
-      cpu: {
-        model: os.cpus()[0]?.model || 'Unknown CPU',
-        cores: os.cpus().length
-      }
-    };
-  });
-
-  // Requirements check handler
-  ipcMain.handle('check-requirements', async () => {
-    return {
-      canProceed: true,
-      checks: [
-        {
-          name: 'Node.js',
-          status: 'success',
-          message: `Node.js ${process.version} is installed`,
-          details: `Found: ${process.version}, Required: >=14.0.0`
-        },
-        {
-          name: 'Platform',
-          status: 'success',
-          message: `Running on ${os.platform()} ${os.arch()}`,
-          details: 'Supported platform detected'
-        },
-        {
-          name: 'Memory',
-          status: 'success',
-          message: `${Math.round(os.totalmem() / (1024 * 1024 * 1024))} GB RAM available`,
-          details: 'Sufficient memory for installation'
-        },
-        {
-          name: 'Internet Connection',
-          status: 'success',
-          message: 'Internet connection available',
-          details: 'Required for downloading packages'
-        }
-      ]
-    };
   });
 
   console.log('IPC handlers setup completed');
