@@ -22,7 +22,7 @@
       "output": "dist"
     },
     "files": [
-      "main.js",
+      "main-full.js",
       "renderer/**/*",
       "src/**/*",
       "assets/**/*",
@@ -30,7 +30,6 @@
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
-      "icon": "assets/icons/icon.icns",
       "target": [
         {
           "target": "dmg",
@@ -43,7 +42,6 @@
       ]
     },
     "win": {
-      "icon": "assets/icons/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -56,7 +54,6 @@
       ]
     },
     "linux": {
-      "icon": "assets/icons/icon.png",
       "target": [
         {
           "target": "AppImage",
@@ -77,17 +74,12 @@
       "oneClick": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "assets/icons/icon.ico",
-      "uninstallerIcon": "assets/icons/icon.ico",
-      "installerHeaderIcon": "assets/icons/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "ENGiVAULT Installer"
     },
     "dmg": {
       "title": "ENGiVAULT Installer",
-      "icon": "assets/icons/icon.icns",
-      "background": "assets/dmg-background.png",
       "contents": [
         {
           "x": 130,
@@ -104,6 +96,11 @@
   },
   "author": "Luqman Ismat <luqman@engivault.com>",
   "license": "MIT",
+  "homepage": "https://github.com/Luqman-Ismat/engivault-api",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Luqman-Ismat/engivault-api.git"
+  },
   "devDependencies": {
     "electron": "^27.0.0",
     "electron-builder": "^24.6.4"
