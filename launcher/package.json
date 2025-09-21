@@ -2,7 +2,7 @@
   "name": "engivault-launcher",
   "version": "1.0.0",
   "description": "Cross-platform installer for ENGiVAULT API - Professional engineering calculations platform",
-  "main": "main.js",
+  "main": "main-full.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",

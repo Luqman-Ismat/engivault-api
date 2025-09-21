@@ -24,6 +24,8 @@ class EngiVaultLauncher {
   }
 
   async createMainWindow() {
+    console.log('Creating main window...');
+    
     this.mainWindow = new BrowserWindow({
       width: 1000,
       height: 700,
@@ -34,31 +36,39 @@ class EngiVaultLauncher {
         contextIsolation: false,
         enableRemoteModule: false
       },
-      icon: path.join(__dirname, 'assets/icons/icon.png'),
+      // Remove icon for now to avoid file not found issues
+      // icon: path.join(__dirname, 'assets/icons/icon.png'),
       titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
       show: false,
       autoHideMenuBar: true
     });
 
+    console.log('Loading HTML file...');
+    
     // Load the main interface
     await this.mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
 
-    // Show window when ready
-    this.mainWindow.once('ready-to-show', () => {
-      this.mainWindow.show();
-      
-      if (this.isDevelopment) {
-        this.mainWindow.webContents.openDevTools();
-      }
-    });
+    console.log('HTML loaded, showing window...');
+
+    // Show window immediately for debugging
+    this.mainWindow.show();
+    
+    // Open DevTools in development mode
+    if (this.isDevelopment) {
+      this.mainWindow.webContents.openDevTools();
+    }
 
     // Handle window closed
     this.mainWindow.on('closed', () => {
       this.mainWindow = null;
     });
 
-    // Initialize system check
-    this.performSystemCheck();
+    // Initialize system check after a short delay
+    setTimeout(() => {
+      this.performSystemCheck();
+    }, 1000);
+
+    console.log('Main window created successfully');
   }
 
   async performSystemCheck() {
@@ -165,9 +175,6 @@ class EngiVaultLauncher {
   }
 
   async initialize() {
-    // Setup IPC handlers before app ready
-    this.setupIPC();
-
     // Ensure single instance
     const gotTheLock = app.requestSingleInstanceLock();
     
@@ -186,6 +193,8 @@ class EngiVaultLauncher {
 
     // App event handlers
     app.whenReady().then(async () => {
+      // Setup IPC handlers after app is ready
+      this.setupIPC();
       await this.createMainWindow();
     });
 
@@ -206,16 +215,26 @@ class EngiVaultLauncher {
 // Initialize and start the launcher
 async function startLauncher() {
   try {
+    console.log('Starting ENGiVAULT Launcher...');
     const launcher = new EngiVaultLauncher();
+    console.log('Launcher instance created');
     await launcher.initialize();
+    console.log('Launcher initialized successfully');
   } catch (error) {
     console.error('Failed to initialize ENGiVAULT Launcher:', error);
+    console.error('Error stack:', error.stack);
     process.exit(1);
   }
 }
 
-// Start the launcher
-startLauncher();
+// Ensure app is ready before starting
+if (app.isReady()) {
+  startLauncher();
+} else {
+  app.whenReady().then(() => {
+    startLauncher();
+  });
+}
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
