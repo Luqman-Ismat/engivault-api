@@ -185,6 +185,13 @@ body.dark {
     padding-bottom: 4rem;
 }
 
+/* System check screen specific layout */
+#system-check-screen {
+    justify-content: flex-start;
+    align-items: center;
+    padding-bottom: 5rem;
+}
+
 .screen.active {
     opacity: 1;
     visibility: visible;
@@ -406,8 +413,8 @@ body.dark {
 }
 
 .info-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--muted);
+    border: 1px solid var(--border);
     border-radius: 0.75rem;
     padding: 1.5rem;
     transition: all 0.3s ease;
@@ -418,13 +425,13 @@ body.dark {
     font-size: 1rem; /* Smaller text */
     font-weight: 400;
     margin-bottom: 1rem;
-    color: #ffffff;
+    color: var(--foreground);
     letter-spacing: -0.01em;
 }
 
 .requirements-check {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--muted);
+    border: 1px solid var(--border);
     border-radius: 0.75rem;
     padding: 1.5rem;
     backdrop-filter: blur(10px);
@@ -434,8 +441,19 @@ body.dark {
     font-size: 1rem; /* Smaller text */
     font-weight: 400;
     margin-bottom: 1rem;
-    color: #ffffff;
+    color: var(--foreground);
     letter-spacing: -0.01em;
+}
+
+.system-item {
+    margin-bottom: 0.75rem;
+    color: var(--foreground);
+    font-size: 0.875rem;
+}
+
+.system-item strong {
+    color: var(--foreground);
+    font-weight: 500;
 }
 
 .requirement-item {
@@ -443,7 +461,7 @@ body.dark {
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border);
 }
 
 .requirement-item:last-child {
@@ -480,13 +498,13 @@ body.dark {
 
 .requirement-name {
     font-weight: 400;
-    color: #ffffff;
+    color: var(--foreground);
     font-size: 0.875rem;
 }
 
 .requirement-details {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--muted-foreground);
 }
 
 /* Installation Options Screen - Row Layout */
@@ -910,9 +928,21 @@ body.dark {
     border-top: 1px solid var(--border);
     flex-shrink: 0;
     width: 100%;
-    max-width: 400px;
+    max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    gap: 1rem;
+    min-width: 320px;
+}
+
+/* Ensure buttons don't overlap on system check screen */
+#system-check-screen .screen-actions {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    min-width: 340px;
 }
 
 /* Footer */
