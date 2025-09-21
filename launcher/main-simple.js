@@ -9,10 +9,10 @@ function createWindow() {
   console.log('Creating ENGiVAULT Launcher window...');
   
   mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 700,
-    minWidth: 800,
-    minHeight: 600,
+    width: 1200,
+    height: 800,
+    minWidth: 1000,
+    minHeight: 700,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
