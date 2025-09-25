@@ -1074,3 +1074,92 @@ End Function
 '===============================================================================
 
 ' Note: MakeAPIRequest and ParseNumericResponse functions are imported from EngiVaultAPI module
+
+' ============================================================================
+' VESSEL SIZING FUNCTIONS
+' ============================================================================
+
+Public Function ENGIVAULT_PRESSURE_VESSEL_SIZING( _
+    volume As Double, designPressure As Double, designTemperature As Double, _
+    material As String, diameter As Double, length As Double, height As Double _
+) As String
+    ' Calculate pressure vessel sizing with ASME Section VIII compliance
+    ' References: ASME Section VIII, Division 1, ASME Section II, Perry's Handbook
+    
+    On Error GoTo ErrorHandler
+    
+    Dim requestData As String
+    requestData = "{"
+    requestData = requestData & """volume"":" & volume & ","
+    requestData = requestData & """designPressure"":" & designPressure & ","
+    requestData = requestData & """designTemperature"":" & designTemperature & ","
+    requestData = requestData & """material"":""" & material & ""","
+    requestData = requestData & """vesselType"":""pressure_vessel"","
+    requestData = requestData & """diameter"":" & diameter & ","
+    requestData = requestData & """length"":" & length & ","
+    requestData = requestData & """height"":" & height
+    requestData = requestData & "}"
+    
+    ENGIVAULT_PRESSURE_VESSEL_SIZING = MakeAPIRequest("/api/v1/equipment/vessels/pressure-vessel", requestData)
+    Exit Function
+    
+ErrorHandler:
+    ENGIVAULT_PRESSURE_VESSEL_SIZING = "Error: " & Err.Description
+    Debug.Print "Error in ENGIVAULT_PRESSURE_VESSEL_SIZING: " & Err.Description
+End Function
+
+Public Function ENGIVAULT_STORAGE_TANK_SIZING( _
+    volume As Double, designPressure As Double, designTemperature As Double, _
+    material As String, diameter As Double, height As Double _
+) As String
+    ' Calculate storage tank sizing with API 650 compliance
+    ' References: API 650, API 620, ASME Section VIII
+    
+    On Error GoTo ErrorHandler
+    
+    Dim requestData As String
+    requestData = "{"
+    requestData = requestData & """volume"":" & volume & ","
+    requestData = requestData & """designPressure"":" & designPressure & ","
+    requestData = requestData & """designTemperature"":" & designTemperature & ","
+    requestData = requestData & """material"":""" & material & ""","
+    requestData = requestData & """vesselType"":""storage_tank"","
+    requestData = requestData & """diameter"":" & diameter & ","
+    requestData = requestData & """height"":" & height
+    requestData = requestData & "}"
+    
+    ENGIVAULT_STORAGE_TANK_SIZING = MakeAPIRequest("/api/v1/equipment/vessels/storage-tank", requestData)
+    Exit Function
+    
+ErrorHandler:
+    ENGIVAULT_STORAGE_TANK_SIZING = "Error: " & Err.Description
+    Debug.Print "Error in ENGIVAULT_STORAGE_TANK_SIZING: " & Err.Description
+End Function
+
+Public Function ENGIVAULT_SEPARATOR_SIZING( _
+    volume As Double, designPressure As Double, designTemperature As Double, _
+    material As String, diameter As Double, length As Double _
+) As String
+    ' Calculate separator sizing with API 12J compliance
+    ' References: API 12J, ASME Section VIII, Perry's Handbook
+    
+    On Error GoTo ErrorHandler
+    
+    Dim requestData As String
+    requestData = "{"
+    requestData = requestData & """volume"":" & volume & ","
+    requestData = requestData & """designPressure"":" & designPressure & ","
+    requestData = requestData & """designTemperature"":" & designTemperature & ","
+    requestData = requestData & """material"":""" & material & ""","
+    requestData = requestData & """vesselType"":""separator"","
+    requestData = requestData & """diameter"":" & diameter & ","
+    requestData = requestData & """length"":" & length
+    requestData = requestData & "}"
+    
+    ENGIVAULT_SEPARATOR_SIZING = MakeAPIRequest("/api/v1/equipment/vessels/separator", requestData)
+    Exit Function
+    
+ErrorHandler:
+    ENGIVAULT_SEPARATOR_SIZING = "Error: " & Err.Description
+    Debug.Print "Error in ENGIVAULT_SEPARATOR_SIZING: " & Err.Description
+End Function

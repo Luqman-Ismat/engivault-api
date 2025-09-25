@@ -237,3 +237,132 @@ class VesselSizing:
         }
         
         return material_data.get(material, material_data["carbon_steel"])
+    
+    def size_pressure_vessel(
+        self,
+        volume: float,
+        design_pressure: float,
+        design_temperature: float,
+        material: str = 'carbon_steel',
+        diameter: Optional[float] = None,
+        length: Optional[float] = None,
+        height: Optional[float] = None,
+        operating_conditions: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Calculate pressure vessel sizing with ASME Section VIII compliance.
+        
+        References:
+        - ASME Section VIII, Division 1: Rules for Construction of Pressure Vessels
+        - ASME Section II: Materials
+        - Perry's Chemical Engineers' Handbook, 8th Edition, Section 10
+        
+        Args:
+            volume: Vessel volume in m³
+            design_pressure: Design pressure in Pa
+            design_temperature: Design temperature in K
+            material: Vessel material
+            diameter: Vessel diameter in m (optional)
+            length: Vessel length in m (optional)
+            height: Vessel height in m (optional)
+            operating_conditions: Operating conditions dict
+            
+        Returns:
+            Dict with pressure vessel sizing results
+        """
+        request_data = {
+            "volume": volume,
+            "designPressure": design_pressure,
+            "designTemperature": design_temperature,
+            "material": material,
+            "vesselType": "pressure_vessel",
+            "diameter": diameter,
+            "length": length,
+            "height": height,
+            "operatingConditions": operating_conditions
+        }
+        return self.client._make_request(method="POST", endpoint="/api/v1/equipment/vessels/pressure-vessel", data=request_data)
+
+    def size_storage_tank(
+        self,
+        volume: float,
+        design_pressure: float,
+        design_temperature: float,
+        material: str = 'carbon_steel',
+        diameter: Optional[float] = None,
+        height: Optional[float] = None,
+        operating_conditions: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Calculate storage tank sizing with API 650 compliance.
+        
+        References:
+        - API 650: Welded Steel Tanks for Oil Storage
+        - API 620: Design and Construction of Large, Welded, Low-Pressure Storage Tanks
+        - ASME Section VIII, Division 1: Rules for Construction of Pressure Vessels
+        
+        Args:
+            volume: Tank volume in m³
+            design_pressure: Design pressure in Pa
+            design_temperature: Design temperature in K
+            material: Tank material
+            diameter: Tank diameter in m (optional)
+            height: Tank height in m (optional)
+            operating_conditions: Operating conditions dict
+            
+        Returns:
+            Dict with storage tank sizing results
+        """
+        request_data = {
+            "volume": volume,
+            "designPressure": design_pressure,
+            "designTemperature": design_temperature,
+            "material": material,
+            "vesselType": "storage_tank",
+            "diameter": diameter,
+            "height": height,
+            "operatingConditions": operating_conditions
+        }
+        return self.client._make_request(method="POST", endpoint="/api/v1/equipment/vessels/storage-tank", data=request_data)
+
+    def size_separator(
+        self,
+        volume: float,
+        design_pressure: float,
+        design_temperature: float,
+        material: str = 'carbon_steel',
+        diameter: Optional[float] = None,
+        length: Optional[float] = None,
+        operating_conditions: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Calculate separator sizing with API 12J compliance.
+        
+        References:
+        - API 12J: Specification for Oil and Gas Separators
+        - ASME Section VIII, Division 1: Rules for Construction of Pressure Vessels
+        - Perry's Chemical Engineers' Handbook, 8th Edition, Section 10
+        
+        Args:
+            volume: Separator volume in m³
+            design_pressure: Design pressure in Pa
+            design_temperature: Design temperature in K
+            material: Separator material
+            diameter: Separator diameter in m (optional)
+            length: Separator length in m (optional)
+            operating_conditions: Operating conditions dict
+            
+        Returns:
+            Dict with separator sizing results
+        """
+        request_data = {
+            "volume": volume,
+            "designPressure": design_pressure,
+            "designTemperature": design_temperature,
+            "material": material,
+            "vesselType": "separator",
+            "diameter": diameter,
+            "length": length,
+            "operatingConditions": operating_conditions
+        }
+        return self.client._make_request(method="POST", endpoint="/api/v1/equipment/vessels/separator", data=request_data)

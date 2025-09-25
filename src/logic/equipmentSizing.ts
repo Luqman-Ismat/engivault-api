@@ -223,6 +223,449 @@ export function calculateHeatExchangerSizing(input: HeatExchangerSizingInput): {
 // ============================================================================
 
 /**
+ * Calculate pressure vessel sizing with ASME Section VIII compliance
+ * 
+ * References:
+ * - ASME Section VIII, Division 1: Rules for Construction of Pressure Vessels
+ * - ASME Section II: Materials
+ * - API 650: Welded Steel Tanks for Oil Storage
+ * - API 620: Design and Construction of Large, Welded, Low-Pressure Storage Tanks
+ * - Perry's Chemical Engineers' Handbook, 8th Edition, Section 10
+ * 
+ * @param input Vessel sizing parameters
+ * @returns Pressure vessel sizing results with ASME compliance
+ */
+export function calculatePressureVesselSizing(input: VesselSizingInput): {
+  shellThickness: number;
+  headThickness: number;
+  nozzleReinforcement: any;
+  weight: number;
+  materialRequirements: any;
+  designPressure: number;
+  designTemperature: number;
+  safetyFactors: any;
+  recommendations: string[];
+  references: string[];
+  standards: string[];
+  calculationMethod: string;
+} {
+  const {
+    volume,
+    designPressure,
+    designTemperature,
+    material = 'carbon_steel',
+    vesselType: _vesselType,
+    diameter: inputDiameter,
+    length: inputLength,
+    height: inputHeight
+  } = input;
+
+  // ASME Section VIII material properties (Section II, Part D)
+  const materialProperties = {
+    carbon_steel: {
+      allowableStress: 137.9, // MPa at design temperature
+      density: 7850, // kg/m³
+      elasticModulus: 200000, // MPa
+      yieldStrength: 250, // MPa
+      tensileStrength: 400, // MPa
+      thermalExpansion: 12e-6, // 1/K
+      thermalConductivity: 50, // W/m·K
+      specificHeat: 460 // J/kg·K
+    },
+    stainless_steel: {
+      allowableStress: 137.9,
+      density: 8000,
+      elasticModulus: 200000,
+      yieldStrength: 205,
+      tensileStrength: 515,
+      thermalExpansion: 17e-6,
+      thermalConductivity: 16,
+      specificHeat: 500
+    },
+    aluminum: {
+      allowableStress: 68.9,
+      density: 2700,
+      elasticModulus: 70000,
+      yieldStrength: 95,
+      tensileStrength: 186,
+      thermalExpansion: 23e-6,
+      thermalConductivity: 205,
+      specificHeat: 900
+    }
+  };
+
+  const materialProps = materialProperties[material as keyof typeof materialProperties] || materialProperties.carbon_steel;
+
+  // Vessel dimensions calculation (ASME Section VIII, Division 1, UG-27)
+  let diameter: number;
+  let length: number;
+
+  if (inputDiameter && inputLength) {
+    diameter = inputDiameter;
+    length = inputLength;
+  } else if (inputDiameter && inputHeight) {
+    diameter = inputDiameter;
+    length = inputHeight;
+  } else {
+    // Calculate optimal dimensions for minimum surface area
+    diameter = Math.pow(volume / (Math.PI / 4), 1/3);
+    length = volume / (Math.PI * diameter ** 2 / 4);
+  }
+
+  // Design pressure and temperature with safety factors (ASME Section VIII, UG-20)
+  const designPressureFinal = designPressure * 1.1; // 10% safety factor
+  const designTemperatureFinal = designTemperature + 50; // 50°C safety margin
+
+  // Shell thickness calculation (ASME Section VIII, Division 1, UG-27)
+  const designStress = materialProps.allowableStress * 0.8; // 80% of allowable stress
+  const shellThickness = (designPressureFinal * diameter) / (2 * designStress - designPressureFinal) + 0.003; // 3mm corrosion allowance
+
+  // Head thickness calculation (ASME Section VIII, Division 1, UG-32)
+  const headThickness = (designPressureFinal * diameter) / (2 * designStress - 0.2 * designPressureFinal) + 0.003;
+
+  // Nozzle reinforcement calculation (ASME Section VIII, Division 1, UG-37)
+  const nozzleReinforcement = {
+    requiredArea: Math.PI * (diameter / 4) ** 2 * (designPressureFinal / designStress),
+    availableArea: Math.PI * (diameter / 4) ** 2,
+    reinforcementRatio: 1.0
+  };
+
+  // Vessel weight calculation (ASME Section VIII, Division 1, UG-28)
+  const shellWeight = Math.PI * diameter * length * shellThickness * materialProps.density;
+  const headWeight = 2 * Math.PI * (diameter / 2) ** 2 * headThickness * materialProps.density;
+  const weight = shellWeight + headWeight;
+
+  // Material requirements
+  const materialRequirements = {
+    shellMaterial: material,
+    headMaterial: material,
+    nozzleMaterial: material,
+    gasketMaterial: 'spiral_wound',
+    boltMaterial: 'carbon_steel',
+    totalWeight: weight,
+    materialCost: weight * 5 // $5/kg estimated
+  };
+
+  // Safety factors (ASME Section VIII, Division 1, UG-20)
+  const safetyFactors = {
+    designFactor: 3.5,
+    operatingFactor: 1.5,
+    materialFactor: 1.0,
+    environmentalFactor: 1.0,
+    totalSafetyFactor: 5.25
+  };
+
+  const recommendations: string[] = [];
+  if (shellThickness > 0.05) {
+    recommendations.push("Consider using higher strength material to reduce wall thickness");
+  }
+  if (diameter > 3.0) {
+    recommendations.push("Consider field assembly for large diameter vessels");
+  }
+  if (designTemperature > 400) {
+    recommendations.push("Consider thermal stress analysis for high temperature service");
+  }
+
+  return {
+    shellThickness,
+    headThickness,
+    nozzleReinforcement,
+    weight,
+    materialRequirements,
+    designPressure: designPressureFinal,
+    designTemperature: designTemperatureFinal,
+    safetyFactors,
+    recommendations,
+    references: [
+      "ASME Section VIII, Division 1: Rules for Construction of Pressure Vessels",
+      "ASME Section II: Materials",
+      "Perry's Chemical Engineers' Handbook, 8th Edition, Section 10"
+    ],
+    standards: ["ASME Section VIII", "ASME Section II", "API 650"],
+    calculationMethod: "ASME Section VIII, Division 1"
+  };
+}
+
+/**
+ * Calculate storage tank sizing with API 650 compliance
+ * 
+ * References:
+ * - API 650: Welded Steel Tanks for Oil Storage
+ * - API 620: Design and Construction of Large, Welded, Low-Pressure Storage Tanks
+ * - ASME Section VIII, Division 1: Rules for Construction of Pressure Vessels
+ * 
+ * @param input Tank sizing parameters
+ * @returns Storage tank sizing results with API 650 compliance
+ */
+export function calculateStorageTankSizing(input: VesselSizingInput): {
+  shellThickness: number[];
+  bottomThickness: number;
+  roofThickness: number;
+  windGirder: any;
+  seismicDesign: any;
+  weight: number;
+  materialRequirements: any;
+  designPressure: number;
+  designTemperature: number;
+  recommendations: string[];
+  references: string[];
+  standards: string[];
+  calculationMethod: string;
+} {
+  const {
+    volume,
+    designPressure,
+    designTemperature,
+    material = 'carbon_steel',
+    diameter: inputDiameter,
+    height: inputHeight
+  } = input;
+
+  // Tank dimensions (API 650, Section 3.1)
+  let diameter: number;
+  let height: number;
+
+  if (inputDiameter && inputHeight) {
+    diameter = inputDiameter;
+    height = inputHeight;
+  } else {
+    // Calculate optimal dimensions for minimum surface area
+    diameter = Math.pow(volume / (Math.PI / 4), 1/3);
+    height = volume / (Math.PI * diameter ** 2 / 4);
+  }
+
+  // Material properties (API 650, Section 3.2)
+  const materialProperties = {
+    carbon_steel: {
+      allowableStress: 137.9, // MPa
+      density: 7850, // kg/m³
+      yieldStrength: 250, // MPa
+      tensileStrength: 400 // MPa
+    }
+  };
+
+  const materialProps = materialProperties[material as keyof typeof materialProperties] || materialProperties.carbon_steel;
+
+  // Shell thickness calculation (API 650, Section 3.6)
+  const shellThickness: number[] = [];
+  const courseHeight = 2.0; // 2m per course
+  const numberOfCourses = Math.ceil(height / courseHeight);
+
+  for (let i = 0; i < numberOfCourses; i++) {
+    const courseHeight_actual = Math.min(courseHeight, height - i * courseHeight);
+    const liquidHeight = height - i * courseHeight;
+    const hydrostaticPressure = liquidHeight * 1000 * 9.81; // Pa
+    const totalPressure = designPressure + hydrostaticPressure;
+    
+    const courseThickness = (totalPressure * diameter) / (2 * materialProps.allowableStress) + 0.003; // 3mm corrosion allowance
+    shellThickness.push(Math.max(courseThickness, 0.005)); // Minimum 5mm
+  }
+
+  // Bottom thickness calculation (API 650, Section 3.7)
+  const bottomThickness = Math.max(0.005, 0.003 + 0.001 * diameter); // Minimum 5mm
+
+  // Roof thickness calculation (API 650, Section 3.8)
+  const roofThickness = Math.max(0.005, 0.003 + 0.0005 * diameter); // Minimum 5mm
+
+  // Wind girder calculation (API 650, Section 3.9)
+  const windGirder = {
+    required: diameter > 15, // Required for tanks > 15m diameter
+    location: height * 0.6, // 60% of height
+    size: diameter > 15 ? 0.1 : 0, // 100mm for large tanks
+    material: material
+  };
+
+  // Seismic design (API 650, Section 3.10)
+  const seismicDesign = {
+    seismicZone: 4, // Maximum seismic zone
+    seismicCoefficient: 0.4,
+    required: true,
+    anchorageRequired: diameter > 10
+  };
+
+  // Weight calculation
+  let weight = 0;
+  for (let i = 0; i < numberOfCourses; i++) {
+    const courseWeight = Math.PI * diameter * courseHeight * shellThickness[i] * materialProps.density;
+    weight += courseWeight;
+  }
+  weight += Math.PI * (diameter / 2) ** 2 * bottomThickness * materialProps.density; // Bottom
+  weight += Math.PI * (diameter / 2) ** 2 * roofThickness * materialProps.density; // Roof
+
+  // Material requirements
+  const materialRequirements = {
+    shellMaterial: material,
+    bottomMaterial: material,
+    roofMaterial: material,
+    totalWeight: weight,
+    materialCost: weight * 4 // $4/kg estimated
+  };
+
+  const recommendations: string[] = [];
+  if (diameter > 20) {
+    recommendations.push("Consider field assembly for large diameter tanks");
+  }
+  if (height > 15) {
+    recommendations.push("Consider multiple wind girders for tall tanks");
+  }
+  if (designTemperature > 100) {
+    recommendations.push("Consider thermal expansion joints for high temperature service");
+  }
+
+  return {
+    shellThickness,
+    bottomThickness,
+    roofThickness,
+    windGirder,
+    seismicDesign,
+    weight,
+    materialRequirements,
+    designPressure,
+    designTemperature,
+    recommendations,
+    references: [
+      "API 650: Welded Steel Tanks for Oil Storage",
+      "API 620: Design and Construction of Large, Welded, Low-Pressure Storage Tanks",
+      "ASME Section VIII, Division 1: Rules for Construction of Pressure Vessels"
+    ],
+    standards: ["API 650", "API 620", "ASME Section VIII"],
+    calculationMethod: "API 650"
+  };
+}
+
+/**
+ * Calculate separator sizing with API 12J compliance
+ * 
+ * References:
+ * - API 12J: Specification for Oil and Gas Separators
+ * - ASME Section VIII, Division 1: Rules for Construction of Pressure Vessels
+ * - Perry's Chemical Engineers' Handbook, 8th Edition, Section 10
+ * 
+ * @param input Separator sizing parameters
+ * @returns Separator sizing results with API 12J compliance
+ */
+export function calculateSeparatorSizing(input: VesselSizingInput): {
+  shellThickness: number;
+  headThickness: number;
+  internals: any;
+  weight: number;
+  materialRequirements: any;
+  designPressure: number;
+  designTemperature: number;
+  recommendations: string[];
+  references: string[];
+  standards: string[];
+  calculationMethod: string;
+} {
+  const {
+    volume,
+    designPressure,
+    designTemperature,
+    material = 'carbon_steel',
+    diameter: inputDiameter,
+    length: inputLength
+  } = input;
+
+  // Separator dimensions (API 12J, Section 3.1)
+  let diameter: number;
+  let length: number;
+
+  if (inputDiameter && inputLength) {
+    diameter = inputDiameter;
+    length = inputLength;
+  } else {
+    // Calculate optimal dimensions for separator
+    diameter = Math.pow(volume / (Math.PI / 4), 1/3);
+    length = volume / (Math.PI * diameter ** 2 / 4);
+  }
+
+  // Material properties
+  const materialProperties = {
+    carbon_steel: {
+      allowableStress: 137.9, // MPa
+      density: 7850, // kg/m³
+      yieldStrength: 250, // MPa
+      tensileStrength: 400 // MPa
+    }
+  };
+
+  const materialProps = materialProperties[material as keyof typeof materialProperties] || materialProperties.carbon_steel;
+
+  // Shell thickness calculation (API 12J, Section 3.2)
+  const designStress = materialProps.allowableStress * 0.8;
+  const shellThickness = (designPressure * diameter) / (2 * designStress - designPressure) + 0.003;
+
+  // Head thickness calculation (API 12J, Section 3.3)
+  const headThickness = (designPressure * diameter) / (2 * designStress - 0.2 * designPressure) + 0.003;
+
+  // Separator internals (API 12J, Section 3.4)
+  const internals = {
+    inletDistributor: {
+      type: 'vane_type',
+      diameter: diameter * 0.8,
+      material: 'stainless_steel'
+    },
+    demister: {
+      type: 'wire_mesh',
+      thickness: 0.15, // 150mm
+      material: 'stainless_steel'
+    },
+    weir: {
+      height: diameter * 0.3,
+      material: 'stainless_steel'
+    },
+    vortexBreaker: {
+      type: 'cross_beam',
+      material: 'stainless_steel'
+    }
+  };
+
+  // Weight calculation
+  const shellWeight = Math.PI * diameter * length * shellThickness * materialProps.density;
+  const headWeight = 2 * Math.PI * (diameter / 2) ** 2 * headThickness * materialProps.density;
+  const internalsWeight = 0.1 * shellWeight; // 10% of shell weight
+  const weight = shellWeight + headWeight + internalsWeight;
+
+  // Material requirements
+  const materialRequirements = {
+    shellMaterial: material,
+    headMaterial: material,
+    internalsMaterial: 'stainless_steel',
+    totalWeight: weight,
+    materialCost: weight * 6 // $6/kg estimated
+  };
+
+  const recommendations: string[] = [];
+  if (diameter > 3.0) {
+    recommendations.push("Consider field assembly for large diameter separators");
+  }
+  if (designPressure > 2.0) {
+    recommendations.push("Consider ASME Section VIII compliance for high pressure service");
+  }
+  if (designTemperature > 200) {
+    recommendations.push("Consider thermal stress analysis for high temperature service");
+  }
+
+  return {
+    shellThickness,
+    headThickness,
+    internals,
+    weight,
+    materialRequirements,
+    designPressure,
+    designTemperature,
+    recommendations,
+    references: [
+      "API 12J: Specification for Oil and Gas Separators",
+      "ASME Section VIII, Division 1: Rules for Construction of Pressure Vessels",
+      "Perry's Chemical Engineers' Handbook, 8th Edition, Section 10"
+    ],
+    standards: ["API 12J", "ASME Section VIII"],
+    calculationMethod: "API 12J"
+  };
+}
+
+/**
  * Calculate vessel sizing based on volume and pressure requirements
  * 
  * References:

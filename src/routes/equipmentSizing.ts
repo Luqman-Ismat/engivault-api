@@ -10,7 +10,10 @@ import {
   optimizeShellTubeDesign,
   calculatePlateHeatExchangerSizing,
   calculateAirCooledHeatExchangerSizing,
-  rateHeatExchanger
+  rateHeatExchanger,
+  calculatePressureVesselSizing,
+  calculateStorageTankSizing,
+  calculateSeparatorSizing
 } from '../logic/equipmentSizing';
 import {
   PumpSizingSchema,
@@ -586,6 +589,241 @@ export default async function equipmentSizingRoutes(fastify: FastifyInstance): P
   // ============================================================================
   // VESSEL SIZING ENDPOINTS
   // ============================================================================
+
+  // Pressure Vessel Sizing with ASME Section VIII
+  fastify.post('/api/v1/equipment/vessels/pressure-vessel', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate pressure vessel sizing with ASME Section VIII compliance',
+      description: 'Calculate pressure vessel sizing using ASME Section VIII, Division 1 standards',
+      body: {
+        type: 'object',
+        required: ['volume', 'designPressure', 'designTemperature', 'vesselType'],
+        properties: {
+          volume: { type: 'number', minimum: 0, description: 'Vessel volume in m³' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          material: { type: 'string', description: 'Vessel material' },
+          vesselType: { type: 'string', enum: ['pressure_vessel', 'storage_tank', 'separator', 'reactor'], description: 'Vessel type' },
+          diameter: { type: 'number', minimum: 0, description: 'Vessel diameter in m' },
+          length: { type: 'number', minimum: 0, description: 'Vessel length in m' },
+          height: { type: 'number', minimum: 0, description: 'Vessel height in m' },
+          operatingConditions: {
+            type: 'object',
+            properties: {
+              operatingPressure: { type: 'number', description: 'Operating pressure in Pa' },
+              operatingTemperature: { type: 'number', description: 'Operating temperature in K' },
+              fluidProperties: { type: 'object', description: 'Fluid properties' }
+            }
+          }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                shellThickness: { type: 'number' },
+                headThickness: { type: 'number' },
+                nozzleReinforcement: { type: 'object' },
+                weight: { type: 'number' },
+                materialRequirements: { type: 'object' },
+                designPressure: { type: 'number' },
+                designTemperature: { type: 'number' },
+                safetyFactors: { type: 'object' },
+                recommendations: { type: 'array', items: { type: 'string' } },
+                references: { type: 'array', items: { type: 'string' } },
+                standards: { type: 'array', items: { type: 'string' } },
+                calculationMethod: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = VesselSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'pressure_vessel',
+      volume: input.volume,
+      designPressure: input.designPressure,
+      designTemperature: input.designTemperature
+    }, 'Pressure vessel sizing requested');
+    
+    const result = calculatePressureVesselSizing(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'pressure_vessel',
+      shellThickness: result.shellThickness,
+      weight: result.weight
+    }, 'Pressure vessel sizing completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // Storage Tank Sizing with API 650
+  fastify.post('/api/v1/equipment/vessels/storage-tank', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate storage tank sizing with API 650 compliance',
+      description: 'Calculate storage tank sizing using API 650 standards',
+      body: {
+        type: 'object',
+        required: ['volume', 'designPressure', 'designTemperature', 'vesselType'],
+        properties: {
+          volume: { type: 'number', minimum: 0, description: 'Tank volume in m³' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          material: { type: 'string', description: 'Tank material' },
+          vesselType: { type: 'string', enum: ['storage_tank', 'pressure_vessel', 'separator', 'reactor'], description: 'Tank type' },
+          diameter: { type: 'number', minimum: 0, description: 'Tank diameter in m' },
+          height: { type: 'number', minimum: 0, description: 'Tank height in m' },
+          operatingConditions: {
+            type: 'object',
+            properties: {
+              operatingPressure: { type: 'number', description: 'Operating pressure in Pa' },
+              operatingTemperature: { type: 'number', description: 'Operating temperature in K' },
+              fluidProperties: { type: 'object', description: 'Fluid properties' }
+            }
+          }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                shellThickness: { type: 'array', items: { type: 'number' } },
+                bottomThickness: { type: 'number' },
+                roofThickness: { type: 'number' },
+                windGirder: { type: 'object' },
+                seismicDesign: { type: 'object' },
+                weight: { type: 'number' },
+                materialRequirements: { type: 'object' },
+                designPressure: { type: 'number' },
+                designTemperature: { type: 'number' },
+                recommendations: { type: 'array', items: { type: 'string' } },
+                references: { type: 'array', items: { type: 'string' } },
+                standards: { type: 'array', items: { type: 'string' } },
+                calculationMethod: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = VesselSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'storage_tank',
+      volume: input.volume,
+      designPressure: input.designPressure,
+      designTemperature: input.designTemperature
+    }, 'Storage tank sizing requested');
+    
+    const result = calculateStorageTankSizing(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'storage_tank',
+      weight: result.weight,
+      numberOfCourses: result.shellThickness.length
+    }, 'Storage tank sizing completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // Separator Sizing with API 12J
+  fastify.post('/api/v1/equipment/vessels/separator', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate separator sizing with API 12J compliance',
+      description: 'Calculate separator sizing using API 12J standards',
+      body: {
+        type: 'object',
+        required: ['volume', 'designPressure', 'designTemperature', 'vesselType'],
+        properties: {
+          volume: { type: 'number', minimum: 0, description: 'Separator volume in m³' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          material: { type: 'string', description: 'Separator material' },
+          vesselType: { type: 'string', enum: ['separator', 'pressure_vessel', 'storage_tank', 'reactor'], description: 'Separator type' },
+          diameter: { type: 'number', minimum: 0, description: 'Separator diameter in m' },
+          length: { type: 'number', minimum: 0, description: 'Separator length in m' },
+          operatingConditions: {
+            type: 'object',
+            properties: {
+              operatingPressure: { type: 'number', description: 'Operating pressure in Pa' },
+              operatingTemperature: { type: 'number', description: 'Operating temperature in K' },
+              fluidProperties: { type: 'object', description: 'Fluid properties' }
+            }
+          }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                shellThickness: { type: 'number' },
+                headThickness: { type: 'number' },
+                internals: { type: 'object' },
+                weight: { type: 'number' },
+                materialRequirements: { type: 'object' },
+                designPressure: { type: 'number' },
+                designTemperature: { type: 'number' },
+                recommendations: { type: 'array', items: { type: 'string' } },
+                references: { type: 'array', items: { type: 'string' } },
+                standards: { type: 'array', items: { type: 'string' } },
+                calculationMethod: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = VesselSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'separator',
+      volume: input.volume,
+      designPressure: input.designPressure,
+      designTemperature: input.designTemperature
+    }, 'Separator sizing requested');
+    
+    const result = calculateSeparatorSizing(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'separator',
+      shellThickness: result.shellThickness,
+      weight: result.weight
+    }, 'Separator sizing completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
   
   // Vessel Sizing Calculation
   fastify.post('/api/v1/equipment/vessels/sizing', {
