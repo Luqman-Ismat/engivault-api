@@ -18,7 +18,7 @@ import {
   VesselSizingSchema,
   PipingSizingSchema
 } from '../types';
-import { createSuccessResponse, AppError, handleAsync } from '../utils/errorHandler';
+import { createSuccessResponse, handleAsync } from '../utils/errorHandler';
 import logger from '../utils/logger';
 
 export default async function equipmentSizingRoutes(fastify: FastifyInstance): Promise<void> {
@@ -797,7 +797,7 @@ export default async function equipmentSizingRoutes(fastify: FastifyInstance): P
       }
     }
   }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
-    const { sizingResults, constraints, preferences } = request.body as any;
+    const { sizingResults, constraints, preferences: _preferences } = request.body as any;
     const userId = (request.user as any).userId;
     
     logger.info({
@@ -979,7 +979,7 @@ export default async function equipmentSizingRoutes(fastify: FastifyInstance): P
       }
     }
   }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
-    const { equipmentType, sizingResults, constraints, preferences } = request.body as any;
+    const { equipmentType, sizingResults, constraints, preferences: _preferences } = request.body as any;
     const userId = (request.user as any).userId;
     
     logger.info({

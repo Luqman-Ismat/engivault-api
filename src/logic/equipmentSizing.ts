@@ -51,7 +51,7 @@ export function calculatePumpSizing(input: PumpSizingInput): {
   standards: string[];
   calculationMethod: string;
 } {
-  const { flowRate, head, fluidDensity, fluidViscosity, npshAvailable } = input;
+  const { flowRate, head, fluidDensity, fluidViscosity: _fluidViscosity, npshAvailable } = input;
   
   // Hydraulic power calculation (API 610, Section 6.1.1)
   const hydraulicPower = (flowRate * head * fluidDensity * 9.81) / 1000; // kW
@@ -154,7 +154,7 @@ export function calculateHeatExchangerSizing(input: HeatExchangerSizingInput): {
     coldFlowRate,
     hotFluidProperties,
     coldFluidProperties,
-    exchangerType = 'shell_tube'
+    exchangerType: _exchangerType = 'shell_tube'
   } = input;
   
   // LMTD calculation (TEMA Standard, Section 7)
@@ -252,7 +252,7 @@ export function calculateVesselSizing(input: VesselSizingInput): {
     designPressure,
     designTemperature,
     material = 'carbon_steel',
-    vesselType,
+    vesselType: _vesselType,
     diameter: inputDiameter,
     length: inputLength,
     height: inputHeight
@@ -348,7 +348,7 @@ export function calculatePipingSizing(input: PipingSizingInput): {
     flowRate,
     fluidDensity,
     fluidViscosity,
-    pressureDrop: inputPressureDrop,
+    pressureDrop: _inputPressureDrop,
     velocityLimit = 3.0,
     pipeLength = 100,
     fittings = []
@@ -360,6 +360,10 @@ export function calculatePipingSizing(input: PipingSizingInput): {
   // Standard pipe sizes (ASME B31.3, Table 6.1)
   const standardSizes = [0.025, 0.032, 0.040, 0.050, 0.065, 0.080, 0.100, 0.125, 0.150, 0.200, 0.250, 0.300, 0.350, 0.400, 0.450, 0.500];
   const pipeDiameter = standardSizes.find(size => size >= initialDiameter) || standardSizes[standardSizes.length - 1];
+  
+  if (!pipeDiameter) {
+    throw new Error('Unable to determine pipe diameter');
+  }
   
   // Velocity calculation (ASME B31.3, Section 6.1)
   const velocity = flowRate / (Math.PI * pipeDiameter ** 2 / 4);
@@ -374,7 +378,7 @@ export function calculatePipingSizing(input: PipingSizingInput): {
     frictionFactor = 64 / reynoldsNumber;
   } else {
     // Turbulent flow (ASME B31.3, Section 6.3.2)
-    const relativeRoughness = 0.00015 / pipeDiameter; // Commercial steel
+    const _relativeRoughness = 0.00015 / pipeDiameter; // Commercial steel
     frictionFactor = 0.316 / (reynoldsNumber ** 0.25); // Simplified Blasius equation
   }
   
@@ -436,7 +440,7 @@ export function selectPumpFromCatalog(
   standards: string[];
   calculationMethod: string;
 } {
-  const { hydraulicPower, brakePower, specificSpeed, npshRequired, flowRate, head } = sizingResults;
+  const { hydraulicPower: _hydraulicPower, brakePower, specificSpeed, npshRequired: _npshRequired, flowRate, head } = sizingResults;
   
   // Pump catalog data (simplified for demonstration)
   const pumpCatalog = [
@@ -559,13 +563,15 @@ export function selectPumpFromCatalog(
     recommendations.push("Check if flow rate, head, or NPSH requirements are realistic.");
   } else {
     const bestPump = filteredPumps[0];
-    recommendations.push(`Best match: ${bestPump.manufacturer} ${bestPump.model}`);
-    recommendations.push(`Performance match: ${bestPump.performanceMatch.toFixed(1)}%`);
-    recommendations.push(`Efficiency: ${(bestPump.efficiency * 100).toFixed(1)}%`);
-    recommendations.push(`NPSH margin: ${(sizingResults.npshAvailable - bestPump.npshRequired).toFixed(1)} m`);
-    
-    if (bestPump.performanceMatch < 80) {
-      recommendations.push("Consider custom pump design for better performance match.");
+    if (bestPump) {
+      recommendations.push(`Best match: ${bestPump.manufacturer} ${bestPump.model}`);
+      recommendations.push(`Performance match: ${bestPump.performanceMatch.toFixed(1)}%`);
+      recommendations.push(`Efficiency: ${(bestPump.efficiency * 100).toFixed(1)}%`);
+      recommendations.push(`NPSH margin: ${(sizingResults.npshAvailable - bestPump.npshRequired).toFixed(1)} m`);
+      
+      if (bestPump.performanceMatch < 80) {
+        recommendations.push("Consider custom pump design for better performance match.");
+      }
     }
   }
   
@@ -604,7 +610,7 @@ export function selectPumpFromCatalog(
  * @param pressure Pressure in Pa
  * @returns Material properties
  */
-export function getMaterialProperties(material: string, temperature: number, pressure: number): {
+export function getMaterialProperties(material: string, _temperature: number, _pressure: number): {
   density: number;
   thermalConductivity: number;
   specificHeat: number;
@@ -669,7 +675,7 @@ export function analyzePumpPerformanceCurves(
   standards: string[];
   calculationMethod: string;
 } {
-  const { flowRate, head, efficiency, npshRequired } = pumpData;
+  const { flowRate, head: _head, efficiency, npshRequired } = pumpData;
   const { systemHead, systemFlow } = systemData;
   
   // Find operating point (intersection of pump and system curves)
@@ -1252,7 +1258,12 @@ export function getSafetyFactors(equipmentType: string, standard: string): {
     }
   };
   
-  return safetyFactors[equipmentType as keyof typeof safetyFactors]?.[standard as keyof typeof safetyFactors[typeof equipmentType]] || {
+  const equipmentFactors = safetyFactors[equipmentType as keyof typeof safetyFactors];
+  if (equipmentFactors && typeof equipmentFactors === 'object' && standard in equipmentFactors) {
+    return (equipmentFactors as any)[standard];
+  }
+  
+  return {
     designFactor: 2.0,
     operatingFactor: 1.25,
     materialFactor: 1.0,
