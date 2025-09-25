@@ -248,3 +248,279 @@ class HeatExchangerSizing:
             effectiveness = 1 - (1 - ntu * capacity_ratio).exp()
         
         return effectiveness
+    
+    def optimize_shell_tube_design(
+        self,
+        heat_duty: float,
+        hot_fluid_inlet: float,
+        hot_fluid_outlet: float,
+        cold_fluid_inlet: float,
+        cold_fluid_outlet: float,
+        hot_flow_rate: float,
+        cold_flow_rate: float,
+        design_pressure: float,
+        design_temperature: float,
+        hot_fluid_properties: Dict[str, float],
+        cold_fluid_properties: Dict[str, float]
+    ) -> Dict[str, Any]:
+        """
+        Optimize shell and tube heat exchanger design using TEMA standards.
+        
+        Args:
+            heat_duty: Heat duty in W
+            hot_fluid_inlet: Hot fluid inlet temperature in K
+            hot_fluid_outlet: Hot fluid outlet temperature in K
+            cold_fluid_inlet: Cold fluid inlet temperature in K
+            cold_fluid_outlet: Cold fluid outlet temperature in K
+            hot_flow_rate: Hot fluid flow rate in kg/s
+            cold_flow_rate: Cold fluid flow rate in kg/s
+            design_pressure: Design pressure in Pa
+            design_temperature: Design temperature in K
+            hot_fluid_properties: Hot fluid properties dict
+            cold_fluid_properties: Cold fluid properties dict
+            
+        Returns:
+            Dict with optimized shell and tube design results
+            
+        Example:
+            >>> result = client.equipment_sizing.heat_exchanger_sizing.optimize_shell_tube_design(
+            ...     heat_duty=50000,
+            ...     hot_fluid_inlet=353,
+            ...     hot_fluid_outlet=333,
+            ...     cold_fluid_inlet=293,
+            ...     cold_fluid_outlet=313,
+            ...     hot_flow_rate=10,
+            ...     cold_flow_rate=15,
+            ...     design_pressure=1000000,
+            ...     design_temperature=423,
+            ...     hot_fluid_properties=hot_props,
+            ...     cold_fluid_properties=cold_props
+            ... )
+        """
+        request_data = {
+            "heatDuty": heat_duty,
+            "hotFluidInlet": hot_fluid_inlet,
+            "hotFluidOutlet": hot_fluid_outlet,
+            "coldFluidInlet": cold_fluid_inlet,
+            "coldFluidOutlet": cold_fluid_outlet,
+            "hotFlowRate": hot_flow_rate,
+            "coldFlowRate": cold_flow_rate,
+            "designPressure": design_pressure,
+            "designTemperature": design_temperature,
+            "hotFluidProperties": hot_fluid_properties,
+            "coldFluidProperties": cold_fluid_properties
+        }
+        
+        # Make API request
+        response_data = self.client._make_request(
+            method="POST",
+            endpoint="/api/v1/equipment/heat-exchangers/shell-tube-optimization",
+            data=request_data
+        )
+        
+        return response_data
+    
+    def calculate_plate_heat_exchanger(
+        self,
+        heat_duty: float,
+        hot_fluid_inlet: float,
+        hot_fluid_outlet: float,
+        cold_fluid_inlet: float,
+        cold_fluid_outlet: float,
+        hot_flow_rate: float,
+        cold_flow_rate: float,
+        design_pressure: float,
+        design_temperature: float,
+        hot_fluid_properties: Dict[str, float],
+        cold_fluid_properties: Dict[str, float]
+    ) -> Dict[str, Any]:
+        """
+        Calculate plate heat exchanger sizing.
+        
+        Args:
+            heat_duty: Heat duty in W
+            hot_fluid_inlet: Hot fluid inlet temperature in K
+            hot_fluid_outlet: Hot fluid outlet temperature in K
+            cold_fluid_inlet: Cold fluid inlet temperature in K
+            cold_fluid_outlet: Cold fluid outlet temperature in K
+            hot_flow_rate: Hot fluid flow rate in kg/s
+            cold_flow_rate: Cold fluid flow rate in kg/s
+            design_pressure: Design pressure in Pa
+            design_temperature: Design temperature in K
+            hot_fluid_properties: Hot fluid properties dict
+            cold_fluid_properties: Cold fluid properties dict
+            
+        Returns:
+            Dict with plate heat exchanger sizing results
+            
+        Example:
+            >>> result = client.equipment_sizing.heat_exchanger_sizing.calculate_plate_heat_exchanger(
+            ...     heat_duty=50000,
+            ...     hot_fluid_inlet=353,
+            ...     hot_fluid_outlet=333,
+            ...     cold_fluid_inlet=293,
+            ...     cold_fluid_outlet=313,
+            ...     hot_flow_rate=10,
+            ...     cold_flow_rate=15,
+            ...     design_pressure=1000000,
+            ...     design_temperature=423,
+            ...     hot_fluid_properties=hot_props,
+            ...     cold_fluid_properties=cold_props
+            ... )
+        """
+        request_data = {
+            "heatDuty": heat_duty,
+            "hotFluidInlet": hot_fluid_inlet,
+            "hotFluidOutlet": hot_fluid_outlet,
+            "coldFluidInlet": cold_fluid_inlet,
+            "coldFluidOutlet": cold_fluid_outlet,
+            "hotFlowRate": hot_flow_rate,
+            "coldFlowRate": cold_flow_rate,
+            "designPressure": design_pressure,
+            "designTemperature": design_temperature,
+            "hotFluidProperties": hot_fluid_properties,
+            "coldFluidProperties": cold_fluid_properties
+        }
+        
+        # Make API request
+        response_data = self.client._make_request(
+            method="POST",
+            endpoint="/api/v1/equipment/heat-exchangers/plate-sizing",
+            data=request_data
+        )
+        
+        return response_data
+    
+    def calculate_air_cooled_heat_exchanger(
+        self,
+        heat_duty: float,
+        hot_fluid_inlet: float,
+        hot_fluid_outlet: float,
+        cold_fluid_inlet: float,
+        cold_fluid_outlet: float,
+        hot_flow_rate: float,
+        cold_flow_rate: float,
+        design_pressure: float,
+        design_temperature: float,
+        hot_fluid_properties: Dict[str, float],
+        cold_fluid_properties: Dict[str, float]
+    ) -> Dict[str, Any]:
+        """
+        Calculate air-cooled heat exchanger sizing using API 661 standards.
+        
+        Args:
+            heat_duty: Heat duty in W
+            hot_fluid_inlet: Hot fluid inlet temperature in K
+            hot_fluid_outlet: Hot fluid outlet temperature in K
+            cold_fluid_inlet: Cold fluid inlet temperature in K
+            cold_fluid_outlet: Cold fluid outlet temperature in K
+            hot_flow_rate: Hot fluid flow rate in kg/s
+            cold_flow_rate: Cold fluid flow rate in kg/s
+            design_pressure: Design pressure in Pa
+            design_temperature: Design temperature in K
+            hot_fluid_properties: Hot fluid properties dict
+            cold_fluid_properties: Cold fluid properties dict
+            
+        Returns:
+            Dict with air-cooled heat exchanger sizing results
+            
+        Example:
+            >>> result = client.equipment_sizing.heat_exchanger_sizing.calculate_air_cooled_heat_exchanger(
+            ...     heat_duty=50000,
+            ...     hot_fluid_inlet=353,
+            ...     hot_fluid_outlet=333,
+            ...     cold_fluid_inlet=293,
+            ...     cold_fluid_outlet=313,
+            ...     hot_flow_rate=10,
+            ...     cold_flow_rate=15,
+            ...     design_pressure=1000000,
+            ...     design_temperature=423,
+            ...     hot_fluid_properties=hot_props,
+            ...     cold_fluid_properties=cold_props
+            ... )
+        """
+        request_data = {
+            "heatDuty": heat_duty,
+            "hotFluidInlet": hot_fluid_inlet,
+            "hotFluidOutlet": hot_fluid_outlet,
+            "coldFluidInlet": cold_fluid_inlet,
+            "coldFluidOutlet": cold_fluid_outlet,
+            "hotFlowRate": hot_flow_rate,
+            "coldFlowRate": cold_flow_rate,
+            "designPressure": design_pressure,
+            "designTemperature": design_temperature,
+            "hotFluidProperties": hot_fluid_properties,
+            "coldFluidProperties": cold_fluid_properties
+        }
+        
+        # Make API request
+        response_data = self.client._make_request(
+            method="POST",
+            endpoint="/api/v1/equipment/heat-exchangers/air-cooled-sizing",
+            data=request_data
+        )
+        
+        return response_data
+    
+    def rate_heat_exchanger(
+        self,
+        area: float,
+        hot_fluid_inlet: float,
+        hot_fluid_outlet: float,
+        cold_fluid_inlet: float,
+        cold_fluid_outlet: float,
+        hot_flow_rate: float,
+        cold_flow_rate: float,
+        hot_fluid_properties: Dict[str, float],
+        cold_fluid_properties: Dict[str, float]
+    ) -> Dict[str, Any]:
+        """
+        Rate existing heat exchanger performance.
+        
+        Args:
+            area: Heat transfer area in m²
+            hot_fluid_inlet: Hot fluid inlet temperature in K
+            hot_fluid_outlet: Hot fluid outlet temperature in K
+            cold_fluid_inlet: Cold fluid inlet temperature in K
+            cold_fluid_outlet: Cold fluid outlet temperature in K
+            hot_flow_rate: Hot fluid flow rate in kg/s
+            cold_flow_rate: Cold fluid flow rate in kg/s
+            hot_fluid_properties: Hot fluid properties dict
+            cold_fluid_properties: Cold fluid properties dict
+            
+        Returns:
+            Dict with heat exchanger rating results
+            
+        Example:
+            >>> result = client.equipment_sizing.heat_exchanger_sizing.rate_heat_exchanger(
+            ...     area=100,
+            ...     hot_fluid_inlet=353,
+            ...     hot_fluid_outlet=333,
+            ...     cold_fluid_inlet=293,
+            ...     cold_fluid_outlet=313,
+            ...     hot_flow_rate=10,
+            ...     cold_flow_rate=15,
+            ...     hot_fluid_properties=hot_props,
+            ...     cold_fluid_properties=cold_props
+            ... )
+        """
+        request_data = {
+            "area": area,
+            "hotFluidInlet": hot_fluid_inlet,
+            "hotFluidOutlet": hot_fluid_outlet,
+            "coldFluidInlet": cold_fluid_inlet,
+            "coldFluidOutlet": cold_fluid_outlet,
+            "hotFlowRate": hot_flow_rate,
+            "coldFlowRate": cold_flow_rate,
+            "hotFluidProperties": hot_fluid_properties,
+            "coldFluidProperties": cold_fluid_properties
+        }
+        
+        # Make API request
+        response_data = self.client._make_request(
+            method="POST",
+            endpoint="/api/v1/equipment/heat-exchangers/rating",
+            data=request_data
+        )
+        
+        return response_data

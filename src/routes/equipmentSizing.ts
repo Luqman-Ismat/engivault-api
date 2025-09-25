@@ -6,7 +6,11 @@ import {
   calculatePipingSizing,
   selectPumpFromCatalog,
   analyzePumpPerformanceCurves,
-  calculateSystemCurve
+  calculateSystemCurve,
+  optimizeShellTubeDesign,
+  calculatePlateHeatExchangerSizing,
+  calculateAirCooledHeatExchangerSizing,
+  rateHeatExchanger
 } from '../logic/equipmentSizing';
 import {
   PumpSizingSchema,
@@ -193,6 +197,388 @@ export default async function equipmentSizingRoutes(fastify: FastifyInstance): P
       area: result.area,
       overallU: result.overallU
     }, 'Heat exchanger sizing calculation completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // Shell and Tube Heat Exchanger Optimization
+  fastify.post('/api/v1/equipment/heat-exchangers/shell-tube-optimization', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Optimize shell and tube heat exchanger design',
+      description: 'Optimize shell and tube heat exchanger design using TEMA standards',
+      body: {
+        type: 'object',
+        required: [
+          'heatDuty', 'hotFluidInlet', 'hotFluidOutlet', 'coldFluidInlet', 'coldFluidOutlet',
+          'hotFlowRate', 'coldFlowRate', 'designPressure', 'designTemperature',
+          'hotFluidProperties', 'coldFluidProperties'
+        ],
+        properties: {
+          heatDuty: { type: 'number', minimum: 0, description: 'Heat duty in W' },
+          hotFluidInlet: { type: 'number', minimum: 0, description: 'Hot fluid inlet temperature in K' },
+          hotFluidOutlet: { type: 'number', minimum: 0, description: 'Hot fluid outlet temperature in K' },
+          coldFluidInlet: { type: 'number', minimum: 0, description: 'Cold fluid inlet temperature in K' },
+          coldFluidOutlet: { type: 'number', minimum: 0, description: 'Cold fluid outlet temperature in K' },
+          hotFlowRate: { type: 'number', minimum: 0, description: 'Hot fluid flow rate in kg/s' },
+          coldFlowRate: { type: 'number', minimum: 0, description: 'Cold fluid flow rate in kg/s' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          hotFluidProperties: {
+            type: 'object',
+            required: ['density', 'viscosity', 'thermalConductivity', 'specificHeat'],
+            properties: {
+              density: { type: 'number', minimum: 0, description: 'Density in kg/m³' },
+              viscosity: { type: 'number', minimum: 0, description: 'Viscosity in Pa·s' },
+              thermalConductivity: { type: 'number', minimum: 0, description: 'Thermal conductivity in W/m·K' },
+              specificHeat: { type: 'number', minimum: 0, description: 'Specific heat in J/kg·K' }
+            }
+          },
+          coldFluidProperties: {
+            type: 'object',
+            required: ['density', 'viscosity', 'thermalConductivity', 'specificHeat'],
+            properties: {
+              density: { type: 'number', minimum: 0, description: 'Density in kg/m³' },
+              viscosity: { type: 'number', minimum: 0, description: 'Viscosity in Pa·s' },
+              thermalConductivity: { type: 'number', minimum: 0, description: 'Thermal conductivity in W/m·K' },
+              specificHeat: { type: 'number', minimum: 0, description: 'Specific heat in J/kg·K' }
+            }
+          }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                optimizedDesign: { type: 'object', description: 'Optimized design parameters' },
+                shellDiameter: { type: 'number', description: 'Shell diameter in m' },
+                tubeCount: { type: 'number', description: 'Number of tubes' },
+                tubeLength: { type: 'number', description: 'Tube length in m' },
+                tubePitch: { type: 'number', description: 'Tube pitch in m' },
+                baffleSpacing: { type: 'number', description: 'Baffle spacing in m' },
+                baffleCut: { type: 'number', description: 'Baffle cut percentage' },
+                pressureDropShell: { type: 'number', description: 'Shell-side pressure drop in Pa' },
+                pressureDropTube: { type: 'number', description: 'Tube-side pressure drop in Pa' },
+                overallU: { type: 'number', description: 'Overall heat transfer coefficient in W/m²·K' },
+                area: { type: 'number', description: 'Heat transfer area in m²' },
+                efficiency: { type: 'number', description: 'Heat exchanger efficiency (0-1)' },
+                recommendations: { type: 'array', items: { type: 'string' }, description: 'Design recommendations' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Calculation references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = HeatExchangerSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'heat_exchanger',
+      analysisType: 'shell_tube_optimization',
+      heatDuty: input.heatDuty
+    }, 'Shell and tube heat exchanger optimization requested');
+    
+    const result = optimizeShellTubeDesign(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'heat_exchanger',
+      shellDiameter: result.shellDiameter,
+      tubeCount: result.tubeCount,
+      efficiency: result.efficiency
+    }, 'Shell and tube heat exchanger optimization completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // Plate Heat Exchanger Sizing
+  fastify.post('/api/v1/equipment/heat-exchangers/plate-sizing', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate plate heat exchanger sizing',
+      description: 'Calculate plate heat exchanger sizing using industry standards',
+      body: {
+        type: 'object',
+        required: [
+          'heatDuty', 'hotFluidInlet', 'hotFluidOutlet', 'coldFluidInlet', 'coldFluidOutlet',
+          'hotFlowRate', 'coldFlowRate', 'designPressure', 'designTemperature',
+          'hotFluidProperties', 'coldFluidProperties'
+        ],
+        properties: {
+          heatDuty: { type: 'number', minimum: 0, description: 'Heat duty in W' },
+          hotFluidInlet: { type: 'number', minimum: 0, description: 'Hot fluid inlet temperature in K' },
+          hotFluidOutlet: { type: 'number', minimum: 0, description: 'Hot fluid outlet temperature in K' },
+          coldFluidInlet: { type: 'number', minimum: 0, description: 'Cold fluid inlet temperature in K' },
+          coldFluidOutlet: { type: 'number', minimum: 0, description: 'Cold fluid outlet temperature in K' },
+          hotFlowRate: { type: 'number', minimum: 0, description: 'Hot fluid flow rate in kg/s' },
+          coldFlowRate: { type: 'number', minimum: 0, description: 'Cold fluid flow rate in kg/s' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          hotFluidProperties: {
+            type: 'object',
+            required: ['density', 'viscosity', 'thermalConductivity', 'specificHeat'],
+            properties: {
+              density: { type: 'number', minimum: 0, description: 'Density in kg/m³' },
+              viscosity: { type: 'number', minimum: 0, description: 'Viscosity in Pa·s' },
+              thermalConductivity: { type: 'number', minimum: 0, description: 'Thermal conductivity in W/m·K' },
+              specificHeat: { type: 'number', minimum: 0, description: 'Specific heat in J/kg·K' }
+            }
+          },
+          coldFluidProperties: {
+            type: 'object',
+            required: ['density', 'viscosity', 'thermalConductivity', 'specificHeat'],
+            properties: {
+              density: { type: 'number', minimum: 0, description: 'Density in kg/m³' },
+              viscosity: { type: 'number', minimum: 0, description: 'Viscosity in Pa·s' },
+              thermalConductivity: { type: 'number', minimum: 0, description: 'Thermal conductivity in W/m·K' },
+              specificHeat: { type: 'number', minimum: 0, description: 'Specific heat in J/kg·K' }
+            }
+          }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                plateCount: { type: 'number', description: 'Number of plates' },
+                plateArea: { type: 'number', description: 'Plate area in m²' },
+                plateSpacing: { type: 'number', description: 'Plate spacing in m' },
+                overallU: { type: 'number', description: 'Overall heat transfer coefficient in W/m²·K' },
+                pressureDrop: { type: 'number', description: 'Pressure drop in Pa' },
+                efficiency: { type: 'number', description: 'Heat exchanger efficiency (0-1)' },
+                recommendations: { type: 'array', items: { type: 'string' }, description: 'Design recommendations' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Calculation references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = HeatExchangerSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'heat_exchanger',
+      analysisType: 'plate_sizing',
+      heatDuty: input.heatDuty
+    }, 'Plate heat exchanger sizing requested');
+    
+    const result = calculatePlateHeatExchangerSizing(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'heat_exchanger',
+      plateCount: result.plateCount,
+      efficiency: result.efficiency
+    }, 'Plate heat exchanger sizing completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // Air-Cooled Heat Exchanger Sizing
+  fastify.post('/api/v1/equipment/heat-exchangers/air-cooled-sizing', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate air-cooled heat exchanger sizing',
+      description: 'Calculate air-cooled heat exchanger sizing using API 661 standards',
+      body: {
+        type: 'object',
+        required: [
+          'heatDuty', 'hotFluidInlet', 'hotFluidOutlet', 'coldFluidInlet', 'coldFluidOutlet',
+          'hotFlowRate', 'coldFlowRate', 'designPressure', 'designTemperature',
+          'hotFluidProperties', 'coldFluidProperties'
+        ],
+        properties: {
+          heatDuty: { type: 'number', minimum: 0, description: 'Heat duty in W' },
+          hotFluidInlet: { type: 'number', minimum: 0, description: 'Hot fluid inlet temperature in K' },
+          hotFluidOutlet: { type: 'number', minimum: 0, description: 'Hot fluid outlet temperature in K' },
+          coldFluidInlet: { type: 'number', minimum: 0, description: 'Cold fluid inlet temperature in K' },
+          coldFluidOutlet: { type: 'number', minimum: 0, description: 'Cold fluid outlet temperature in K' },
+          hotFlowRate: { type: 'number', minimum: 0, description: 'Hot fluid flow rate in kg/s' },
+          coldFlowRate: { type: 'number', minimum: 0, description: 'Cold fluid flow rate in kg/s' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          hotFluidProperties: {
+            type: 'object',
+            required: ['density', 'viscosity', 'thermalConductivity', 'specificHeat'],
+            properties: {
+              density: { type: 'number', minimum: 0, description: 'Density in kg/m³' },
+              viscosity: { type: 'number', minimum: 0, description: 'Viscosity in Pa·s' },
+              thermalConductivity: { type: 'number', minimum: 0, description: 'Thermal conductivity in W/m·K' },
+              specificHeat: { type: 'number', minimum: 0, description: 'Specific heat in J/kg·K' }
+            }
+          },
+          coldFluidProperties: {
+            type: 'object',
+            required: ['density', 'viscosity', 'thermalConductivity', 'specificHeat'],
+            properties: {
+              density: { type: 'number', minimum: 0, description: 'Density in kg/m³' },
+              viscosity: { type: 'number', minimum: 0, description: 'Viscosity in Pa·s' },
+              thermalConductivity: { type: 'number', minimum: 0, description: 'Thermal conductivity in W/m·K' },
+              specificHeat: { type: 'number', minimum: 0, description: 'Specific heat in J/kg·K' }
+            }
+          }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                fanCount: { type: 'number', description: 'Number of fans' },
+                tubeCount: { type: 'number', description: 'Number of tubes' },
+                tubeLength: { type: 'number', description: 'Tube length in m' },
+                tubeDiameter: { type: 'number', description: 'Tube diameter in m' },
+                overallU: { type: 'number', description: 'Overall heat transfer coefficient in W/m²·K' },
+                area: { type: 'number', description: 'Heat transfer area in m²' },
+                fanPower: { type: 'number', description: 'Total fan power in kW' },
+                efficiency: { type: 'number', description: 'Heat exchanger efficiency (0-1)' },
+                recommendations: { type: 'array', items: { type: 'string' }, description: 'Design recommendations' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Calculation references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = HeatExchangerSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'heat_exchanger',
+      analysisType: 'air_cooled_sizing',
+      heatDuty: input.heatDuty
+    }, 'Air-cooled heat exchanger sizing requested');
+    
+    const result = calculateAirCooledHeatExchangerSizing(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'heat_exchanger',
+      fanCount: result.fanCount,
+      tubeCount: result.tubeCount,
+      fanPower: result.fanPower
+    }, 'Air-cooled heat exchanger sizing completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // Heat Exchanger Rating
+  fastify.post('/api/v1/equipment/heat-exchangers/rating', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Rate existing heat exchanger performance',
+      description: 'Rate existing heat exchanger performance and analyze efficiency',
+      body: {
+        type: 'object',
+        required: [
+          'area', 'hotFluidInlet', 'hotFluidOutlet', 'coldFluidInlet', 'coldFluidOutlet',
+          'hotFlowRate', 'coldFlowRate', 'hotFluidProperties', 'coldFluidProperties'
+        ],
+        properties: {
+          area: { type: 'number', minimum: 0, description: 'Heat transfer area in m²' },
+          hotFluidInlet: { type: 'number', minimum: 0, description: 'Hot fluid inlet temperature in K' },
+          hotFluidOutlet: { type: 'number', minimum: 0, description: 'Hot fluid outlet temperature in K' },
+          coldFluidInlet: { type: 'number', minimum: 0, description: 'Cold fluid inlet temperature in K' },
+          coldFluidOutlet: { type: 'number', minimum: 0, description: 'Cold fluid outlet temperature in K' },
+          hotFlowRate: { type: 'number', minimum: 0, description: 'Hot fluid flow rate in kg/s' },
+          coldFlowRate: { type: 'number', minimum: 0, description: 'Cold fluid flow rate in kg/s' },
+          hotFluidProperties: {
+            type: 'object',
+            required: ['density', 'viscosity', 'thermalConductivity', 'specificHeat'],
+            properties: {
+              density: { type: 'number', minimum: 0, description: 'Density in kg/m³' },
+              viscosity: { type: 'number', minimum: 0, description: 'Viscosity in Pa·s' },
+              thermalConductivity: { type: 'number', minimum: 0, description: 'Thermal conductivity in W/m·K' },
+              specificHeat: { type: 'number', minimum: 0, description: 'Specific heat in J/kg·K' }
+            }
+          },
+          coldFluidProperties: {
+            type: 'object',
+            required: ['density', 'viscosity', 'thermalConductivity', 'specificHeat'],
+            properties: {
+              density: { type: 'number', minimum: 0, description: 'Density in kg/m³' },
+              viscosity: { type: 'number', minimum: 0, description: 'Viscosity in Pa·s' },
+              thermalConductivity: { type: 'number', minimum: 0, description: 'Thermal conductivity in W/m·K' },
+              specificHeat: { type: 'number', minimum: 0, description: 'Specific heat in J/kg·K' }
+            }
+          }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                actualHeatDuty: { type: 'number', description: 'Actual heat duty in W' },
+                actualOverallU: { type: 'number', description: 'Actual overall heat transfer coefficient in W/m²·K' },
+                actualEfficiency: { type: 'number', description: 'Actual efficiency (0-1)' },
+                foulingFactor: { type: 'number', description: 'Fouling factor in m²·K/W' },
+                performanceRatio: { type: 'number', description: 'Performance ratio' },
+                recommendations: { type: 'array', items: { type: 'string' }, description: 'Performance recommendations' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Calculation references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = request.body as any;
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'heat_exchanger',
+      analysisType: 'rating',
+      area: input.area
+    }, 'Heat exchanger rating requested');
+    
+    const result = rateHeatExchanger(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'heat_exchanger',
+      actualHeatDuty: result.actualHeatDuty,
+      performanceRatio: result.performanceRatio
+    }, 'Heat exchanger rating completed');
     
     return reply.send(createSuccessResponse(result));
   }));

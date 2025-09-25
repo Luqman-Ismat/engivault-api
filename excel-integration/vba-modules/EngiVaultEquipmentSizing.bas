@@ -724,6 +724,352 @@ ErrorHandler:
 End Function
 
 '===============================================================================
+' ADVANCED HEAT EXCHANGER SIZING FUNCTIONS
+'===============================================================================
+
+Public Function ENGIVAULT_SHELL_TUBE_OPTIMIZATION( _
+    heatDuty As Double, _
+    hotFluidInlet As Double, _
+    hotFluidOutlet As Double, _
+    coldFluidInlet As Double, _
+    coldFluidOutlet As Double, _
+    hotFlowRate As Double, _
+    coldFlowRate As Double, _
+    designPressure As Double, _
+    designTemperature As Double, _
+    hotFluidDensity As Double, _
+    hotFluidViscosity As Double, _
+    hotFluidThermalConductivity As Double, _
+    hotFluidSpecificHeat As Double, _
+    coldFluidDensity As Double, _
+    coldFluidViscosity As Double, _
+    coldFluidThermalConductivity As Double, _
+    coldFluidSpecificHeat As Double _
+) As String
+    '
+    ' Optimize shell and tube heat exchanger design using TEMA standards
+    '
+    ' Parameters:
+    '   heatDuty: Heat duty in W
+    '   hotFluidInlet: Hot fluid inlet temperature in K
+    '   hotFluidOutlet: Hot fluid outlet temperature in K
+    '   coldFluidInlet: Cold fluid inlet temperature in K
+    '   coldFluidOutlet: Cold fluid outlet temperature in K
+    '   hotFlowRate: Hot fluid flow rate in kg/s
+    '   coldFlowRate: Cold fluid flow rate in kg/s
+    '   designPressure: Design pressure in Pa
+    '   designTemperature: Design temperature in K
+    '   hotFluidDensity: Hot fluid density in kg/m³
+    '   hotFluidViscosity: Hot fluid viscosity in Pa·s
+    '   hotFluidThermalConductivity: Hot fluid thermal conductivity in W/m·K
+    '   hotFluidSpecificHeat: Hot fluid specific heat in J/kg·K
+    '   coldFluidDensity: Cold fluid density in kg/m³
+    '   coldFluidViscosity: Cold fluid viscosity in Pa·s
+    '   coldFluidThermalConductivity: Cold fluid thermal conductivity in W/m·K
+    '   coldFluidSpecificHeat: Cold fluid specific heat in J/kg·K
+    '
+    ' Returns: JSON string with optimized design results
+    '
+    ' Example: =ENGIVAULT_SHELL_TUBE_OPTIMIZATION(50000, 353, 333, 293, 313, 10, 15, 1000000, 423, 1000, 0.001, 0.6, 4180, 1000, 0.001, 0.6, 4180)
+    '
+    
+    On Error GoTo ErrorHandler
+    
+    Dim requestBody As String
+    Dim response As String
+    
+    ' Build JSON request body
+    requestBody = "{" & _
+        """heatDuty"": " & heatDuty & ", " & _
+        """hotFluidInlet"": " & hotFluidInlet & ", " & _
+        """hotFluidOutlet"": " & hotFluidOutlet & ", " & _
+        """coldFluidInlet"": " & coldFluidInlet & ", " & _
+        """coldFluidOutlet"": " & coldFluidOutlet & ", " & _
+        """hotFlowRate"": " & hotFlowRate & ", " & _
+        """coldFlowRate"": " & coldFlowRate & ", " & _
+        """designPressure"": " & designPressure & ", " & _
+        """designTemperature"": " & designTemperature & ", " & _
+        """hotFluidProperties"": {" & _
+            """density"": " & hotFluidDensity & ", " & _
+            """viscosity"": " & hotFluidViscosity & ", " & _
+            """thermalConductivity"": " & hotFluidThermalConductivity & ", " & _
+            """specificHeat"": " & hotFluidSpecificHeat & _
+        "}, " & _
+        """coldFluidProperties"": {" & _
+            """density"": " & coldFluidDensity & ", " & _
+            """viscosity"": " & coldFluidViscosity & ", " & _
+            """thermalConductivity"": " & coldFluidThermalConductivity & ", " & _
+            """specificHeat"": " & coldFluidSpecificHeat & _
+        "}" & _
+        "}"
+    
+    ' Make API request
+    response = MakeAPIRequest("POST", "/api/v1/equipment/heat-exchangers/shell-tube-optimization", requestBody)
+    
+    ENGIVAULT_SHELL_TUBE_OPTIMIZATION = response
+    Exit Function
+    
+ErrorHandler:
+    ENGIVAULT_SHELL_TUBE_OPTIMIZATION = "Error: " & Err.Description
+    Debug.Print "Error in ENGIVAULT_SHELL_TUBE_OPTIMIZATION: " & Err.Description
+End Function
+
+Public Function ENGIVAULT_PLATE_HEAT_EXCHANGER_SIZING( _
+    heatDuty As Double, _
+    hotFluidInlet As Double, _
+    hotFluidOutlet As Double, _
+    coldFluidInlet As Double, _
+    coldFluidOutlet As Double, _
+    hotFlowRate As Double, _
+    coldFlowRate As Double, _
+    designPressure As Double, _
+    designTemperature As Double, _
+    hotFluidDensity As Double, _
+    hotFluidViscosity As Double, _
+    hotFluidThermalConductivity As Double, _
+    hotFluidSpecificHeat As Double, _
+    coldFluidDensity As Double, _
+    coldFluidViscosity As Double, _
+    coldFluidThermalConductivity As Double, _
+    coldFluidSpecificHeat As Double _
+) As String
+    '
+    ' Calculate plate heat exchanger sizing
+    '
+    ' Parameters:
+    '   heatDuty: Heat duty in W
+    '   hotFluidInlet: Hot fluid inlet temperature in K
+    '   hotFluidOutlet: Hot fluid outlet temperature in K
+    '   coldFluidInlet: Cold fluid inlet temperature in K
+    '   coldFluidOutlet: Cold fluid outlet temperature in K
+    '   hotFlowRate: Hot fluid flow rate in kg/s
+    '   coldFlowRate: Cold fluid flow rate in kg/s
+    '   designPressure: Design pressure in Pa
+    '   designTemperature: Design temperature in K
+    '   hotFluidDensity: Hot fluid density in kg/m³
+    '   hotFluidViscosity: Hot fluid viscosity in Pa·s
+    '   hotFluidThermalConductivity: Hot fluid thermal conductivity in W/m·K
+    '   hotFluidSpecificHeat: Hot fluid specific heat in J/kg·K
+    '   coldFluidDensity: Cold fluid density in kg/m³
+    '   coldFluidViscosity: Cold fluid viscosity in Pa·s
+    '   coldFluidThermalConductivity: Cold fluid thermal conductivity in W/m·K
+    '   coldFluidSpecificHeat: Cold fluid specific heat in J/kg·K
+    '
+    ' Returns: JSON string with plate heat exchanger sizing results
+    '
+    ' Example: =ENGIVAULT_PLATE_HEAT_EXCHANGER_SIZING(50000, 353, 333, 293, 313, 10, 15, 1000000, 423, 1000, 0.001, 0.6, 4180, 1000, 0.001, 0.6, 4180)
+    '
+    
+    On Error GoTo ErrorHandler
+    
+    Dim requestBody As String
+    Dim response As String
+    
+    ' Build JSON request body
+    requestBody = "{" & _
+        """heatDuty"": " & heatDuty & ", " & _
+        """hotFluidInlet"": " & hotFluidInlet & ", " & _
+        """hotFluidOutlet"": " & hotFluidOutlet & ", " & _
+        """coldFluidInlet"": " & coldFluidInlet & ", " & _
+        """coldFluidOutlet"": " & coldFluidOutlet & ", " & _
+        """hotFlowRate"": " & hotFlowRate & ", " & _
+        """coldFlowRate"": " & coldFlowRate & ", " & _
+        """designPressure"": " & designPressure & ", " & _
+        """designTemperature"": " & designTemperature & ", " & _
+        """hotFluidProperties"": {" & _
+            """density"": " & hotFluidDensity & ", " & _
+            """viscosity"": " & hotFluidViscosity & ", " & _
+            """thermalConductivity"": " & hotFluidThermalConductivity & ", " & _
+            """specificHeat"": " & hotFluidSpecificHeat & _
+        "}, " & _
+        """coldFluidProperties"": {" & _
+            """density"": " & coldFluidDensity & ", " & _
+            """viscosity"": " & coldFluidViscosity & ", " & _
+            """thermalConductivity"": " & coldFluidThermalConductivity & ", " & _
+            """specificHeat"": " & coldFluidSpecificHeat & _
+        "}" & _
+        "}"
+    
+    ' Make API request
+    response = MakeAPIRequest("POST", "/api/v1/equipment/heat-exchangers/plate-sizing", requestBody)
+    
+    ENGIVAULT_PLATE_HEAT_EXCHANGER_SIZING = response
+    Exit Function
+    
+ErrorHandler:
+    ENGIVAULT_PLATE_HEAT_EXCHANGER_SIZING = "Error: " & Err.Description
+    Debug.Print "Error in ENGIVAULT_PLATE_HEAT_EXCHANGER_SIZING: " & Err.Description
+End Function
+
+Public Function ENGIVAULT_AIR_COOLED_HEAT_EXCHANGER_SIZING( _
+    heatDuty As Double, _
+    hotFluidInlet As Double, _
+    hotFluidOutlet As Double, _
+    coldFluidInlet As Double, _
+    coldFluidOutlet As Double, _
+    hotFlowRate As Double, _
+    coldFlowRate As Double, _
+    designPressure As Double, _
+    designTemperature As Double, _
+    hotFluidDensity As Double, _
+    hotFluidViscosity As Double, _
+    hotFluidThermalConductivity As Double, _
+    hotFluidSpecificHeat As Double, _
+    coldFluidDensity As Double, _
+    coldFluidViscosity As Double, _
+    coldFluidThermalConductivity As Double, _
+    coldFluidSpecificHeat As Double _
+) As String
+    '
+    ' Calculate air-cooled heat exchanger sizing using API 661 standards
+    '
+    ' Parameters:
+    '   heatDuty: Heat duty in W
+    '   hotFluidInlet: Hot fluid inlet temperature in K
+    '   hotFluidOutlet: Hot fluid outlet temperature in K
+    '   coldFluidInlet: Cold fluid inlet temperature in K
+    '   coldFluidOutlet: Cold fluid outlet temperature in K
+    '   hotFlowRate: Hot fluid flow rate in kg/s
+    '   coldFlowRate: Cold fluid flow rate in kg/s
+    '   designPressure: Design pressure in Pa
+    '   designTemperature: Design temperature in K
+    '   hotFluidDensity: Hot fluid density in kg/m³
+    '   hotFluidViscosity: Hot fluid viscosity in Pa·s
+    '   hotFluidThermalConductivity: Hot fluid thermal conductivity in W/m·K
+    '   hotFluidSpecificHeat: Hot fluid specific heat in J/kg·K
+    '   coldFluidDensity: Cold fluid density in kg/m³
+    '   coldFluidViscosity: Cold fluid viscosity in Pa·s
+    '   coldFluidThermalConductivity: Cold fluid thermal conductivity in W/m·K
+    '   coldFluidSpecificHeat: Cold fluid specific heat in J/kg·K
+    '
+    ' Returns: JSON string with air-cooled heat exchanger sizing results
+    '
+    ' Example: =ENGIVAULT_AIR_COOLED_HEAT_EXCHANGER_SIZING(50000, 353, 333, 293, 313, 10, 15, 1000000, 423, 1000, 0.001, 0.6, 4180, 1000, 0.001, 0.6, 4180)
+    '
+    
+    On Error GoTo ErrorHandler
+    
+    Dim requestBody As String
+    Dim response As String
+    
+    ' Build JSON request body
+    requestBody = "{" & _
+        """heatDuty"": " & heatDuty & ", " & _
+        """hotFluidInlet"": " & hotFluidInlet & ", " & _
+        """hotFluidOutlet"": " & hotFluidOutlet & ", " & _
+        """coldFluidInlet"": " & coldFluidInlet & ", " & _
+        """coldFluidOutlet"": " & coldFluidOutlet & ", " & _
+        """hotFlowRate"": " & hotFlowRate & ", " & _
+        """coldFlowRate"": " & coldFlowRate & ", " & _
+        """designPressure"": " & designPressure & ", " & _
+        """designTemperature"": " & designTemperature & ", " & _
+        """hotFluidProperties"": {" & _
+            """density"": " & hotFluidDensity & ", " & _
+            """viscosity"": " & hotFluidViscosity & ", " & _
+            """thermalConductivity"": " & hotFluidThermalConductivity & ", " & _
+            """specificHeat"": " & hotFluidSpecificHeat & _
+        "}, " & _
+        """coldFluidProperties"": {" & _
+            """density"": " & coldFluidDensity & ", " & _
+            """viscosity"": " & coldFluidViscosity & ", " & _
+            """thermalConductivity"": " & coldFluidThermalConductivity & ", " & _
+            """specificHeat"": " & coldFluidSpecificHeat & _
+        "}" & _
+        "}"
+    
+    ' Make API request
+    response = MakeAPIRequest("POST", "/api/v1/equipment/heat-exchangers/air-cooled-sizing", requestBody)
+    
+    ENGIVAULT_AIR_COOLED_HEAT_EXCHANGER_SIZING = response
+    Exit Function
+    
+ErrorHandler:
+    ENGIVAULT_AIR_COOLED_HEAT_EXCHANGER_SIZING = "Error: " & Err.Description
+    Debug.Print "Error in ENGIVAULT_AIR_COOLED_HEAT_EXCHANGER_SIZING: " & Err.Description
+End Function
+
+Public Function ENGIVAULT_HEAT_EXCHANGER_RATING( _
+    area As Double, _
+    hotFluidInlet As Double, _
+    hotFluidOutlet As Double, _
+    coldFluidInlet As Double, _
+    coldFluidOutlet As Double, _
+    hotFlowRate As Double, _
+    coldFlowRate As Double, _
+    hotFluidDensity As Double, _
+    hotFluidViscosity As Double, _
+    hotFluidThermalConductivity As Double, _
+    hotFluidSpecificHeat As Double, _
+    coldFluidDensity As Double, _
+    coldFluidViscosity As Double, _
+    coldFluidThermalConductivity As Double, _
+    coldFluidSpecificHeat As Double _
+) As String
+    '
+    ' Rate existing heat exchanger performance
+    '
+    ' Parameters:
+    '   area: Heat transfer area in m²
+    '   hotFluidInlet: Hot fluid inlet temperature in K
+    '   hotFluidOutlet: Hot fluid outlet temperature in K
+    '   coldFluidInlet: Cold fluid inlet temperature in K
+    '   coldFluidOutlet: Cold fluid outlet temperature in K
+    '   hotFlowRate: Hot fluid flow rate in kg/s
+    '   coldFlowRate: Cold fluid flow rate in kg/s
+    '   hotFluidDensity: Hot fluid density in kg/m³
+    '   hotFluidViscosity: Hot fluid viscosity in Pa·s
+    '   hotFluidThermalConductivity: Hot fluid thermal conductivity in W/m·K
+    '   hotFluidSpecificHeat: Hot fluid specific heat in J/kg·K
+    '   coldFluidDensity: Cold fluid density in kg/m³
+    '   coldFluidViscosity: Cold fluid viscosity in Pa·s
+    '   coldFluidThermalConductivity: Cold fluid thermal conductivity in W/m·K
+    '   coldFluidSpecificHeat: Cold fluid specific heat in J/kg·K
+    '
+    ' Returns: JSON string with heat exchanger rating results
+    '
+    ' Example: =ENGIVAULT_HEAT_EXCHANGER_RATING(100, 353, 333, 293, 313, 10, 15, 1000, 0.001, 0.6, 4180, 1000, 0.001, 0.6, 4180)
+    '
+    
+    On Error GoTo ErrorHandler
+    
+    Dim requestBody As String
+    Dim response As String
+    
+    ' Build JSON request body
+    requestBody = "{" & _
+        """area"": " & area & ", " & _
+        """hotFluidInlet"": " & hotFluidInlet & ", " & _
+        """hotFluidOutlet"": " & hotFluidOutlet & ", " & _
+        """coldFluidInlet"": " & coldFluidInlet & ", " & _
+        """coldFluidOutlet"": " & coldFluidOutlet & ", " & _
+        """hotFlowRate"": " & hotFlowRate & ", " & _
+        """coldFlowRate"": " & coldFlowRate & ", " & _
+        """hotFluidProperties"": {" & _
+            """density"": " & hotFluidDensity & ", " & _
+            """viscosity"": " & hotFluidViscosity & ", " & _
+            """thermalConductivity"": " & hotFluidThermalConductivity & ", " & _
+            """specificHeat"": " & hotFluidSpecificHeat & _
+        "}, " & _
+        """coldFluidProperties"": {" & _
+            """density"": " & coldFluidDensity & ", " & _
+            """viscosity"": " & coldFluidViscosity & ", " & _
+            """thermalConductivity"": " & coldFluidThermalConductivity & ", " & _
+            """specificHeat"": " & coldFluidSpecificHeat & _
+        "}" & _
+        "}"
+    
+    ' Make API request
+    response = MakeAPIRequest("POST", "/api/v1/equipment/heat-exchangers/rating", requestBody)
+    
+    ENGIVAULT_HEAT_EXCHANGER_RATING = response
+    Exit Function
+    
+ErrorHandler:
+    ENGIVAULT_HEAT_EXCHANGER_RATING = "Error: " & Err.Description
+    Debug.Print "Error in ENGIVAULT_HEAT_EXCHANGER_RATING: " & Err.Description
+End Function
+
+'===============================================================================
 ' HELPER FUNCTIONS FOR EQUIPMENT SIZING
 '===============================================================================
 
