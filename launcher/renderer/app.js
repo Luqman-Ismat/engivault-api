@@ -37,58 +37,25 @@ class EngiVaultLauncherApp {
    * Setup DOM event listeners
    */
   setupEventListeners() {
-    // Welcome screen
-    document.getElementById('start-install')?.addEventListener('click', () => {
-      this.navigateToScreen('system-check');
-    });
+    // Navigation buttons
+    const navigationMap = {
+      'start-install': () => this.navigateToScreen('system-check'),
+      'custom-install': () => this.navigateToScreen('options'),
+      'back-to-welcome': () => this.navigateToScreen('welcome'),
+      'continue-to-options': () => this.navigateToScreen('options'),
+      'back-to-system': () => this.navigateToScreen('system-check'),
+      'browse-path': () => this.browseInstallPath(),
+      'start-installation': () => this.startInstallation(),
+      'cancel-installation': () => this.cancelInstallation(),
+      'finish-installation': () => this.finishInstallation(),
+      'retry-installation': () => this.retryInstallation(),
+      'report-error': () => this.reportError(),
+      'close-installer': () => this.closeInstaller()
+    };
 
-    document.getElementById('custom-install')?.addEventListener('click', () => {
-      this.navigateToScreen('options');
-    });
-
-    // System check screen
-    document.getElementById('back-to-welcome')?.addEventListener('click', () => {
-      this.navigateToScreen('welcome');
-    });
-
-    document.getElementById('continue-to-options')?.addEventListener('click', () => {
-      this.navigateToScreen('options');
-    });
-
-    // Options screen
-    document.getElementById('back-to-system')?.addEventListener('click', () => {
-      this.navigateToScreen('system-check');
-    });
-
-    document.getElementById('browse-path')?.addEventListener('click', () => {
-      this.browseInstallPath();
-    });
-
-    document.getElementById('start-installation')?.addEventListener('click', () => {
-      this.startInstallation();
-    });
-
-    // Progress screen
-    document.getElementById('cancel-installation')?.addEventListener('click', () => {
-      this.cancelInstallation();
-    });
-
-    // Success screen
-    document.getElementById('finish-installation')?.addEventListener('click', () => {
-      this.finishInstallation();
-    });
-
-    // Error screen
-    document.getElementById('retry-installation')?.addEventListener('click', () => {
-      this.retryInstallation();
-    });
-
-    document.getElementById('report-error')?.addEventListener('click', () => {
-      this.reportError();
-    });
-
-    document.getElementById('close-installer')?.addEventListener('click', () => {
-      this.closeInstaller();
+    // Setup navigation event listeners
+    Object.entries(navigationMap).forEach(([id, handler]) => {
+      document.getElementById(id)?.addEventListener('click', handler);
     });
 
     // Footer links
@@ -135,48 +102,59 @@ class EngiVaultLauncherApp {
    * Update installation options UI
    */
   updateInstallationOptions() {
-    // Enable/disable sub-options based on main options
-    const pythonEnabled = this.installOptions.python;
-    const npmEnabled = this.installOptions.npm;
-    const excelEnabled = this.installOptions.excel;
+    const { python, npm, excel } = this.installOptions;
 
-    document.getElementById('python-global').disabled = !pythonEnabled;
-    document.getElementById('python-cli').disabled = !pythonEnabled;
-    document.getElementById('npm-global').disabled = !npmEnabled;
-    document.getElementById('npm-types').disabled = !npmEnabled;
-    document.getElementById('excel-templates').disabled = !excelEnabled;
-    document.getElementById('excel-examples').disabled = !excelEnabled;
+    // Enable/disable sub-options
+    const subOptions = {
+      'python-global': python,
+      'python-cli': python,
+      'npm-global': npm,
+      'npm-types': npm,
+      'excel-templates': excel,
+      'excel-examples': excel
+    };
+
+    Object.entries(subOptions).forEach(([id, enabled]) => {
+      const element = document.getElementById(id);
+      if (element) element.disabled = !enabled;
+    });
 
     // Update option cards styling
-    document.querySelector('#install-python').closest('.option-card').classList.toggle('disabled', !pythonEnabled);
-    document.querySelector('#install-npm').closest('.option-card').classList.toggle('disabled', !npmEnabled);
-    document.querySelector('#install-excel').closest('.option-card').classList.toggle('disabled', !excelEnabled);
+    const mainOptions = {
+      'install-python': python,
+      'install-npm': npm,
+      'install-excel': excel
+    };
+
+    Object.entries(mainOptions).forEach(([id, enabled]) => {
+      const card = document.querySelector(`#${id}`)?.closest('.option-card');
+      if (card) card.classList.toggle('disabled', !enabled);
+    });
   }
 
   /**
    * Setup IPC listeners
    */
   setupIPCListeners() {
-    // System information
-    ipcRenderer.on('system-info', (event, data) => {
-      this.systemInfo = data;
-      this.displaySystemInfo(data);
-    });
+    const ipcHandlers = {
+      'system-info': (event, data) => {
+        this.systemInfo = data;
+        this.displaySystemInfo(data);
+      },
+      'requirements-check': (event, data) => {
+        this.requirements = data;
+        this.displayRequirements(data);
+      },
+      'install-progress': (event, data) => {
+        this.updateInstallationProgress(data);
+      },
+      'error': (event, data) => {
+        this.showError(data.message, data.error);
+      }
+    };
 
-    // Requirements check
-    ipcRenderer.on('requirements-check', (event, data) => {
-      this.requirements = data;
-      this.displayRequirements(data);
-    });
-
-    // Installation progress
-    ipcRenderer.on('install-progress', (event, data) => {
-      this.updateInstallationProgress(data);
-    });
-
-    // Errors
-    ipcRenderer.on('error', (event, data) => {
-      this.showError(data.message, data.error);
+    Object.entries(ipcHandlers).forEach(([channel, handler]) => {
+      ipcRenderer.on(channel, handler);
     });
   }
 
@@ -186,18 +164,14 @@ class EngiVaultLauncherApp {
   async loadInitialData() {
     try {
       this.installPath = await ipcRenderer.invoke('get-install-path');
-      const pathInput = document.getElementById('install-path');
-      if (pathInput) {
-        pathInput.value = this.installPath;
-      }
     } catch (error) {
       console.error('Failed to load initial data:', error);
-      // Use default path as fallback
       this.installPath = require('os').homedir() + '/.engivault';
-      const pathInput = document.getElementById('install-path');
-      if (pathInput) {
-        pathInput.value = this.installPath;
-      }
+    }
+    
+    const pathInput = document.getElementById('install-path');
+    if (pathInput) {
+      pathInput.value = this.installPath;
     }
   }
 
@@ -225,17 +199,14 @@ class EngiVaultLauncherApp {
    * Handle screen enter events
    */
   async onScreenEnter(screenName) {
-    switch (screenName) {
-      case 'system-check':
-        await this.performSystemCheck();
-        break;
-      case 'options':
-        this.updateInstallationOptions();
-        break;
-      case 'progress':
-        // Progress screen is handled by installation process
-        break;
-    }
+    const screenActions = {
+      'system-check': () => this.performSystemCheck(),
+      'options': () => this.updateInstallationOptions(),
+      'progress': () => {} // Handled by installation process
+    };
+
+    const action = screenActions[screenName];
+    if (action) await action();
   }
 
   /**
@@ -243,10 +214,8 @@ class EngiVaultLauncherApp {
    */
   async performSystemCheck() {
     try {
-      // Show loading state
       this.showSystemCheckLoading();
 
-      // Get system info and requirements
       const [systemInfo, requirements] = await Promise.all([
         ipcRenderer.invoke('get-system-info').catch(() => this.getMockSystemInfo()),
         ipcRenderer.invoke('check-requirements').catch(() => this.getMockRequirements())
@@ -258,15 +227,12 @@ class EngiVaultLauncherApp {
       this.displaySystemInfo(this.systemInfo);
       this.displayRequirements(this.requirements);
 
-      // Enable continue button if requirements are met
       const continueBtn = document.getElementById('continue-to-options');
       if (continueBtn) {
         continueBtn.disabled = !this.requirements.canProceed;
       }
-
     } catch (error) {
       console.error('System check failed:', error);
-      // Fallback to mock data and enable continue button
       this.systemInfo = this.getMockSystemInfo();
       this.requirements = this.getMockRequirements();
       
@@ -274,9 +240,7 @@ class EngiVaultLauncherApp {
       this.displayRequirements(this.requirements);
       
       const continueBtn = document.getElementById('continue-to-options');
-      if (continueBtn) {
-        continueBtn.disabled = false;
-      }
+      if (continueBtn) continueBtn.disabled = false;
     }
   }
 
@@ -359,10 +323,10 @@ class EngiVaultLauncherApp {
 
     const html = `
       <div class="system-item">
-        <strong>Platform:</strong> ${systemInfo.platform} ${systemInfo.arch}
+        <strong>Platform:</strong> ${systemInfo.platform} ${systemInfo.arch || ''}
       </div>
       <div class="system-item">
-        <strong>OS:</strong> ${systemInfo.type} ${systemInfo.release}
+        <strong>OS:</strong> ${systemInfo.type || 'Unknown'} ${systemInfo.release || ''}
       </div>
       <div class="system-item">
         <strong>Node.js:</strong> ${systemInfo.nodejs?.version || 'Not detected'}

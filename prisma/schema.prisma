@@ -20,6 +20,7 @@ model User {
   
   apiKeys           ApiKey[]
   usage             ApiUsage[]
+  equipmentSizingResults EquipmentSizingResult[]
   
   @@map("users")
 }
@@ -79,4 +80,72 @@ model SubscriptionPlan {
   createdAt         DateTime  @default(now()) @map("created_at")
   
   @@map("subscription_plans")
+}
+
+// Equipment Sizing Models
+model EquipmentCatalog {
+  id                String    @id @default(uuid())
+  equipmentType     String    @map("equipment_type")
+  manufacturer      String
+  model             String
+  specifications    Json      @default("{}")
+  performanceData   Json      @default("{}")
+  standards         String[]  @default([])
+  materialProperties Json    @default("{}")
+  costData          Json      @default("{}")
+  isActive          Boolean   @default(true) @map("is_active")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  sizingResults    EquipmentSizingResult[]
+  
+  @@map("equipment_catalogs")
+}
+
+model EquipmentSizingResult {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  equipmentType     String    @map("equipment_type")
+  sizingParameters  Json      @map("sizing_parameters")
+  results           Json      @default("{}")
+  references        Json      @default("{}")
+  standards         String[]  @default([])
+  calculationMethod String?   @map("calculation_method")
+  accuracy          Decimal?  @db.Decimal(5, 2)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  equipmentCatalog  EquipmentCatalog? @relation(fields: [equipmentCatalogId], references: [id])
+  equipmentCatalogId String?  @map("equipment_catalog_id")
+  
+  @@map("equipment_sizing_results")
+}
+
+model MaterialProperty {
+  id                String    @id @default(uuid())
+  materialName      String    @map("material_name")
+  materialType      String    @map("material_type")
+  properties        Json      @default("{}")
+  temperatureRange  Json      @map("temperature_range")
+  pressureRange     Json      @map("pressure_range")
+  standards         String[]  @default([])
+  isActive          Boolean   @default(true) @map("is_active")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  
+  @@map("material_properties")
+}
+
+model EngineeringStandard {
+  id                String    @id @default(uuid())
+  standardName      String    @map("standard_name")
+  standardCode      String    @map("standard_code")
+  version           String
+  description       String?
+  applicableEquipment String[] @map("applicable_equipment")
+  calculationMethods Json     @map("calculation_methods")
+  safetyFactors     Json      @map("safety_factors")
+  isActive          Boolean   @default(true) @map("is_active")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  
+  @@map("engineering_standards")
 }

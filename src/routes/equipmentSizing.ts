@@ -1,0 +1,621 @@
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import {
+  calculatePumpSizing,
+  calculateHeatExchangerSizing,
+  calculateVesselSizing,
+  calculatePipingSizing,
+  selectPumpFromCatalog,
+  analyzePumpPerformanceCurves,
+  calculateSystemCurve
+} from '../logic/equipmentSizing';
+import {
+  PumpSizingSchema,
+  HeatExchangerSizingSchema,
+  VesselSizingSchema,
+  PipingSizingSchema
+} from '../types';
+import { createSuccessResponse, AppError, handleAsync } from '../utils/errorHandler';
+import logger from '../utils/logger';
+
+export default async function equipmentSizingRoutes(fastify: FastifyInstance): Promise<void> {
+  // ============================================================================
+  // PUMP SIZING ENDPOINTS
+  // ============================================================================
+  
+  // Pump Sizing Calculation
+  fastify.post('/api/v1/equipment/pumps/sizing', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate pump sizing',
+      description: 'Calculate pump sizing based on hydraulic requirements using API 610 standards',
+      body: {
+        type: 'object',
+        required: ['flowRate', 'head', 'fluidDensity', 'fluidViscosity', 'npshAvailable'],
+        properties: {
+          flowRate: { type: 'number', minimum: 0, description: 'Flow rate in m³/s' },
+          head: { type: 'number', minimum: 0, description: 'Pump head in meters' },
+          fluidDensity: { type: 'number', minimum: 0, description: 'Fluid density in kg/m³' },
+          fluidViscosity: { type: 'number', minimum: 0, description: 'Fluid viscosity in Pa·s' },
+          npshAvailable: { type: 'number', minimum: 0, description: 'NPSH available in meters' },
+          efficiencyTarget: { type: 'number', minimum: 0, maximum: 1, description: 'Target efficiency (0-1)' },
+          pumpType: { type: 'string', enum: ['centrifugal', 'positive_displacement', 'specialty'], description: 'Pump type' },
+          operatingHours: { type: 'number', minimum: 0, description: 'Operating hours per year' },
+          designTemperature: { type: 'number', description: 'Design temperature in K' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                hydraulicPower: { type: 'number', description: 'Hydraulic power in kW' },
+                brakePower: { type: 'number', description: 'Brake power in kW' },
+                specificSpeed: { type: 'number', description: 'Specific speed' },
+                efficiency: { type: 'number', description: 'Pump efficiency (0-1)' },
+                npshRequired: { type: 'number', description: 'NPSH required in meters' },
+                npshMargin: { type: 'number', description: 'NPSH margin in meters' },
+                pumpSize: { type: 'string', description: 'Recommended pump size' },
+                motorSize: { type: 'string', description: 'Required motor size' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Calculation references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = PumpSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'pump',
+      flowRate: input.flowRate,
+      head: input.head
+    }, 'Pump sizing calculation requested');
+    
+    const result = calculatePumpSizing(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'pump',
+      hydraulicPower: result.hydraulicPower,
+      brakePower: result.brakePower
+    }, 'Pump sizing calculation completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // ============================================================================
+  // HEAT EXCHANGER SIZING ENDPOINTS
+  // ============================================================================
+  
+  // Heat Exchanger Sizing Calculation
+  fastify.post('/api/v1/equipment/heat-exchangers/sizing', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate heat exchanger sizing',
+      description: 'Calculate heat exchanger sizing using TEMA standards',
+      body: {
+        type: 'object',
+        required: [
+          'heatDuty', 'hotFluidInlet', 'hotFluidOutlet', 'coldFluidInlet', 'coldFluidOutlet',
+          'hotFlowRate', 'coldFlowRate', 'designPressure', 'designTemperature',
+          'hotFluidProperties', 'coldFluidProperties'
+        ],
+        properties: {
+          heatDuty: { type: 'number', minimum: 0, description: 'Heat duty in W' },
+          hotFluidInlet: { type: 'number', minimum: 0, description: 'Hot fluid inlet temperature in K' },
+          hotFluidOutlet: { type: 'number', minimum: 0, description: 'Hot fluid outlet temperature in K' },
+          coldFluidInlet: { type: 'number', minimum: 0, description: 'Cold fluid inlet temperature in K' },
+          coldFluidOutlet: { type: 'number', minimum: 0, description: 'Cold fluid outlet temperature in K' },
+          hotFlowRate: { type: 'number', minimum: 0, description: 'Hot fluid flow rate in kg/s' },
+          coldFlowRate: { type: 'number', minimum: 0, description: 'Cold fluid flow rate in kg/s' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          hotFluidProperties: {
+            type: 'object',
+            required: ['density', 'viscosity', 'thermalConductivity', 'specificHeat'],
+            properties: {
+              density: { type: 'number', minimum: 0, description: 'Density in kg/m³' },
+              viscosity: { type: 'number', minimum: 0, description: 'Viscosity in Pa·s' },
+              thermalConductivity: { type: 'number', minimum: 0, description: 'Thermal conductivity in W/m·K' },
+              specificHeat: { type: 'number', minimum: 0, description: 'Specific heat in J/kg·K' }
+            }
+          },
+          coldFluidProperties: {
+            type: 'object',
+            required: ['density', 'viscosity', 'thermalConductivity', 'specificHeat'],
+            properties: {
+              density: { type: 'number', minimum: 0, description: 'Density in kg/m³' },
+              viscosity: { type: 'number', minimum: 0, description: 'Viscosity in Pa·s' },
+              thermalConductivity: { type: 'number', minimum: 0, description: 'Thermal conductivity in W/m·K' },
+              specificHeat: { type: 'number', minimum: 0, description: 'Specific heat in J/kg·K' }
+            }
+          },
+          exchangerType: { type: 'string', enum: ['shell_tube', 'plate', 'air_cooled', 'compact'], description: 'Heat exchanger type' },
+          flowArrangement: { type: 'string', enum: ['counterflow', 'parallel', 'crossflow'], description: 'Flow arrangement' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                area: { type: 'number', description: 'Heat transfer area in m²' },
+                lmtd: { type: 'number', description: 'Log mean temperature difference in K' },
+                overallU: { type: 'number', description: 'Overall heat transfer coefficient in W/m²·K' },
+                ntu: { type: 'number', description: 'Number of transfer units' },
+                effectiveness: { type: 'number', description: 'Heat exchanger effectiveness (0-1)' },
+                shellDiameter: { type: 'number', description: 'Shell diameter in m' },
+                tubeCount: { type: 'number', description: 'Number of tubes' },
+                tubeLength: { type: 'number', description: 'Tube length in m' },
+                pressureDropShell: { type: 'number', description: 'Shell-side pressure drop in Pa' },
+                pressureDropTube: { type: 'number', description: 'Tube-side pressure drop in Pa' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Calculation references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = HeatExchangerSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'heat_exchanger',
+      heatDuty: input.heatDuty,
+      exchangerType: input.exchangerType
+    }, 'Heat exchanger sizing calculation requested');
+    
+    const result = calculateHeatExchangerSizing(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'heat_exchanger',
+      area: result.area,
+      overallU: result.overallU
+    }, 'Heat exchanger sizing calculation completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // ============================================================================
+  // VESSEL SIZING ENDPOINTS
+  // ============================================================================
+  
+  // Vessel Sizing Calculation
+  fastify.post('/api/v1/equipment/vessels/sizing', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate vessel sizing',
+      description: 'Calculate vessel sizing using ASME Section VIII standards',
+      body: {
+        type: 'object',
+        required: ['volume', 'designPressure', 'designTemperature', 'vesselType'],
+        properties: {
+          volume: { type: 'number', minimum: 0, description: 'Vessel volume in m³' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          material: { type: 'string', description: 'Vessel material' },
+          vesselType: { type: 'string', enum: ['storage_tank', 'pressure_vessel', 'separator', 'reactor'], description: 'Vessel type' },
+          diameter: { type: 'number', minimum: 0, description: 'Vessel diameter in m' },
+          length: { type: 'number', minimum: 0, description: 'Vessel length in m' },
+          height: { type: 'number', minimum: 0, description: 'Vessel height in m' },
+          operatingConditions: {
+            type: 'object',
+            required: ['pressure', 'temperature', 'fluidDensity'],
+            properties: {
+              pressure: { type: 'number', minimum: 0, description: 'Operating pressure in Pa' },
+              temperature: { type: 'number', minimum: 0, description: 'Operating temperature in K' },
+              fluidDensity: { type: 'number', minimum: 0, description: 'Fluid density in kg/m³' }
+            }
+          },
+          standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                diameter: { type: 'number', description: 'Vessel diameter in m' },
+                length: { type: 'number', description: 'Vessel length in m' },
+                wallThickness: { type: 'number', description: 'Wall thickness in m' },
+                weight: { type: 'number', description: 'Vessel weight in kg' },
+                volume: { type: 'number', description: 'Vessel volume in m³' },
+                designPressure: { type: 'number', description: 'Design pressure in Pa' },
+                designTemperature: { type: 'number', description: 'Design temperature in K' },
+                material: { type: 'string', description: 'Vessel material' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Calculation references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = VesselSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'vessel',
+      volume: input.volume,
+      vesselType: input.vesselType
+    }, 'Vessel sizing calculation requested');
+    
+    const result = calculateVesselSizing(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'vessel',
+      diameter: result.diameter,
+      wallThickness: result.wallThickness
+    }, 'Vessel sizing calculation completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // ============================================================================
+  // PIPING SIZING ENDPOINTS
+  // ============================================================================
+  
+  // Piping Sizing Calculation
+  fastify.post('/api/v1/equipment/piping/sizing', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate piping sizing',
+      description: 'Calculate piping sizing using ASME B31.3 standards',
+      body: {
+        type: 'object',
+        required: ['flowRate', 'fluidDensity', 'fluidViscosity'],
+        properties: {
+          flowRate: { type: 'number', minimum: 0, description: 'Flow rate in m³/s' },
+          fluidDensity: { type: 'number', minimum: 0, description: 'Fluid density in kg/m³' },
+          fluidViscosity: { type: 'number', minimum: 0, description: 'Fluid viscosity in Pa·s' },
+          pressureDrop: { type: 'number', minimum: 0, description: 'Allowable pressure drop in Pa' },
+          velocityLimit: { type: 'number', minimum: 0, description: 'Maximum velocity in m/s' },
+          pipeMaterial: { type: 'string', description: 'Pipe material' },
+          pipeSchedule: { type: 'string', description: 'Pipe schedule' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          pipeLength: { type: 'number', minimum: 0, description: 'Pipe length in m' },
+          fittings: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['type', 'quantity', 'equivalentLength'],
+              properties: {
+                type: { type: 'string', description: 'Fitting type' },
+                quantity: { type: 'number', minimum: 0, description: 'Number of fittings' },
+                equivalentLength: { type: 'number', minimum: 0, description: 'Equivalent length in m' }
+              }
+            }
+          }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                pipeDiameter: { type: 'number', description: 'Pipe diameter in m' },
+                pipeSchedule: { type: 'string', description: 'Pipe schedule' },
+                velocity: { type: 'number', description: 'Fluid velocity in m/s' },
+                reynoldsNumber: { type: 'number', description: 'Reynolds number' },
+                frictionFactor: { type: 'number', description: 'Friction factor' },
+                pressureDrop: { type: 'number', description: 'Pressure drop in Pa' },
+                equivalentLength: { type: 'number', description: 'Equivalent length in m' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Calculation references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = PipingSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'piping',
+      flowRate: input.flowRate,
+      pipeLength: input.pipeLength
+    }, 'Piping sizing calculation requested');
+    
+    const result = calculatePipingSizing(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'piping',
+      pipeDiameter: result.pipeDiameter,
+      pressureDrop: result.pressureDrop
+    }, 'Piping sizing calculation completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // ============================================================================
+  // PUMP SELECTION AND PERFORMANCE ANALYSIS ENDPOINTS
+  // ============================================================================
+  
+  // Pump Selection from Catalog
+  fastify.post('/api/v1/equipment/pumps/selection', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Select pump from catalog',
+      description: 'Select appropriate pump from catalog based on sizing results',
+      body: {
+        type: 'object',
+        required: ['sizingResults'],
+        properties: {
+          sizingResults: { type: 'object', description: 'Pump sizing calculation results' },
+          constraints: { type: 'object', description: 'Selection constraints' },
+          preferences: { type: 'object', description: 'User preferences' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                selectedPumps: { type: 'array', items: { type: 'object' }, description: 'Selected pump options' },
+                recommendations: { type: 'array', items: { type: 'string' }, description: 'Selection recommendations' },
+                costEstimate: { type: 'object', description: 'Cost estimation' },
+                performanceMatch: { type: 'number', description: 'Performance match percentage' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Selection references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const { sizingResults, constraints, preferences } = request.body as any;
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'pump',
+      constraints
+    }, 'Pump selection requested');
+    
+    const result = selectPumpFromCatalog(sizingResults, constraints, preferences);
+    
+    logger.info({
+      userId,
+      equipmentType: 'pump',
+      selectedCount: result.selectedPumps.length,
+      performanceMatch: result.performanceMatch
+    }, 'Pump selection completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // Pump Performance Curve Analysis
+  fastify.post('/api/v1/equipment/pumps/performance-analysis', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Analyze pump performance curves',
+      description: 'Analyze pump performance curves and system curves',
+      body: {
+        type: 'object',
+        required: ['pumpData', 'systemData'],
+        properties: {
+          pumpData: { type: 'object', description: 'Pump performance data' },
+          systemData: { type: 'object', description: 'System curve data' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                operatingPoint: { type: 'object', description: 'Operating point data' },
+                efficiency: { type: 'number', description: 'Operating efficiency' },
+                power: { type: 'number', description: 'Operating power in kW' },
+                npshRequired: { type: 'number', description: 'NPSH required at operating point' },
+                cavitationRisk: { type: 'string', description: 'Cavitation risk assessment' },
+                recommendations: { type: 'array', items: { type: 'string' }, description: 'Performance recommendations' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Analysis references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const { pumpData, systemData } = request.body as any;
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'pump',
+      analysisType: 'performance_curves'
+    }, 'Pump performance analysis requested');
+    
+    const result = analyzePumpPerformanceCurves(pumpData, systemData);
+    
+    logger.info({
+      userId,
+      equipmentType: 'pump',
+      efficiency: result.efficiency,
+      cavitationRisk: result.cavitationRisk
+    }, 'Pump performance analysis completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // System Curve Calculation
+  fastify.post('/api/v1/equipment/pumps/system-curve', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate system curve',
+      description: 'Calculate system curve for pump selection',
+      body: {
+        type: 'object',
+        required: ['staticHead', 'frictionLosses', 'flowRate'],
+        properties: {
+          staticHead: { type: 'number', minimum: 0, description: 'Static head in meters' },
+          frictionLosses: { type: 'number', minimum: 0, description: 'Friction losses in meters' },
+          flowRate: { type: 'number', minimum: 0, description: 'Flow rate in m³/s' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                systemHead: { type: 'number', description: 'System head in meters' },
+                systemFlow: { type: 'number', description: 'System flow in m³/s' },
+                frictionFactor: { type: 'number', description: 'Friction factor' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Calculation references' },
+                standards: { type: 'array', items: { type: 'string' }, description: 'Applicable standards' },
+                calculationMethod: { type: 'string', description: 'Calculation method used' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const { staticHead, frictionLosses, flowRate } = request.body as any;
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'pump',
+      analysisType: 'system_curve'
+    }, 'System curve calculation requested');
+    
+    const result = calculateSystemCurve(staticHead, frictionLosses, flowRate);
+    
+    logger.info({
+      userId,
+      equipmentType: 'pump',
+      systemHead: result.systemHead,
+      frictionFactor: result.frictionFactor
+    }, 'System curve calculation completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // ============================================================================
+  // EQUIPMENT SELECTION ENDPOINTS
+  // ============================================================================
+  
+  // Equipment Selection
+  fastify.post('/api/v1/equipment/selection', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Select equipment from catalog',
+      description: 'Select appropriate equipment from catalog based on sizing results',
+      body: {
+        type: 'object',
+        required: ['equipmentType', 'sizingResults'],
+        properties: {
+          equipmentType: { type: 'string', enum: ['pump', 'heat_exchanger', 'vessel', 'piping'], description: 'Equipment type' },
+          sizingResults: { type: 'object', description: 'Sizing calculation results' },
+          constraints: { type: 'object', description: 'Selection constraints' },
+          preferences: { type: 'object', description: 'User preferences' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                selectedEquipment: { type: 'array', items: { type: 'object' }, description: 'Selected equipment options' },
+                recommendations: { type: 'array', items: { type: 'string' }, description: 'Selection recommendations' },
+                costEstimate: { type: 'object', description: 'Cost estimation' },
+                references: { type: 'array', items: { type: 'string' }, description: 'Selection references' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const { equipmentType, sizingResults, constraints, preferences } = request.body as any;
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType,
+      constraints
+    }, 'Equipment selection requested');
+    
+    // TODO: Implement equipment selection logic
+    const result = {
+      selectedEquipment: [],
+      recommendations: ['Equipment selection logic to be implemented'],
+      costEstimate: {},
+      references: ['Equipment selection references to be added']
+    };
+    
+    logger.info({
+      userId,
+      equipmentType,
+      selectedCount: result.selectedEquipment.length
+    }, 'Equipment selection completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+}

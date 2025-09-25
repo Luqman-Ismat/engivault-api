@@ -20,3 +20,4 @@ echo 🎉 Launching ENGiVAULT Installer...
 npm run dev
 
 pause
+

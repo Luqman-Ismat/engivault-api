@@ -288,3 +288,4 @@ MIT License - see the [LICENSE](../LICENSE) file for details.
 ---
 
 **EngiVault Launcher** - Making engineering calculations accessible to everyone! 🚀
+

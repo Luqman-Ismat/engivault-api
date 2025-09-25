@@ -9,89 +9,69 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="app-container">
+    <div class="app">
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <div class="version">v1.0.0</div>
             </div>
         </header>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main">
             <!-- Welcome Screen -->
             <div id="welcome-screen" class="screen active">
-                <div class="welcome-content">
-                    <div class="welcome-left">
-                        <div class="welcome-header">
-                            <h1>ENGiVAULT</h1>
-                            <p>Professional Engineering Calculations Platform</p>
-                        </div>
+                <div class="screen-content">
+                    <div class="welcome-section">
+                        <h2>ENGiVAULT</h2>
+                        <p>Install EngiVault SDKs and tools for Python, JavaScript, and Excel integration</p>
                         
-                        <div class="welcome-actions">
-                            <button id="start-install" class="btn btn-primary">
-                                <i class="fas fa-play"></i>
-                                Start Installation
-                            </button>
-                            <button id="custom-install" class="btn btn-secondary">
-                                <i class="fas fa-cogs"></i>
-                                Custom Installation
-                            </button>
-                        </div>
                     </div>
-                    
-                    <div class="welcome-right">
-                        <div class="features-grid">
-                            <div class="feature-card">
-                                <i class="fab fa-python"></i>
-                                <h3>Python SDK</h3>
-                                <p>Complete Python library for engineering calculations</p>
-                            </div>
-                            <div class="feature-card">
-                                <i class="fab fa-js-square"></i>
-                                <h3>JavaScript SDK</h3>
-                                <p>NPM package for web and Node.js applications</p>
-                            </div>
-                            <div class="feature-card">
-                                <i class="fas fa-file-excel"></i>
-                                <h3>Excel Integration</h3>
-                                <p>VBA modules for seamless Excel integration</p>
-                            </div>
-                        </div>
-                    </div>
+                </div>
+                
+                <div class="screen-footer">
+                    <button id="start-install" class="btn btn-primary">
+                        <i class="fas fa-play"></i>
+                        Start Installation
+                    </button>
+                    <button id="custom-install" class="btn btn-secondary">
+                        <i class="fas fa-cogs"></i>
+                        Custom Installation
+                    </button>
                 </div>
             </div>
 
             <!-- System Check Screen -->
             <div id="system-check-screen" class="screen">
-                <div class="screen-header">
-                    <h2><i class="fas fa-desktop"></i> System Check</h2>
-                    <p>Verifying your system meets the requirements</p>
-                </div>
+                <div class="screen-content">
+                    <div class="screen-header">
+                        <h2><i class="fas fa-desktop"></i> System Check</h2>
+                        <p>Verifying your system meets the requirements</p>
+                    </div>
 
-                <div class="system-info">
-                    <div class="info-card">
-                        <h3><i class="fas fa-info-circle"></i> System Information</h3>
-                        <div id="system-details">
-                            <div class="loading">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                Detecting system...
+                    <div class="check-grid">
+                        <div class="check-card">
+                            <h3><i class="fas fa-info-circle"></i> System Information</h3>
+                            <div id="system-details" class="check-content">
+                                <div class="loading">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Detecting system...
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="check-card">
+                            <h3><i class="fas fa-check-circle"></i> Requirements</h3>
+                            <div id="requirements-list" class="check-content">
+                                <div class="loading">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Checking requirements...
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="requirements-check">
-                        <h3><i class="fas fa-check-circle"></i> Requirements Check</h3>
-                        <div id="requirements-list">
-                            <div class="loading">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                Checking requirements...
-                            </div>
-                        </div>
-                    </div>
                 </div>
-
-                <div class="screen-actions">
+                
+                <div class="screen-footer">
                     <button id="back-to-welcome" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i>
                         Back
@@ -105,19 +85,19 @@
 
             <!-- Installation Options Screen -->
             <div id="options-screen" class="screen">
-                <div class="screen-header">
-                    <h2><i class="fas fa-sliders-h"></i> Installation Options</h2>
-                    <p>Choose what to install</p>
-                </div>
+                <div class="screen-content">
+                    <div class="screen-header">
+                        <h2><i class="fas fa-sliders-h"></i> Installation Options</h2>
+                        <p>Choose what to install</p>
+                    </div>
 
-                <div class="options-content">
-                    <div class="installation-options">
+                    <div class="options-grid">
                         <div class="option-card">
                             <div class="option-header">
                                 <input type="checkbox" id="install-python" checked>
                                 <label for="install-python">
                                     <i class="fab fa-python"></i>
-                                    Python SDK
+                                    <span>Python SDK</span>
                                 </label>
                             </div>
                             <div class="option-details">
@@ -140,7 +120,7 @@
                                 <input type="checkbox" id="install-npm" checked>
                                 <label for="install-npm">
                                     <i class="fab fa-js-square"></i>
-                                    JavaScript SDK
+                                    <span>JavaScript SDK</span>
                                 </label>
                             </div>
                             <div class="option-details">
@@ -163,7 +143,7 @@
                                 <input type="checkbox" id="install-excel">
                                 <label for="install-excel">
                                     <i class="fas fa-file-excel"></i>
-                                    Excel Integration
+                                    <span>Excel Integration</span>
                                 </label>
                             </div>
                             <div class="option-details">
@@ -182,7 +162,7 @@
                         </div>
                     </div>
 
-                    <div class="installation-path">
+                    <div class="path-section">
                         <h3><i class="fas fa-folder"></i> Installation Path</h3>
                         <div class="path-input">
                             <input type="text" id="install-path" readonly>
@@ -193,8 +173,8 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="screen-actions">
+                
+                <div class="screen-footer">
                     <button id="back-to-system" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i>
                         Back
@@ -208,62 +188,64 @@
 
             <!-- Installation Progress Screen -->
             <div id="progress-screen" class="screen">
-                <div class="screen-header">
-                    <h2><i class="fas fa-download"></i> Installing EngiVault</h2>
-                    <p>Please wait while we install the selected components</p>
+                <div class="screen-content">
+                    <div class="screen-header">
+                        <h2><i class="fas fa-download"></i> Installing EngiVault</h2>
+                        <p>Please wait while we install the selected components</p>
+                    </div>
+
+                    <div class="progress-section">
+                        <div class="overall-progress">
+                            <h3>Overall Progress</h3>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="overall-progress"></div>
+                            </div>
+                            <div class="progress-text" id="overall-text">Preparing installation...</div>
+                        </div>
+
+                        <div class="component-progress">
+                            <div class="component-item" id="python-progress">
+                                <div class="component-header">
+                                    <i class="fab fa-python"></i>
+                                    <span>Python SDK</span>
+                                    <div class="component-status" id="python-status">Waiting...</div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="python-progress-bar"></div>
+                                </div>
+                            </div>
+
+                            <div class="component-item" id="npm-progress">
+                                <div class="component-header">
+                                    <i class="fab fa-js-square"></i>
+                                    <span>JavaScript SDK</span>
+                                    <div class="component-status" id="npm-status">Waiting...</div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="npm-progress-bar"></div>
+                                </div>
+                            </div>
+
+                            <div class="component-item" id="excel-progress">
+                                <div class="component-header">
+                                    <i class="fas fa-file-excel"></i>
+                                    <span>Excel Integration</span>
+                                    <div class="component-status" id="excel-status">Waiting...</div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="excel-progress-bar"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="log-section">
+                            <h3>Installation Log</h3>
+                            <div class="log-container" id="installation-log"></div>
+                        </div>
+                    </div>
                 </div>
-
-                <div class="progress-container">
-                    <div class="overall-progress">
-                        <h3>Overall Progress</h3>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="overall-progress"></div>
-                        </div>
-                        <div class="progress-text" id="overall-text">Preparing installation...</div>
-                    </div>
-
-                    <div class="component-progress">
-                        <div class="component-item" id="python-progress">
-                            <div class="component-header">
-                                <i class="fab fa-python"></i>
-                                <span>Python SDK</span>
-                                <div class="component-status" id="python-status">Waiting...</div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="python-progress-bar"></div>
-                            </div>
-                        </div>
-
-                        <div class="component-item" id="npm-progress">
-                            <div class="component-header">
-                                <i class="fab fa-js-square"></i>
-                                <span>JavaScript SDK</span>
-                                <div class="component-status" id="npm-status">Waiting...</div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="npm-progress-bar"></div>
-                            </div>
-                        </div>
-
-                        <div class="component-item" id="excel-progress">
-                            <div class="component-header">
-                                <i class="fas fa-file-excel"></i>
-                                <span>Excel Integration</span>
-                                <div class="component-status" id="excel-status">Waiting...</div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="excel-progress-bar"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="installation-log">
-                        <h3>Installation Log</h3>
-                        <div class="log-container" id="installation-log"></div>
-                    </div>
-                </div>
-
-                <div class="screen-actions">
+                
+                <div class="screen-footer">
                     <button id="cancel-installation" class="btn btn-danger">
                         <i class="fas fa-times"></i>
                         Cancel
@@ -273,89 +255,78 @@
 
             <!-- Success Screen -->
             <div id="success-screen" class="screen">
-                <div class="success-content">
-                    <div class="success-header">
-                        <i class="fas fa-check-circle success-icon"></i>
+                <div class="screen-content">
+                    <div class="success-section">
                         <h2>Installation Complete!</h2>
                         <p>EngiVault has been successfully installed on your system</p>
-                    </div>
 
-                    <div class="installation-summary">
-                        <h3>Installed Components</h3>
-                        <div id="installed-components"></div>
-                    </div>
+                        <div class="summary">
+                            <h3>Installed Components</h3>
+                            <div id="installed-components" class="components-list"></div>
+                        </div>
 
-                    <div class="next-steps">
-                        <h3>What's Next?</h3>
-                        <div class="next-steps-grid">
-                            <div class="step-card">
-                                <i class="fas fa-book"></i>
-                                <h4>Read Documentation</h4>
-                                <p>Learn how to use EngiVault</p>
-                                <button class="btn btn-small" data-action="open-docs">
-                                    <i class="fas fa-external-link-alt"></i>
-                                    Open Docs
-                                </button>
-                            </div>
-                            <div class="step-card">
-                                <i class="fas fa-code"></i>
-                                <h4>Try Examples</h4>
-                                <p>Run sample calculations</p>
-                                <button class="btn btn-small" data-action="open-examples">
-                                    <i class="fas fa-external-link-alt"></i>
-                                    View Examples
-                                </button>
-                            </div>
-                            <div class="step-card">
-                                <i class="fas fa-comments"></i>
-                                <h4>Get Support</h4>
-                                <p>Join our community</p>
-                                <button class="btn btn-small" data-action="open-support">
-                                    <i class="fas fa-external-link-alt"></i>
-                                    Get Help
-                                </button>
+                        <div class="next-steps">
+                            <h3>What's Next?</h3>
+                            <div class="steps-grid">
+                                <div class="step-card" data-action="open-docs">
+                                    <i class="fas fa-book"></i>
+                                    <h4>Read Documentation</h4>
+                                    <p>Learn how to use EngiVault</p>
+                                </div>
+                                <div class="step-card" data-action="open-examples">
+                                    <i class="fas fa-code"></i>
+                                    <h4>Try Examples</h4>
+                                    <p>Run sample calculations</p>
+                                </div>
+                                <div class="step-card" data-action="open-support">
+                                    <i class="fas fa-comments"></i>
+                                    <h4>Get Support</h4>
+                                    <p>Join our community</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="screen-actions">
-                        <button id="finish-installation" class="btn btn-primary">
-                            <i class="fas fa-check"></i>
-                            Finish
-                        </button>
-                    </div>
+                </div>
+                
+                <div class="screen-footer">
+                    <button id="finish-installation" class="btn btn-primary">
+                        <i class="fas fa-check"></i>
+                        Finish
+                    </button>
                 </div>
             </div>
 
             <!-- Error Screen -->
             <div id="error-screen" class="screen">
-                <div class="error-content">
-                    <div class="error-header">
-                        <i class="fas fa-exclamation-triangle error-icon"></i>
+                <div class="screen-content">
+                    <div class="error-section">
+                        <div class="error-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
                         <h2>Installation Error</h2>
                         <p>An error occurred during installation</p>
-                    </div>
 
-                    <div class="error-details">
-                        <h3>Error Details</h3>
-                        <div class="error-message" id="error-message"></div>
-                        <div class="error-log" id="error-log"></div>
+                        <div class="error-details">
+                            <h3>Error Details</h3>
+                            <div class="error-message" id="error-message"></div>
+                            <div class="error-log" id="error-log"></div>
+                        </div>
                     </div>
-
-                    <div class="error-actions">
-                        <button id="retry-installation" class="btn btn-primary">
-                            <i class="fas fa-redo"></i>
-                            Retry
-                        </button>
-                        <button id="report-error" class="btn btn-secondary">
-                            <i class="fas fa-bug"></i>
-                            Report Issue
-                        </button>
-                        <button id="close-installer" class="btn btn-danger">
-                            <i class="fas fa-times"></i>
-                            Close
-                        </button>
-                    </div>
+                </div>
+                
+                <div class="screen-footer">
+                    <button id="retry-installation" class="btn btn-primary">
+                        <i class="fas fa-redo"></i>
+                        Retry
+                    </button>
+                    <button id="report-error" class="btn btn-secondary">
+                        <i class="fas fa-bug"></i>
+                        Report Issue
+                    </button>
+                    <button id="close-installer" class="btn btn-danger">
+                        <i class="fas fa-times"></i>
+                        Close
+                    </button>
                 </div>
             </div>
         </main>

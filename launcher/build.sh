@@ -65,3 +65,4 @@ echo "   2. Distribute to beta testers"
 echo "   3. Collect feedback and iterate"
 echo ""
 echo "📋 Beta testing guide: ../BETA-TESTING.md"
+

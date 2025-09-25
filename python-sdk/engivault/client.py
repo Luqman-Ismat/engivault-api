@@ -68,12 +68,21 @@ class EngiVaultClient:
         from .analytics import AnalyticsModule
         from .heat_transfer import HeatTransferModule
         from .fluid_mechanics import FluidMechanicsModule
+        from .equipment_sizing import PumpSizing, HeatExchangerSizing, VesselSizing, PipingSizing
         
         self.hydraulics = HydraulicsModule(self)
         self.pumps = PumpsModule(self)
         self.analytics = AnalyticsModule(self)
         self.heat_transfer = HeatTransferModule(self)
         self.fluid_mechanics = FluidMechanicsModule(self)
+        
+        # Equipment sizing modules
+        self.equipment_sizing = type('EquipmentSizing', (), {
+            'pump_sizing': PumpSizing(self),
+            'heat_exchanger_sizing': HeatExchangerSizing(self),
+            'vessel_sizing': VesselSizing(self),
+            'piping_sizing': PipingSizing(self)
+        })()
     
     def _setup_auth(self) -> None:
         """Set up authentication headers."""

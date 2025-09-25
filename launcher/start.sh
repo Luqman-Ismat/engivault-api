@@ -19,3 +19,4 @@ fi
 # Start the launcher
 echo "🎉 Launching ENGiVAULT Installer..."
 npm run dev
+

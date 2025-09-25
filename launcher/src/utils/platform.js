@@ -69,3 +69,4 @@ class PlatformUtils {
 }
 
 module.exports = PlatformUtils;
+

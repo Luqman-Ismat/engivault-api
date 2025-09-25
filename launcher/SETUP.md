@@ -189,3 +189,4 @@ The launcher is fully functional and ready for beta testing. You can:
 4. **Iterate based on feedback**: Easy to modify and improve
 
 **The ENGiVAULT launcher is ready to make engineering calculations accessible to everyone!** 🚀
+

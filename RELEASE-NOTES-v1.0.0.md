@@ -190,3 +190,4 @@ Special thanks to all beta testers and contributors who helped make ENGiVAULT po
 **ENGiVAULT v1.0.0** - Making engineering calculations accessible to everyone! 🚀
 
 *Created by Luqman Ismat - Engineering Software Developer*
+

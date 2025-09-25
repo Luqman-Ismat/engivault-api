@@ -594,3 +594,4 @@ Categories=Development;Engineering;`;
 }
 
 module.exports = PythonInstaller;
+

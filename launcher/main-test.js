@@ -8,13 +8,17 @@ function createWindow() {
   console.log('Creating test window...');
   
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 900,
+    height: 650,
+    minWidth: 800,
+    minHeight: 600,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
     },
-    show: true // Show immediately
+    show: true, // Show immediately
+    resizable: true,
+    center: true
   });
 
   // Load test HTML
@@ -57,3 +61,4 @@ app.on('activate', () => {
 });
 
 console.log('ENGiVAULT Test Launcher starting...');
+

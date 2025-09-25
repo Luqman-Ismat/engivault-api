@@ -355,3 +355,4 @@ module.exports.downloadAndExtract = async (url, destination, options = {}) => {
   const manager = new DownloadManager();
   return await manager.downloadAndExtract(url, destination, options);
 };
+

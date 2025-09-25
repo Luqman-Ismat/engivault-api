@@ -699,3 +699,4 @@ Happy calculating! 🚀
 }
 
 module.exports = ExcelInstaller;
+

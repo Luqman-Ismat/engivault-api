@@ -1,65 +1,130 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>ENGiVAULT Launcher Test</title>
-    <style>
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: white;
-            color: black;
-            padding: 2rem;
-            text-align: center;
-        }
-        h1 {
-            font-weight: 300;
-            margin-bottom: 2rem;
-        }
-        .status {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENGiVAULT Installer Test</title>
+    <link rel="stylesheet" href="renderer/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <h1>ENGiVAULT Launcher Test</h1>
-    <div class="status">
-        <p>✅ Electron is working!</p>
-        <p>✅ HTML loaded successfully!</p>
-        <p>✅ CSS styling applied!</p>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="version">v1.0.0</div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- System Check Screen (for testing) -->
+            <div id="system-check-screen" class="screen active">
+                <div class="screen-header">
+                    <h2><i class="fas fa-desktop"></i> System Check</h2>
+                    <p>Verifying your system meets the requirements</p>
+                </div>
+
+                <div class="system-info">
+                    <div class="info-card">
+                        <h3><i class="fas fa-info-circle"></i> System Information</h3>
+                        <div id="system-details">
+                            <div class="system-item">
+                                <strong>Platform:</strong> darwin arm64
+                            </div>
+                            <div class="system-item">
+                                <strong>OS:</strong> Darwin 25.0.0
+                            </div>
+                            <div class="system-item">
+                                <strong>Node.js:</strong> v18.17.1
+                            </div>
+                            <div class="system-item">
+                                <strong>Memory:</strong> 16 GB total, 1 GB free
+                            </div>
+                            <div class="system-item">
+                                <strong>CPU:</strong> Apple M4 (10 cores)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="requirements-check">
+                        <h3><i class="fas fa-check-circle"></i> Requirements Check</h3>
+                        <div id="requirements-list">
+                            <div class="requirement-item">
+                                <div class="requirement-status success">✓</div>
+                                <div class="requirement-text">
+                                    <div class="requirement-name">Node.js</div>
+                                    <div class="requirement-details">Node.js v18.17.1 is installed</div>
+                                </div>
+                            </div>
+                            <div class="requirement-item">
+                                <div class="requirement-status success">✓</div>
+                                <div class="requirement-text">
+                                    <div class="requirement-name">Platform</div>
+                                    <div class="requirement-details">Running on darwin arm64</div>
+                                </div>
+                            </div>
+                            <div class="requirement-item">
+                                <div class="requirement-status success">✓</div>
+                                <div class="requirement-text">
+                                    <div class="requirement-name">Memory</div>
+                                    <div class="requirement-details">16 GB RAM available</div>
+                                </div>
+                            </div>
+                            <div class="requirement-item">
+                                <div class="requirement-status success">✓</div>
+                                <div class="requirement-text">
+                                    <div class="requirement-name">Internet Connection</div>
+                                    <div class="requirement-details">Internet connection available</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="screen-actions">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-arrow-right"></i>
+                        Continue
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#">Website</a>
+                    <a href="#">Documentation</a>
+                    <a href="#">Support</a>
+                    <a href="#">GitHub</a>
+                </div>
+                <div class="footer-text">
+                    © 2025 ENGiVAULT by Luqman Ismat. All rights reserved.
+                </div>
+            </div>
+        </footer>
     </div>
-    
-    <button onclick="testIPC()" style="padding: 0.75rem 1.5rem; background: black; color: white; border: none; border-radius: 0.5rem; font-family: inherit; cursor: pointer;">
-        Test IPC Communication
-    </button>
-    
-    <div id="ipc-result" style="margin-top: 1rem;"></div>
 
     <script>
-        const { ipcRenderer } = require('electron');
-        
-        async function testIPC() {
-            try {
-                const systemInfo = await ipcRenderer.invoke('get-system-info');
-                document.getElementById('ipc-result').innerHTML = `
-                    <div class="status">
-                        <p>✅ IPC Communication working!</p>
-                        <p>Platform: ${systemInfo.platform}</p>
-                        <p>Node.js: ${systemInfo.nodejs.version}</p>
-                    </div>
-                `;
-            } catch (error) {
-                document.getElementById('ipc-result').innerHTML = `
-                    <div class="status" style="background: #fed7d7; border-color: #fc8181;">
-                        <p>❌ IPC Error: ${error.message}</p>
-                    </div>
-                `;
-            }
+        // Test theme switching
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            document.documentElement.classList.toggle('dark');
         }
         
-        console.log('Test page loaded successfully');
+        // Auto-apply dark theme for testing
+        document.body.classList.add('dark');
+        document.documentElement.classList.add('dark');
+        
+        console.log('Test installer layout loaded successfully');
     </script>
 </body>
 </html>
+
