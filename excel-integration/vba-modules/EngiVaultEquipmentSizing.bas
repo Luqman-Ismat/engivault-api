@@ -1163,3 +1163,100 @@ ErrorHandler:
     ENGIVAULT_SEPARATOR_SIZING = "Error: " & Err.Description
     Debug.Print "Error in ENGIVAULT_SEPARATOR_SIZING: " & Err.Description
 End Function
+
+' ============================================================================
+' ADVANCED PIPING SYSTEM DESIGN FUNCTIONS
+' ============================================================================
+
+Public Function ENGIVAULT_COMPREHENSIVE_PIPE_SIZING( _
+    flowRate As Double, fluidDensity As Double, fluidViscosity As Double, _
+    designPressure As Double, designTemperature As Double, _
+    Optional pressureDrop As Double = 0, Optional velocityLimit As Double = 3, _
+    Optional pipeLength As Double = 100, Optional material As String = "carbon_steel", _
+    Optional pipeType As String = "seamless" _
+) As String
+    ' Calculate comprehensive pipe sizing with ASME B31.3 compliance
+    ' References: ASME B31.3, ASME B16.5, Crane Technical Paper No. 410, Perry's Handbook
+    
+    On Error GoTo ErrorHandler
+    
+    Dim requestData As String
+    requestData = "{"
+    requestData = requestData & """flowRate"":" & flowRate & ","
+    requestData = requestData & """fluidDensity"":" & fluidDensity & ","
+    requestData = requestData & """fluidViscosity"":" & fluidViscosity & ","
+    requestData = requestData & """designPressure"":" & designPressure & ","
+    requestData = requestData & """designTemperature"":" & designTemperature & ","
+    requestData = requestData & """pressureDrop"":" & pressureDrop & ","
+    requestData = requestData & """velocityLimit"":" & velocityLimit & ","
+    requestData = requestData & """pipeLength"":" & pipeLength & ","
+    requestData = requestData & """material"":""" & material & ""","
+    requestData = requestData & """pipeType"":""" & pipeType & """"
+    requestData = requestData & "}"
+    
+    ENGIVAULT_COMPREHENSIVE_PIPE_SIZING = MakeAPIRequest("/api/v1/equipment/piping/comprehensive-sizing", requestData)
+    Exit Function
+    
+ErrorHandler:
+    ENGIVAULT_COMPREHENSIVE_PIPE_SIZING = "Error: " & Err.Description
+    Debug.Print "Error in ENGIVAULT_COMPREHENSIVE_PIPE_SIZING: " & Err.Description
+End Function
+
+Public Function ENGIVAULT_PIPE_STRESS_ANALYSIS( _
+    pipeDiameter As Double, wallThickness As Double, designPressure As Double, _
+    designTemperature As Double, material As String, pipeLength As Double, _
+    supportSpacing As Double, thermalExpansion As Double, operatingTemperature As Double _
+) As String
+    ' Calculate pipe stress analysis with ASME B31.3 compliance
+    ' References: ASME B31.3 Section 319, ASME B31.3 Section 321, Perry's Handbook
+    
+    On Error GoTo ErrorHandler
+    
+    Dim requestData As String
+    requestData = "{"
+    requestData = requestData & """pipeDiameter"":" & pipeDiameter & ","
+    requestData = requestData & """wallThickness"":" & wallThickness & ","
+    requestData = requestData & """designPressure"":" & designPressure & ","
+    requestData = requestData & """designTemperature"":" & designTemperature & ","
+    requestData = requestData & """material"":""" & material & ""","
+    requestData = requestData & """pipeLength"":" & pipeLength & ","
+    requestData = requestData & """supportSpacing"":" & supportSpacing & ","
+    requestData = requestData & """thermalExpansion"":" & thermalExpansion & ","
+    requestData = requestData & """operatingTemperature"":" & operatingTemperature
+    requestData = requestData & "}"
+    
+    ENGIVAULT_PIPE_STRESS_ANALYSIS = MakeAPIRequest("/api/v1/equipment/piping/stress-analysis", requestData)
+    Exit Function
+    
+ErrorHandler:
+    ENGIVAULT_PIPE_STRESS_ANALYSIS = "Error: " & Err.Description
+    Debug.Print "Error in ENGIVAULT_PIPE_STRESS_ANALYSIS: " & Err.Description
+End Function
+
+Public Function ENGIVAULT_PIPE_SUPPORT_DESIGN( _
+    pipeDiameter As Double, wallThickness As Double, pipeLength As Double, _
+    material As String, operatingTemperature As Double, _
+    Optional supportType As String = "standard" _
+) As String
+    ' Calculate pipe support design with ASME B31.3 compliance
+    ' References: ASME B31.3 Section 321, ASME B31.3 Section 322, Perry's Handbook
+    
+    On Error GoTo ErrorHandler
+    
+    Dim requestData As String
+    requestData = "{"
+    requestData = requestData & """pipeDiameter"":" & pipeDiameter & ","
+    requestData = requestData & """wallThickness"":" & wallThickness & ","
+    requestData = requestData & """pipeLength"":" & pipeLength & ","
+    requestData = requestData & """material"":""" & material & ""","
+    requestData = requestData & """operatingTemperature"":" & operatingTemperature & ","
+    requestData = requestData & """supportType"":""" & supportType & """"
+    requestData = requestData & "}"
+    
+    ENGIVAULT_PIPE_SUPPORT_DESIGN = MakeAPIRequest("/api/v1/equipment/piping/support-design", requestData)
+    Exit Function
+    
+ErrorHandler:
+    ENGIVAULT_PIPE_SUPPORT_DESIGN = "Error: " & Err.Description
+    Debug.Print "Error in ENGIVAULT_PIPE_SUPPORT_DESIGN: " & Err.Description
+End Function

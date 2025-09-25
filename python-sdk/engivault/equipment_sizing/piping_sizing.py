@@ -287,3 +287,142 @@ class PipingSizing:
             "reducer": 10
         }
         return fitting_lengths
+
+    def comprehensive_pipe_sizing(
+        self,
+        flow_rate: float,
+        fluid_density: float,
+        fluid_viscosity: float,
+        design_pressure: float,
+        design_temperature: float,
+        pressure_drop: Optional[float] = None,
+        velocity_limit: float = 3.0,
+        pipe_length: float = 100.0,
+        fittings: Optional[List[Dict[str, Any]]] = None,
+        material: str = 'carbon_steel',
+        pipe_type: str = 'seamless'
+    ) -> Dict[str, Any]:
+        """
+        Calculate comprehensive pipe sizing with ASME B31.3 compliance.
+        
+        References:
+        - ASME B31.3: Process Piping
+        - ASME B16.5: Pipe Flanges and Flanged Fittings
+        - Crane Technical Paper No. 410: Flow of Fluids Through Valves, Fittings, and Pipe
+        - Perry's Chemical Engineers' Handbook, 8th Edition, Section 6
+        
+        Args:
+            flow_rate: Flow rate in m³/s
+            fluid_density: Fluid density in kg/m³
+            fluid_viscosity: Fluid viscosity in Pa·s
+            design_pressure: Design pressure in Pa
+            design_temperature: Design temperature in K
+            pressure_drop: Allowable pressure drop in Pa (optional)
+            velocity_limit: Maximum velocity in m/s
+            pipe_length: Pipe length in m
+            fittings: Pipe fittings array (optional)
+            material: Pipe material
+            pipe_type: Pipe type
+            
+        Returns:
+            Dict with comprehensive pipe sizing results
+        """
+        request_data = {
+            "flowRate": flow_rate,
+            "fluidDensity": fluid_density,
+            "fluidViscosity": fluid_viscosity,
+            "designPressure": design_pressure,
+            "designTemperature": design_temperature,
+            "pressureDrop": pressure_drop,
+            "velocityLimit": velocity_limit,
+            "pipeLength": pipe_length,
+            "fittings": fittings or [],
+            "material": material,
+            "pipeType": pipe_type
+        }
+        return self.client._make_request(method="POST", endpoint="/api/v1/equipment/piping/comprehensive-sizing", data=request_data)
+
+    def pipe_stress_analysis(
+        self,
+        pipe_diameter: float,
+        wall_thickness: float,
+        design_pressure: float,
+        design_temperature: float,
+        material: str,
+        pipe_length: float,
+        support_spacing: float,
+        thermal_expansion: float,
+        operating_temperature: float
+    ) -> Dict[str, Any]:
+        """
+        Calculate pipe stress analysis with ASME B31.3 compliance.
+        
+        References:
+        - ASME B31.3: Process Piping, Section 319
+        - ASME B31.3: Process Piping, Section 321
+        - Perry's Chemical Engineers' Handbook, 8th Edition, Section 6
+        
+        Args:
+            pipe_diameter: Pipe diameter in m
+            wall_thickness: Wall thickness in m
+            design_pressure: Design pressure in Pa
+            design_temperature: Design temperature in K
+            material: Pipe material
+            pipe_length: Pipe length in m
+            support_spacing: Support spacing in m
+            thermal_expansion: Thermal expansion coefficient
+            operating_temperature: Operating temperature in K
+            
+        Returns:
+            Dict with pipe stress analysis results
+        """
+        request_data = {
+            "pipeDiameter": pipe_diameter,
+            "wallThickness": wall_thickness,
+            "designPressure": design_pressure,
+            "designTemperature": design_temperature,
+            "material": material,
+            "pipeLength": pipe_length,
+            "supportSpacing": support_spacing,
+            "thermalExpansion": thermal_expansion,
+            "operatingTemperature": operating_temperature
+        }
+        return self.client._make_request(method="POST", endpoint="/api/v1/equipment/piping/stress-analysis", data=request_data)
+
+    def pipe_support_design(
+        self,
+        pipe_diameter: float,
+        wall_thickness: float,
+        pipe_length: float,
+        material: str,
+        operating_temperature: float,
+        support_type: str = 'standard'
+    ) -> Dict[str, Any]:
+        """
+        Calculate pipe support design with ASME B31.3 compliance.
+        
+        References:
+        - ASME B31.3: Process Piping, Section 321
+        - ASME B31.3: Process Piping, Section 322
+        - Perry's Chemical Engineers' Handbook, 8th Edition, Section 6
+        
+        Args:
+            pipe_diameter: Pipe diameter in m
+            wall_thickness: Wall thickness in m
+            pipe_length: Pipe length in m
+            material: Pipe material
+            operating_temperature: Operating temperature in K
+            support_type: Support type
+            
+        Returns:
+            Dict with pipe support design results
+        """
+        request_data = {
+            "pipeDiameter": pipe_diameter,
+            "wallThickness": wall_thickness,
+            "pipeLength": pipe_length,
+            "material": material,
+            "operatingTemperature": operating_temperature,
+            "supportType": support_type
+        }
+        return self.client._make_request(method="POST", endpoint="/api/v1/equipment/piping/support-design", data=request_data)

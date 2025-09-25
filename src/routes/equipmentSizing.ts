@@ -13,7 +13,10 @@ import {
   rateHeatExchanger,
   calculatePressureVesselSizing,
   calculateStorageTankSizing,
-  calculateSeparatorSizing
+  calculateSeparatorSizing,
+  calculateComprehensivePipeSizing,
+  calculatePipeStressAnalysis,
+  calculatePipeSupportDesign
 } from '../logic/equipmentSizing';
 import {
   PumpSizingSchema,
@@ -1239,6 +1242,225 @@ export default async function equipmentSizingRoutes(fastify: FastifyInstance): P
       equipmentType,
       selectedCount: result.selectedEquipment.length
     }, 'Equipment selection completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // ============================================================================
+  // ADVANCED PIPING SYSTEM DESIGN ENDPOINTS
+  // ============================================================================
+
+  // Comprehensive Pipe Sizing with ASME B31.3
+  fastify.post('/api/v1/equipment/piping/comprehensive-sizing', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate comprehensive pipe sizing with ASME B31.3 compliance',
+      description: 'Calculate comprehensive pipe sizing using ASME B31.3 standards with stress analysis, support design, and material selection',
+      body: {
+        type: 'object',
+        required: ['flowRate', 'fluidDensity', 'fluidViscosity', 'designPressure', 'designTemperature'],
+        properties: {
+          flowRate: { type: 'number', minimum: 0, description: 'Flow rate in m³/s' },
+          fluidDensity: { type: 'number', minimum: 0, description: 'Fluid density in kg/m³' },
+          fluidViscosity: { type: 'number', minimum: 0, description: 'Fluid viscosity in Pa·s' },
+          pressureDrop: { type: 'number', minimum: 0, description: 'Allowable pressure drop in Pa' },
+          velocityLimit: { type: 'number', minimum: 0, description: 'Maximum velocity in m/s' },
+          pipeLength: { type: 'number', minimum: 0, description: 'Pipe length in m' },
+          fittings: { type: 'array', description: 'Pipe fittings array' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          material: { type: 'string', description: 'Pipe material' },
+          pipeType: { type: 'string', description: 'Pipe type' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                pipeDiameter: { type: 'number' },
+                pipeSchedule: { type: 'string' },
+                wallThickness: { type: 'number' },
+                velocity: { type: 'number' },
+                reynoldsNumber: { type: 'number' },
+                frictionFactor: { type: 'number' },
+                pressureDrop: { type: 'number' },
+                equivalentLength: { type: 'number' },
+                pipeStress: { type: 'object' },
+                supportSpacing: { type: 'number' },
+                flangeSizing: { type: 'object' },
+                valveSizing: { type: 'object' },
+                materialRequirements: { type: 'object' },
+                recommendations: { type: 'array', items: { type: 'string' } },
+                references: { type: 'array', items: { type: 'string' } },
+                standards: { type: 'array', items: { type: 'string' } },
+                calculationMethod: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = PipingSizingSchema.parse(request.body);
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'comprehensive_piping',
+      flowRate: input.flowRate,
+      designPressure: input.designPressure,
+      designTemperature: input.designTemperature
+    }, 'Comprehensive pipe sizing requested');
+    
+    const result = calculateComprehensivePipeSizing(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'comprehensive_piping',
+      pipeDiameter: result.pipeDiameter,
+      pressureDrop: result.pressureDrop
+    }, 'Comprehensive pipe sizing completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // Pipe Stress Analysis with ASME B31.3
+  fastify.post('/api/v1/equipment/piping/stress-analysis', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate pipe stress analysis with ASME B31.3 compliance',
+      description: 'Calculate pipe stress analysis using ASME B31.3 standards',
+      body: {
+        type: 'object',
+        required: ['pipeDiameter', 'wallThickness', 'designPressure', 'designTemperature', 'material', 'pipeLength', 'supportSpacing', 'thermalExpansion', 'operatingTemperature'],
+        properties: {
+          pipeDiameter: { type: 'number', minimum: 0, description: 'Pipe diameter in m' },
+          wallThickness: { type: 'number', minimum: 0, description: 'Wall thickness in m' },
+          designPressure: { type: 'number', minimum: 0, description: 'Design pressure in Pa' },
+          designTemperature: { type: 'number', minimum: 0, description: 'Design temperature in K' },
+          material: { type: 'string', description: 'Pipe material' },
+          pipeLength: { type: 'number', minimum: 0, description: 'Pipe length in m' },
+          supportSpacing: { type: 'number', minimum: 0, description: 'Support spacing in m' },
+          thermalExpansion: { type: 'number', description: 'Thermal expansion coefficient' },
+          operatingTemperature: { type: 'number', description: 'Operating temperature in K' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                hoopStress: { type: 'number' },
+                longitudinalStress: { type: 'number' },
+                equivalentStress: { type: 'number' },
+                allowableStress: { type: 'number' },
+                stressRatio: { type: 'number' },
+                safetyFactor: { type: 'number' },
+                thermalStress: { type: 'number' },
+                supportLoads: { type: 'object' },
+                recommendations: { type: 'array', items: { type: 'string' } },
+                references: { type: 'array', items: { type: 'string' } },
+                standards: { type: 'array', items: { type: 'string' } },
+                calculationMethod: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = request.body as any;
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'pipe_stress_analysis',
+      pipeDiameter: input.pipeDiameter,
+      designPressure: input.designPressure
+    }, 'Pipe stress analysis requested');
+    
+    const result = calculatePipeStressAnalysis(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'pipe_stress_analysis',
+      stressRatio: result.stressRatio,
+      safetyFactor: result.safetyFactor
+    }, 'Pipe stress analysis completed');
+    
+    return reply.send(createSuccessResponse(result));
+  }));
+
+  // Pipe Support Design with ASME B31.3
+  fastify.post('/api/v1/equipment/piping/support-design', {
+    preHandler: [fastify.authenticate],
+    schema: {
+      tags: ['Equipment Sizing'],
+      summary: 'Calculate pipe support design with ASME B31.3 compliance',
+      description: 'Calculate pipe support design using ASME B31.3 standards',
+      body: {
+        type: 'object',
+        required: ['pipeDiameter', 'wallThickness', 'pipeLength', 'material', 'operatingTemperature'],
+        properties: {
+          pipeDiameter: { type: 'number', minimum: 0, description: 'Pipe diameter in m' },
+          wallThickness: { type: 'number', minimum: 0, description: 'Wall thickness in m' },
+          pipeLength: { type: 'number', minimum: 0, description: 'Pipe length in m' },
+          material: { type: 'string', description: 'Pipe material' },
+          operatingTemperature: { type: 'number', description: 'Operating temperature in K' },
+          supportType: { type: 'string', description: 'Support type' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                supportSpacing: { type: 'number' },
+                supportLoads: { type: 'object' },
+                supportDesign: { type: 'object' },
+                anchorDesign: { type: 'object' },
+                expansionJoints: { type: 'object' },
+                recommendations: { type: 'array', items: { type: 'string' } },
+                references: { type: 'array', items: { type: 'string' } },
+                standards: { type: 'array', items: { type: 'string' } },
+                calculationMethod: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
+    const input = request.body as any;
+    const userId = (request.user as any).userId;
+    
+    logger.info({
+      userId,
+      equipmentType: 'pipe_support_design',
+      pipeDiameter: input.pipeDiameter,
+      pipeLength: input.pipeLength
+    }, 'Pipe support design requested');
+    
+    const result = calculatePipeSupportDesign(input);
+    
+    logger.info({
+      userId,
+      equipmentType: 'pipe_support_design',
+      supportSpacing: result.supportSpacing,
+      supportLoads: result.supportLoads.totalLoad
+    }, 'Pipe support design completed');
     
     return reply.send(createSuccessResponse(result));
   }));
