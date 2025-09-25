@@ -452,7 +452,7 @@ export function calculateStorageTankSizing(input: VesselSizingInput): {
   const numberOfCourses = Math.ceil(height / courseHeight);
 
   for (let i = 0; i < numberOfCourses; i++) {
-    const courseHeight_actual = Math.min(courseHeight, height - i * courseHeight);
+    // const courseHeight_actual = Math.min(courseHeight, height - i * courseHeight);
     const liquidHeight = height - i * courseHeight;
     const hydrostaticPressure = liquidHeight * 1000 * 9.81; // Pa
     const totalPressure = designPressure + hydrostaticPressure;
@@ -486,8 +486,11 @@ export function calculateStorageTankSizing(input: VesselSizingInput): {
   // Weight calculation
   let weight = 0;
   for (let i = 0; i < numberOfCourses; i++) {
-    const courseWeight = Math.PI * diameter * courseHeight * shellThickness[i] * materialProps.density;
-    weight += courseWeight;
+    const courseThickness = shellThickness[i];
+    if (courseThickness !== undefined) {
+      const courseWeight = Math.PI * diameter * courseHeight * courseThickness * materialProps.density;
+      weight += courseWeight;
+    }
   }
   weight += Math.PI * (diameter / 2) ** 2 * bottomThickness * materialProps.density; // Bottom
   weight += Math.PI * (diameter / 2) ** 2 * roofThickness * materialProps.density; // Roof
