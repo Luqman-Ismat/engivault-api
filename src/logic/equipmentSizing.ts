@@ -378,7 +378,7 @@ export function calculatePipingSizing(input: PipingSizingInput): {
     frictionFactor = 64 / reynoldsNumber;
   } else {
     // Turbulent flow (ASME B31.3, Section 6.3.2)
-    const _relativeRoughness = 0.00015 / pipeDiameter; // Commercial steel
+    // const _relativeRoughness = 0.00015 / pipeDiameter; // Commercial steel
     frictionFactor = 0.316 / (reynoldsNumber ** 0.25); // Simplified Blasius equation
   }
   
@@ -576,10 +576,11 @@ export function selectPumpFromCatalog(
   }
   
   // Cost estimation
+  const firstPump = filteredPumps.length > 0 ? filteredPumps[0] : null;
   const costEstimate = {
-    pumpCost: filteredPumps.length > 0 ? filteredPumps[0].cost : 0,
-    installationCost: filteredPumps.length > 0 ? filteredPumps[0].cost * 0.3 : 0,
-    totalCost: filteredPumps.length > 0 ? filteredPumps[0].cost * 1.3 : 0,
+    pumpCost: firstPump ? firstPump.cost : 0,
+    installationCost: firstPump ? firstPump.cost * 0.3 : 0,
+    totalCost: firstPump ? firstPump.cost * 1.3 : 0,
     currency: "USD"
   };
   
@@ -587,7 +588,7 @@ export function selectPumpFromCatalog(
     selectedPumps: filteredPumps.slice(0, 5), // Top 5 options
     recommendations,
     costEstimate,
-    performanceMatch: filteredPumps.length > 0 ? filteredPumps[0].performanceMatch : 0,
+    performanceMatch: firstPump ? firstPump.performanceMatch : 0,
     references: [
       "API 610: Centrifugal Pumps for Petroleum, Petrochemical and Natural Gas Industries",
       "Hydraulic Institute Standards (HI 14.6)",
@@ -835,8 +836,8 @@ export function optimizeShellTubeDesign(input: HeatExchangerSizingInput): {
   const lmtd = (deltaT1 - deltaT2) / Math.log(deltaT1 / deltaT2);
   
   // Correction factor for shell and tube (TEMA Standard, Section 8)
-  const R = (hotFluidInlet - hotFluidOutlet) / (coldFluidOutlet - coldFluidInlet);
-  const P = (coldFluidOutlet - coldFluidInlet) / (hotFluidInlet - coldFluidInlet);
+  // const R = (hotFluidInlet - hotFluidOutlet) / (coldFluidOutlet - coldFluidInlet);
+  // const P = (coldFluidOutlet - coldFluidInlet) / (hotFluidInlet - coldFluidInlet);
   const correctionFactor = 0.9; // Simplified for demonstration
   
   const correctedLMTD = lmtd * correctionFactor;
@@ -962,9 +963,9 @@ export function calculatePlateHeatExchangerSizing(input: HeatExchangerSizingInpu
     coldFluidInlet,
     coldFluidOutlet,
     hotFlowRate,
-    coldFlowRate,
+    coldFlowRate: _coldFlowRate,
     hotFluidProperties,
-    coldFluidProperties
+    coldFluidProperties: _coldFluidProperties
   } = input;
   
   // LMTD calculation for plate heat exchanger
@@ -976,7 +977,7 @@ export function calculatePlateHeatExchangerSizing(input: HeatExchangerSizingInpu
   const plateWidth = 0.5; // 500mm
   const plateHeight = 1.0; // 1000mm
   const plateSpacing = 0.003; // 3mm
-  const plateThickness = 0.0005; // 0.5mm
+  // const plateThickness = 0.0005; // 0.5mm
   
   // Heat transfer coefficient for plate heat exchanger
   const hotHTC = 3000; // W/m²·K (typical for plate heat exchangers)
@@ -1060,18 +1061,18 @@ export function calculateAirCooledHeatExchangerSizing(input: HeatExchangerSizing
     heatDuty,
     hotFluidInlet,
     hotFluidOutlet,
-    coldFluidInlet,
-    coldFluidOutlet,
-    hotFlowRate,
-    hotFluidProperties
+    coldFluidInlet: _coldFluidInlet,
+    coldFluidOutlet: _coldFluidOutlet,
+    hotFlowRate: _hotFlowRate,
+    hotFluidProperties: _hotFluidProperties
   } = input;
   
   // Air-cooled heat exchanger parameters
   const airInletTemp = 288; // 15°C
   const airOutletTemp = 308; // 35°C
-  const airFlowRate = 100; // kg/s
-  const airDensity = 1.2; // kg/m³
-  const airSpecificHeat = 1005; // J/kg·K
+  // const airFlowRate = 100; // kg/s
+  // const airDensity = 1.2; // kg/m³
+  // const airSpecificHeat = 1005; // J/kg·K
   
   // LMTD calculation
   const deltaT1 = hotFluidInlet - airOutletTemp;
@@ -1094,7 +1095,7 @@ export function calculateAirCooledHeatExchangerSizing(input: HeatExchangerSizing
   const tubeCount = Math.ceil(area / (Math.PI * tubeDiameter * tubeLength));
   
   // Fan parameters
-  const fanDiameter = 2.0; // 2m
+  // const fanDiameter = 2.0; // 2m
   const fanCount = Math.ceil(tubeCount / 100); // 100 tubes per fan
   const fanPower = fanCount * 10; // 10 kW per fan
   
@@ -1165,9 +1166,9 @@ export function rateHeatExchanger(input: any): {
     coldFluidInlet,
     coldFluidOutlet,
     hotFlowRate,
-    coldFlowRate,
+    coldFlowRate: _coldFlowRate,
     hotFluidProperties,
-    coldFluidProperties
+    coldFluidProperties: _coldFluidProperties
   } = input;
   
   // Actual heat duty calculation

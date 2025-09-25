@@ -806,7 +806,7 @@ export default async function equipmentSizingRoutes(fastify: FastifyInstance): P
       constraints
     }, 'Pump selection requested');
     
-    const result = selectPumpFromCatalog(sizingResults, constraints, preferences);
+    const result = selectPumpFromCatalog(sizingResults, constraints, _preferences);
     
     logger.info({
       userId,
@@ -979,7 +979,7 @@ export default async function equipmentSizingRoutes(fastify: FastifyInstance): P
       }
     }
   }, handleAsync(async (request: FastifyRequest, reply: FastifyReply) => {
-    const { equipmentType, sizingResults, constraints, preferences: _preferences } = request.body as any;
+    const { equipmentType, sizingResults: _sizingResults, constraints, preferences: _preferences } = request.body as any;
     const userId = (request.user as any).userId;
     
     logger.info({
