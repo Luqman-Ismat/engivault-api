@@ -807,9 +807,9 @@ export function calculateComprehensivePipeSizing(input: PipingSizingInput): {
     pipeLength = 100,
     fittings = [],
     designPressure,
-    designTemperature,
-    material = 'carbon_steel',
-    pipeType = 'seamless'
+    designTemperature: _designTemperature,
+    pipeMaterial: material = 'carbon_steel',
+    pipeSchedule: _pipeType = 'seamless'
   } = input;
 
   // ASME B31.3 material properties (Section II, Part D)
@@ -887,15 +887,16 @@ export function calculateComprehensivePipeSizing(input: PipingSizingInput): {
 
   // Wall thickness calculation (ASME B31.3, Section 304.1)
   const designStress = materialProps.allowableStress * 0.8; // 80% of allowable stress
-  const wallThickness = (designPressure * pipeDiameter) / (2 * designStress - designPressure) + 0.003; // 3mm corrosion allowance
+  const designPressureFinal = designPressure || 1000000; // Default 1 MPa if not provided
+  const wallThickness = (designPressureFinal * pipeDiameter) / (2 * designStress - designPressureFinal) + 0.003; // 3mm corrosion allowance
 
   // Pipe stress analysis (ASME B31.3, Section 319)
   const pipeStress = {
-    hoopStress: (designPressure * pipeDiameter) / (2 * wallThickness),
-    longitudinalStress: (designPressure * pipeDiameter) / (4 * wallThickness),
+    hoopStress: (designPressureFinal * pipeDiameter) / (2 * wallThickness),
+    longitudinalStress: (designPressureFinal * pipeDiameter) / (4 * wallThickness),
     allowableStress: designStress,
     stressRatio: 0.0, // Will be calculated
-    safetyFactor: designStress / ((designPressure * pipeDiameter) / (2 * wallThickness))
+    safetyFactor: designStress / ((designPressureFinal * pipeDiameter) / (2 * wallThickness))
   };
   pipeStress.stressRatio = pipeStress.hoopStress / pipeStress.allowableStress;
 
@@ -904,7 +905,7 @@ export function calculateComprehensivePipeSizing(input: PipingSizingInput): {
 
   // Flange sizing (ASME B16.5)
   const flangeSizing = {
-    flangeClass: designPressure > 1.0 ? "Class 300" : "Class 150",
+    flangeClass: designPressureFinal > 1.0 ? "Class 300" : "Class 150",
     flangeDiameter: pipeDiameter + 0.1, // 100mm larger than pipe
     boltCount: Math.ceil(pipeDiameter * 4), // 4 bolts per inch of diameter
     boltSize: pipeDiameter > 0.2 ? "M20" : "M16",
@@ -1025,9 +1026,9 @@ export function calculatePipeStressAnalysis(input: {
     designPressure,
     designTemperature,
     material,
-    pipeLength,
+    pipeLength: _pipeLength,
     supportSpacing,
-    thermalExpansion,
+    thermalExpansion: _thermalExpansion,
     operatingTemperature
   } = input;
 
