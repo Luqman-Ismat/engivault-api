@@ -5,6 +5,19 @@ export { EngiVaultClient, EngiVaultError } from './client/EngiVaultClient';
 export { FluidMechanics } from './modules/fluid-mechanics';
 export { HeatTransfer } from './modules/heat-transfer';
 
+// Simplified API - convenience functions
+export {
+  init,
+  getClient,
+  pressureDrop,
+  flowRate,
+  pumpPower,
+  npsh,
+  lmtd,
+  heatExchanger,
+  openChannelFlow
+} from './shortcuts';
+
 // All types
 export * from './types';
 

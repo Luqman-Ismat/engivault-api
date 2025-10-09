@@ -31,7 +31,68 @@ pnpm add engivault
 
 ## Quick Start
 
-### Basic Usage
+### Simplified API (New! ⭐)
+
+The easiest way to use EngiVault - just initialize and call functions:
+
+```javascript
+const ev = require('engivault');
+
+// Initialize once
+ev.init('your-api-key-here');
+
+// Call functions directly!
+const result = await ev.pressureDrop({
+  flowRate: 0.01,
+  pipeDiameter: 0.1,
+  pipeLength: 100,
+  fluidDensity: 1000,
+  fluidViscosity: 0.001
+});
+
+console.log(`Pressure drop: ${result.pressureDrop} Pa`);
+```
+
+More simple examples:
+```javascript
+// Pump power
+const pump = await ev.pumpPower({ flowRate: 0.05, head: 50, efficiency: 0.8 });
+console.log(`Power: ${pump.shaftPower/1000} kW`);
+
+// LMTD
+const lmtd = await ev.lmtd({ tHotIn: 373, tHotOut: 323, tColdIn: 293, tColdOut: 333 });
+console.log(`LMTD: ${lmtd.lmtd} K`);
+
+// Open channel flow
+const channel = await ev.openChannelFlow({
+  flowRate: 10,
+  channelWidth: 5,
+  channelSlope: 0.001,
+  manningSCoeff: 0.03
+});
+console.log(`Normal depth: ${channel.normalDepth} m`);
+```
+
+### TypeScript with Simplified API
+
+```typescript
+import * as ev from 'engivault';
+
+ev.init(process.env.ENGIVAULT_API_KEY!);
+
+const result = await ev.pressureDrop({
+  flowRate: 0.01,
+  pipeDiameter: 0.1,
+  pipeLength: 100,
+  fluidDensity: 1000,
+  fluidViscosity: 0.001
+});
+// Full type safety and IntelliSense!
+```
+
+### Traditional API (Still Supported)
+
+For more control and modularity:
 
 ```javascript
 const { EngiVault } = require('engivault');
@@ -52,7 +113,7 @@ const result = await client.fluidMechanics.openChannelFlow({
 console.log(`Normal Depth: ${result.normalDepth} m`);
 ```
 
-### TypeScript Usage
+### TypeScript with Traditional API
 
 ```typescript
 import { EngiVault, CompressibleFlowInput } from 'engivault';

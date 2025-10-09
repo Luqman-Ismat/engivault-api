@@ -3,6 +3,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const os = require('os');
 const Logger = require('../utils/logger');
+const ResourceManager = require('../utils/resources');
 
 class NPMInstaller {
   constructor() {
@@ -10,6 +11,7 @@ class NPMInstaller {
     this.platform = os.platform();
     this.npmCommand = this.detectNPMCommand();
     this.nodeCommand = this.detectNodeCommand();
+    this.resourceManager = new ResourceManager();
   }
 
   /**
@@ -248,34 +250,58 @@ class NPMInstaller {
     });
 
     try {
-      // Build package specifier
-      let packageSpec = 'engivault';
-      if (version && version !== 'latest') {
-        packageSpec += `@${version}`;
-      }
-
-      // Build install command
+      // Check for bundled JavaScript SDK package
+      const sdkPackage = await this.resourceManager.getJavaScriptSDKPackage();
       let installCommand;
       const globalFlag = global ? '-g' : '';
-      
-      switch (packageManager) {
-        case 'npm':
-          installCommand = `npm install ${globalFlag} ${packageSpec}`;
-          break;
-        case 'yarn':
-          installCommand = global 
-            ? `yarn global add ${packageSpec}`
-            : `yarn add ${packageSpec}`;
-          break;
-        case 'pnpm':
-          installCommand = `pnpm install ${globalFlag} ${packageSpec}`;
-          break;
-        default:
-          installCommand = `npm install ${globalFlag} ${packageSpec}`;
-      }
-
-      // Set working directory for local installs
       const cwd = !global && projectPath ? projectPath : process.cwd();
+
+      if (sdkPackage && sdkPackage.tarball && await fs.pathExists(sdkPackage.tarball)) {
+        // Install from bundled tarball
+        this.logger.info(`Installing from bundled package: ${sdkPackage.tarball}`);
+        
+        switch (packageManager) {
+          case 'npm':
+            installCommand = `npm install ${globalFlag} "${sdkPackage.tarball}"`;
+            break;
+          case 'yarn':
+            installCommand = global 
+              ? `yarn global add "${sdkPackage.tarball}"`
+              : `yarn add "${sdkPackage.tarball}"`;
+            break;
+          case 'pnpm':
+            installCommand = `pnpm install ${globalFlag} "${sdkPackage.tarball}"`;
+            break;
+          default:
+            installCommand = `npm install ${globalFlag} "${sdkPackage.tarball}"`;
+        }
+      } else {
+        // Fall back to npm registry
+        this.logger.info('Bundled package not found, installing from npm registry...');
+        
+        // Build package specifier
+        let packageSpec = 'engivault';
+        if (version && version !== 'latest') {
+          packageSpec += `@${version}`;
+        }
+
+        // Build install command
+        switch (packageManager) {
+          case 'npm':
+            installCommand = `npm install ${globalFlag} ${packageSpec}`;
+            break;
+          case 'yarn':
+            installCommand = global 
+              ? `yarn global add ${packageSpec}`
+              : `yarn add ${packageSpec}`;
+            break;
+          case 'pnpm':
+            installCommand = `pnpm install ${globalFlag} ${packageSpec}`;
+            break;
+          default:
+            installCommand = `npm install ${globalFlag} ${packageSpec}`;
+        }
+      }
       
       await this.executeCommand(installCommand, {
         cwd,

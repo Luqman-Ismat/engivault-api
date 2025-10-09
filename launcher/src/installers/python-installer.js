@@ -4,6 +4,7 @@ const path = require('path');
 const os = require('os');
 const { download } = require('../utils/download');
 const Logger = require('../utils/logger');
+const ResourceManager = require('../utils/resources');
 
 class PythonInstaller {
   constructor() {
@@ -12,6 +13,7 @@ class PythonInstaller {
     this.arch = os.arch();
     this.pythonCommand = this.detectPythonCommand();
     this.pipCommand = this.detectPipCommand();
+    this.resourceManager = new ResourceManager();
   }
 
   /**
@@ -238,19 +240,47 @@ class PythonInstaller {
         pipCmd = `"${pipPath}"`;
       }
 
-      // Build package specifier
-      let packageSpec = 'engivault';
-      if (version && version !== 'latest') {
-        packageSpec += `==${version}`;
-      }
+      // Check for bundled Python SDK package
+      const sdkPackage = await this.resourceManager.getPythonSDKPackage();
+      let installCommand;
 
-      // Add extras
-      if (extras && extras.length > 0) {
-        packageSpec += `[${extras.join(',')}]`;
-      }
+      if (sdkPackage && (sdkPackage.wheel || sdkPackage.tarball)) {
+        // Install from bundled package
+        const packagePath = sdkPackage.wheel || sdkPackage.tarball;
+        this.logger.info(`Installing from bundled package: ${packagePath}`);
+        installCommand = `${pipCmd} install "${packagePath}"`;
+        
+        // Add extras if requested
+        if (extras && extras.length > 0) {
+          installCommand += ` --install-option="--extras=${extras.join(',')}"`;
+        }
+      } else if (sdkPackage && sdkPackage.sdkPath) {
+        // Install from source directory
+        this.logger.info(`Installing from source: ${sdkPackage.sdkPath}`);
+        installCommand = `${pipCmd} install "${sdkPackage.sdkPath}"`;
+        
+        // Add extras if requested
+        if (extras && extras.length > 0) {
+          const extrasStr = extras.map(e => `--install-option="--extras=${e}"`).join(' ');
+          installCommand += ` ${extrasStr}`;
+        }
+      } else {
+        // Fall back to PyPI installation
+        this.logger.info('Bundled package not found, installing from PyPI...');
+        
+        // Build package specifier
+        let packageSpec = 'engivault';
+        if (version && version !== 'latest') {
+          packageSpec += `==${version}`;
+        }
 
-      // Install command
-      const installCommand = `${pipCmd} install ${packageSpec}`;
+        // Add extras
+        if (extras && extras.length > 0) {
+          packageSpec += `[${extras.join(',')}]`;
+        }
+
+        installCommand = `${pipCmd} install ${packageSpec}`;
+      }
       
       await this.executeCommand(installCommand, {
         onData: (data) => {

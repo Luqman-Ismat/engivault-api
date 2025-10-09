@@ -2,10 +2,12 @@
   "name": "engivault-launcher",
   "version": "1.0.0",
   "description": "Cross-platform installer for ENGiVAULT API - Professional engineering calculations platform",
-  "main": "main-simple.js",
+  "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
+    "prepare-build": "node scripts/prepare-build.js",
+    "prebuild": "npm run prepare-build",
     "build": "electron-builder",
     "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac",
@@ -22,22 +24,64 @@
       "output": "dist"
     },
     "files": [
-      "main-full.js",
+      "main.js",
       "renderer/**/*",
       "src/**/*",
       "assets/**/*",
       "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../excel-integration",
+        "to": "app/excel-integration",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../excel-addin",
+        "to": "app/excel-addin",
+        "filter": [
+          "**/*",
+          "!**/node_modules",
+          "!**/dist"
+        ]
+      },
+      {
+        "from": "../python-sdk",
+        "to": "app/python-sdk",
+        "filter": [
+          "**/*",
+          "!**/__pycache__",
+          "!**/*.pyc"
+        ]
+      },
+      {
+        "from": "../packages/engivault-js",
+        "to": "app/packages/engivault-js",
+        "filter": [
+          "**/*",
+          "!**/node_modules",
+          "!**/tests"
+        ]
+      }
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     },
@@ -45,11 +89,17 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "ia32"]
+          "arch": [
+            "x64",
+            "ia32"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64", "ia32"]
+          "arch": [
+            "x64",
+            "ia32"
+          ]
         }
       ]
     },
@@ -57,15 +107,21 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "deb",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "rpm",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "category": "Development"
@@ -106,15 +162,17 @@
     "electron-builder": "^24.6.4"
   },
   "dependencies": {
+    "@types/node": "^24.7.0",
     "axios": "^1.6.2",
-    "node-fetch": "^3.3.2",
     "extract-zip": "^2.0.1",
-    "tar": "^6.2.0",
     "fs-extra": "^11.1.1",
+    "node-fetch": "^3.3.2",
     "progress": "^2.0.3",
     "semver": "^7.5.4",
-    "which": "^4.0.0",
-    "sudo-prompt": "^9.2.1"
+    "sudo-prompt": "^9.2.1",
+    "tar": "^6.2.0",
+    "typescript": "^5.9.3",
+    "which": "^4.0.0"
   },
   "keywords": [
     "engivault",

@@ -7,8 +7,10 @@ const os = require('os');
 const PythonInstaller = require('./src/installers/python-installer');
 const NPMInstaller = require('./src/installers/npm-installer');
 const ExcelInstaller = require('./src/installers/excel-installer');
+const OfficeAddinInstaller = require('./src/installers/office-addin-installer');
 const SystemChecker = require('./src/installers/system-checker');
 const Logger = require('./src/utils/logger');
+const ResourceManager = require('./src/utils/resources');
 
 class EngiVaultLauncher {
   constructor() {
@@ -18,6 +20,8 @@ class EngiVaultLauncher {
     this.pythonInstaller = new PythonInstaller();
     this.npmInstaller = new NPMInstaller();
     this.excelInstaller = new ExcelInstaller();
+    this.officeAddinInstaller = new OfficeAddinInstaller();
+    this.resourceManager = new ResourceManager();
     
     this.isDevelopment = process.argv.includes('--dev');
     this.installationPath = path.join(os.homedir(), '.engivault');
@@ -101,6 +105,26 @@ class EngiVaultLauncher {
       return await this.systemChecker.checkRequirements();
     });
 
+    // Get bundled resources information
+    ipcMain.handle('get-resources-info', async () => {
+      try {
+        return await this.resourceManager.getInstallationInfo();
+      } catch (error) {
+        this.logger.error('Failed to get resources info:', error);
+        return { error: error.message };
+      }
+    });
+
+    // Validate bundled resources
+    ipcMain.handle('validate-resources', async () => {
+      try {
+        return await this.resourceManager.validateResources();
+      } catch (error) {
+        this.logger.error('Failed to validate resources:', error);
+        return { error: error.message, allPresent: false };
+      }
+    });
+
     // Install Python SDK
     ipcMain.handle('install-python', async (event, options) => {
       try {
@@ -127,7 +151,7 @@ class EngiVaultLauncher {
       }
     });
 
-    // Install Excel integration
+    // Install Excel integration (VBA - Legacy)
     ipcMain.handle('install-excel', async (event, options) => {
       try {
         const result = await this.excelInstaller.install(options, (progress) => {
@@ -136,6 +160,19 @@ class EngiVaultLauncher {
         return { success: true, result };
       } catch (error) {
         this.logger.error('Excel installation failed:', error);
+        return { success: false, error: error.message };
+      }
+    });
+
+    // Install Office Add-in (Modern - Recommended)
+    ipcMain.handle('install-office-addin', async (event, options) => {
+      try {
+        const result = await this.officeAddinInstaller.install(options, (progress) => {
+          this.sendToRenderer('install-progress', { component: 'office-addin', ...progress });
+        });
+        return { success: true, result };
+      } catch (error) {
+        this.logger.error('Office Add-in installation failed:', error);
         return { success: false, error: error.message };
       }
     });

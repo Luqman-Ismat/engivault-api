@@ -3,6 +3,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const os = require('os');
 const Logger = require('../utils/logger');
+const ResourceManager = require('../utils/resources');
 
 class ExcelInstaller {
   constructor() {
@@ -10,6 +11,7 @@ class ExcelInstaller {
     this.platform = os.platform();
     this.excelPath = null;
     this.excelVersion = null;
+    this.resourceManager = new ResourceManager();
   }
 
   /**
@@ -222,25 +224,31 @@ class ExcelInstaller {
     });
 
     try {
-      const sourceDir = path.join(__dirname, '../../../excel-integration/vba-modules');
+      const sourceDir = this.resourceManager.getVBAModulesPath();
       const targetDir = path.join(installDir, 'modules');
       
-      // Copy all VBA files
-      const vbaFiles = await fs.readdir(sourceDir);
+      // Ensure source exists
+      if (!await fs.pathExists(sourceDir)) {
+        throw new Error(`VBA modules not found at: ${sourceDir}`);
+      }
+
+      // Get VBA module files from resource manager
+      const vbaModules = await this.resourceManager.getVBAModuleFiles();
       
-      for (const file of vbaFiles) {
-        if (file.endsWith('.bas')) {
-          await fs.copy(path.join(sourceDir, file), path.join(targetDir, file));
-          this.logger.info(`Copied VBA module: ${file}`);
-        }
+      await fs.ensureDir(targetDir);
+      
+      // Copy all VBA files
+      for (const module of vbaModules) {
+        await fs.copy(module.path, path.join(targetDir, module.name));
+        this.logger.info(`Copied VBA module: ${module.name}`);
       }
 
       // Create module index
       const moduleIndex = {
-        modules: vbaFiles.filter(f => f.endsWith('.bas')).map(f => ({
-          name: f.replace('.bas', ''),
-          file: f,
-          description: this.getModuleDescription(f)
+        modules: vbaModules.map(m => ({
+          name: m.name.replace('.bas', ''),
+          file: m.name,
+          description: m.description
         })),
         installDate: new Date().toISOString(),
         version: '1.0.0'
@@ -248,7 +256,7 @@ class ExcelInstaller {
 
       await fs.writeJSON(path.join(targetDir, 'modules.json'), moduleIndex, { spaces: 2 });
       
-      this.logger.info('VBA modules copied successfully');
+      this.logger.info(`VBA modules copied successfully: ${vbaModules.length} modules`);
     } catch (error) {
       throw new Error(`Failed to copy VBA modules: ${error.message}`);
     }
@@ -265,13 +273,16 @@ class ExcelInstaller {
     });
 
     try {
-      const sourceDir = path.join(__dirname, '../../../excel-integration/templates');
+      const sourceDir = this.resourceManager.getExcelTemplatesPath();
       const targetDir = path.join(installDir, 'templates');
       
       if (await fs.pathExists(sourceDir)) {
+        await fs.ensureDir(targetDir);
         await fs.copy(sourceDir, targetDir);
-        this.logger.info('Excel templates installed successfully');
+        const files = await fs.readdir(targetDir);
+        this.logger.info(`Excel templates installed successfully: ${files.length} templates`);
       } else {
+        this.logger.warn(`Templates not found at: ${sourceDir}`);
         // Create basic templates
         await this.createBasicTemplates(targetDir);
       }
@@ -292,13 +303,16 @@ class ExcelInstaller {
     });
 
     try {
-      const sourceDir = path.join(__dirname, '../../../excel-integration/examples');
+      const sourceDir = this.resourceManager.getExcelExamplesPath();
       const targetDir = path.join(installDir, 'examples');
       
       if (await fs.pathExists(sourceDir)) {
+        await fs.ensureDir(targetDir);
         await fs.copy(sourceDir, targetDir);
-        this.logger.info('Example workbooks installed successfully');
+        const files = await fs.readdir(targetDir);
+        this.logger.info(`Example workbooks installed successfully: ${files.length} examples`);
       } else {
+        this.logger.warn(`Examples not found at: ${sourceDir}`);
         // Create basic examples
         await this.createBasicExamples(targetDir);
       }
@@ -526,9 +540,12 @@ open "${installDir}"`;
       const docsDir = path.join(installDir, 'documentation');
       
       // Copy existing documentation if available
-      const sourceDocsDir = path.join(__dirname, '../../../excel-integration/documentation');
+      const sourceDocsDir = this.resourceManager.getExcelDocsPath();
       if (await fs.pathExists(sourceDocsDir)) {
+        await fs.ensureDir(docsDir);
         await fs.copy(sourceDocsDir, docsDir);
+        const files = await fs.readdir(docsDir);
+        this.logger.info(`Documentation copied successfully: ${files.length} files`);
       }
 
       // Create main README

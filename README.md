@@ -80,48 +80,95 @@ Once deployed, visit:
 - **Swagger UI**: `https://your-app.railway.app/documentation`
 - **Health Check**: `https://your-app.railway.app/health`
 
-## 🐍 Python SDK
+## 🐍 Python SDK (Simplified!)
 
-The official Python SDK is located in the `python-sdk/` directory. It provides easy-to-use Python bindings for all API endpoints.
+The official Python SDK provides the simplest way to integrate engineering calculations.
 
 ### Installation
 ```bash
-cd python-sdk
-pip install -e .
+pip install engivault
 ```
 
-### Quick Start
+### Quick Start - Just 3 Lines!
 ```python
-from engivault import EngiVaultClient
+import engivault as ev
 
-client = EngiVaultClient(api_key="your-api-key")
-result = client.fluid_mechanics.pressure_drop(
-    diameter=0.1,
-    length=100,
-    flow_rate=0.01,
-    fluid_viscosity=0.001
-)
-print(result.pressure_drop)
+ev.init('your-api-key')  # Initialize once
+
+# Direct function calls!
+result = ev.pressure_drop(flow_rate=0.01, pipe_diameter=0.1, pipe_length=100, 
+                         fluid_density=1000, fluid_viscosity=0.001)
+print(f"Pressure drop: {result['pressure_drop']} Pa")
+
+# More examples
+pump = ev.pump_power(flow_rate=0.05, head=50, efficiency=0.8)
+lmtd = ev.lmtd(t_hot_in=373, t_hot_out=323, t_cold_in=293, t_cold_out=333)
 ```
 
 See `python-sdk/README.md` for complete documentation.
 
-## 📊 Excel Integration
+## 📦 JavaScript/TypeScript SDK (Simplified!)
 
-The Excel integration is located in the `excel-integration/` directory and provides VBA modules for seamless Excel integration.
-
-### Features
-- Direct API calls from Excel formulas
-- Pre-built calculation templates
-- Automated data validation
-- Chart generation capabilities
+Modern JavaScript SDK with full TypeScript support.
 
 ### Installation
-1. Open Excel
-2. Import the VBA modules from `excel-integration/vba-modules/`
-3. Configure your API key in the settings
+```bash
+npm install engivault
+```
 
-See `excel-integration/README.md` for complete documentation.
+### Quick Start
+```javascript
+const ev = require('engivault');
+
+ev.init('your-api-key');  // Initialize once
+
+// Direct function calls!
+const result = await ev.pressureDrop({
+  flowRate: 0.01,
+  pipeDiameter: 0.1,
+  pipeLength: 100,
+  fluidDensity: 1000,
+  fluidViscosity: 0.001
+});
+
+console.log(`Pressure drop: ${result.pressureDrop} Pa`);
+```
+
+See `packages/engivault-js/README.md` for complete documentation.
+
+## 📊 Excel Office Add-in (New! Plugin-Based)
+
+Modern Office Add-in that works across all Excel platforms - no VBA import needed!
+
+### Features
+- ✅ Works on Excel for Windows, Mac, Web, and iPad
+- ✅ One-click installation (no VBA import)
+- ✅ Built-in UI for configuration
+- ✅ Auto-updating
+- ✅ Sandboxed and secure
+
+### Installation
+1. Download `excel-addin/manifest.xml`
+2. In Excel: Insert → My Add-ins → Upload My Add-in
+3. Select the manifest file
+4. Configure your API key in the task pane
+
+### Usage in Excel
+```excel
+=ENGIVAULT.PRESSUREDROP(0.01, 0.1, 100, 1000, 0.001)
+=ENGIVAULT.PUMPPOWER(0.05, 50, 0.8)
+=ENGIVAULT.LMTD(373, 323, 293, 333, "counterflow")
+=ENGIVAULT.VELOCITY(0.01, 0.1)
+=ENGIVAULT.CONVERTFLOW(100, "gpm", "m3/s")
+```
+
+See `excel-addin/README.md` for complete documentation.
+
+### Legacy VBA Integration (Still Available)
+
+For users who prefer VBA macros, the traditional VBA modules are still available in `excel-integration/vba-modules/`. However, we recommend the new Office Add-in for better cross-platform compatibility.
+
+See `excel-integration/README.md` for VBA documentation.
 
 ### Authentication Endpoints
 - `POST /auth/register` - User registration

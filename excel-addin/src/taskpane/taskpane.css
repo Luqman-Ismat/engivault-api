@@ -1,0 +1,300 @@
+/* EngiVault Task Pane Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  color: #333;
+  background: #f5f5f5;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 100%;
+  padding: 0;
+}
+
+/* Header */
+header {
+  background: linear-gradient(135deg, #000 0%, #333 100%);
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+header .tagline {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* Sections */
+.section {
+  background: white;
+  margin: 10px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.section h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #000;
+  border-bottom: 2px solid #000;
+  padding-bottom: 8px;
+}
+
+.section h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #000;
+}
+
+.help-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.help-text a {
+  color: #000;
+  text-decoration: none;
+}
+
+.help-text a:hover {
+  text-decoration: underline;
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: #000;
+  color: white;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.btn-primary:hover {
+  background: #333;
+}
+
+.btn-calculate {
+  background: #000;
+  color: white;
+  width: 100%;
+  margin-top: 15px;
+}
+
+.btn-calculate:hover {
+  background: #333;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #eee;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: #000;
+  background: #f5f5f5;
+}
+
+.tab-btn.active {
+  color: #000;
+  border-bottom-color: #000;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Status Messages */
+.status-message {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.status-success {
+  color: #0f5132;
+  background: #d1e7dd;
+  padding: 8px 12px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.status-error {
+  color: #842029;
+  background: #f8d7da;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+/* Result Boxes */
+.result-box {
+  margin-top: 15px;
+  min-height: 50px;
+}
+
+.result-success {
+  background: #d1e7dd;
+  border-left: 4px solid #0f5132;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.result-success h4 {
+  margin-bottom: 10px;
+  color: #0f5132;
+}
+
+.result-success p {
+  margin: 5px 0;
+  font-size: 13px;
+}
+
+.result-error {
+  background: #f8d7da;
+  border-left: 4px solid #842029;
+  padding: 15px;
+  border-radius: 4px;
+  color: #842029;
+}
+
+.loading {
+  text-align: center;
+  padding: 15px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Function List */
+.function-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.function-item {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #000;
+}
+
+.function-item code {
+  display: block;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 12px;
+  color: #000;
+  margin-bottom: 5px;
+  word-break: break-all;
+}
+
+.function-item p {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 12px;
+  color: #666;
+}
+
+footer a {
+  color: #000;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 320px) {
+  .section {
+    margin: 5px;
+    padding: 15px;
+  }
+  
+  header {
+    padding: 15px;
+  }
+  
+  header h1 {
+    font-size: 20px;
+  }
+}
+

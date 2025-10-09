@@ -3,25 +3,46 @@ EngiVault Python SDK
 
 A simple, powerful Python SDK for the EngiVault Engineering Calculations API.
 
-Example:
-    >>> import engivault
+Example (Simple API):
+    >>> import engivault as ev
     >>> 
-    >>> # Create client
-    >>> client = engivault.EngiVault("your-api-key")
+    >>> # Initialize once
+    >>> ev.init("your-api-key")
     >>> 
-    >>> # Calculate pressure drop
-    >>> result = client.hydraulics.pressure_drop(
+    >>> # Direct function calls
+    >>> result = ev.pressure_drop(
     ...     flow_rate=0.1,
     ...     pipe_diameter=0.1,
     ...     pipe_length=100,
     ...     fluid_density=1000,
     ...     fluid_viscosity=0.001
     ... )
+    >>> print(f"Pressure drop: {result['pressure_drop']:.2f} Pa")
+
+Example (Traditional API):
+    >>> import engivault
     >>> 
-    >>> print(f"Pressure drop: {result.pressure_drop:.2f} Pa")
+    >>> # Create client
+    >>> client = engivault.EngiVault("your-api-key")
+    >>> 
+    >>> # Use client methods
+    >>> result = client.hydraulics.pressure_drop(...)
 """
 
 from .client import EngiVaultClient, create_client
+
+# Import convenience functions for simplified API
+from .shortcuts import (
+    init,
+    get_client,
+    pressure_drop,
+    flow_rate,
+    pump_power,
+    npsh,
+    lmtd,
+    heat_exchanger,
+    open_channel_flow,
+)
 from .exceptions import (
     EngiVaultError,
     AuthenticationError,
@@ -63,6 +84,17 @@ __all__ = [
     "EngiVault",
     "EngiVaultClient", 
     "create_client",
+    
+    # Simplified API
+    "init",
+    "get_client",
+    "pressure_drop",
+    "flow_rate",
+    "pump_power",
+    "npsh",
+    "lmtd",
+    "heat_exchanger",
+    "open_channel_flow",
     
     # Exceptions
     "EngiVaultError",

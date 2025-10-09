@@ -14,7 +14,45 @@ A simple, powerful Python SDK for the [EngiVault Engineering Calculations API](h
 pip install engivault
 ```
 
-### Basic Usage
+### Simplified API (New! ⭐)
+
+The easiest way to use EngiVault - just 3 lines:
+
+```python
+import engivault as ev
+
+ev.init('your-api-key')  # Initialize once
+
+# Call functions directly - no client needed!
+result = ev.pressure_drop(
+    flow_rate=0.01,
+    pipe_diameter=0.1,
+    pipe_length=100,
+    fluid_density=1000,
+    fluid_viscosity=0.001
+)
+
+print(f"Pressure drop: {result['pressure_drop']:,.2f} Pa")
+```
+
+More examples:
+```python
+# Pump power - simple!
+pump_result = ev.pump_power(flow_rate=0.05, head=50, efficiency=0.8)
+print(f"Power: {pump_result['shaft_power']/1000:.2f} kW")
+
+# Heat transfer LMTD
+lmtd_result = ev.lmtd(t_hot_in=373, t_hot_out=323, t_cold_in=293, t_cold_out=333)
+print(f"LMTD: {lmtd_result['lmtd']:.2f} K")
+
+# Open channel flow
+channel = ev.open_channel_flow(flow_rate=10, channel_width=5, channel_slope=0.001, mannings_coeff=0.03)
+print(f"Normal depth: {channel['normal_depth']:.3f} m")
+```
+
+### Traditional API (Still Supported)
+
+For more control, use the traditional client-based API:
 
 ```python
 import engivault

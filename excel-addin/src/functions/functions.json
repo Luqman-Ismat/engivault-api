@@ -1,0 +1,269 @@
+{
+  "functions": [
+    {
+      "id": "PRESSUREDROP",
+      "name": "PRESSUREDROP",
+      "description": "Calculate pressure drop in a pipe",
+      "helpUrl": "https://engivault.com/docs/pressuredrop",
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      },
+      "parameters": [
+        {
+          "name": "flowRate",
+          "description": "Volumetric flow rate (m³/s)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "diameter",
+          "description": "Pipe diameter (m)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "length",
+          "description": "Pipe length (m)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "density",
+          "description": "Fluid density (kg/m³)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "viscosity",
+          "description": "Dynamic viscosity (Pa·s)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "roughness",
+          "description": "Pipe roughness (m) - optional",
+          "type": "number",
+          "dimensionality": "scalar",
+          "optional": true
+        }
+      ],
+      "options": {
+        "stream": false,
+        "cancelable": false,
+        "volatile": false
+      }
+    },
+    {
+      "id": "PUMPPOWER",
+      "name": "PUMPPOWER",
+      "description": "Calculate pump power requirements",
+      "helpUrl": "https://engivault.com/docs/pumppower",
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      },
+      "parameters": [
+        {
+          "name": "flowRate",
+          "description": "Volumetric flow rate (m³/s)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "head",
+          "description": "Total head (m)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "efficiency",
+          "description": "Pump efficiency (0-1)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "density",
+          "description": "Fluid density (kg/m³) - optional",
+          "type": "number",
+          "dimensionality": "scalar",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "LMTD",
+      "name": "LMTD",
+      "description": "Calculate Log Mean Temperature Difference",
+      "helpUrl": "https://engivault.com/docs/lmtd",
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      },
+      "parameters": [
+        {
+          "name": "hotIn",
+          "description": "Hot fluid inlet temperature (K)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "hotOut",
+          "description": "Hot fluid outlet temperature (K)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "coldIn",
+          "description": "Cold fluid inlet temperature (K)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "coldOut",
+          "description": "Cold fluid outlet temperature (K)",
+          "type": "number",
+          "dimensionality": "scalar"
+        },
+        {
+          "name": "arrangement",
+          "description": "Flow arrangement (counterflow/parallel)",
+          "type": "string",
+          "dimensionality": "scalar",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "VELOCITY",
+      "name": "VELOCITY",
+      "description": "Calculate flow velocity in a pipe",
+      "result": {
+        "type": "number"
+      },
+      "parameters": [
+        {
+          "name": "flowRate",
+          "description": "Volumetric flow rate (m³/s)",
+          "type": "number"
+        },
+        {
+          "name": "diameter",
+          "description": "Pipe diameter (m)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "id": "REYNOLDS",
+      "name": "REYNOLDS",
+      "description": "Calculate Reynolds number",
+      "result": {
+        "type": "number"
+      },
+      "parameters": [
+        {
+          "name": "flowRate",
+          "description": "Volumetric flow rate (m³/s)",
+          "type": "number"
+        },
+        {
+          "name": "diameter",
+          "description": "Pipe diameter (m)",
+          "type": "number"
+        },
+        {
+          "name": "density",
+          "description": "Fluid density (kg/m³)",
+          "type": "number"
+        },
+        {
+          "name": "viscosity",
+          "description": "Dynamic viscosity (Pa·s)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "id": "WATERDENSITY",
+      "name": "WATERDENSITY",
+      "description": "Get water density at temperature",
+      "result": {
+        "type": "number"
+      },
+      "parameters": [
+        {
+          "name": "temperature",
+          "description": "Temperature in Celsius",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "id": "WATERVISCOSITY",
+      "name": "WATERVISCOSITY",
+      "description": "Get water viscosity at temperature",
+      "result": {
+        "type": "number"
+      },
+      "parameters": [
+        {
+          "name": "temperature",
+          "description": "Temperature in Celsius",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "id": "CONVERTFLOW",
+      "name": "CONVERTFLOW",
+      "description": "Convert flow rate between units",
+      "result": {
+        "type": "number"
+      },
+      "parameters": [
+        {
+          "name": "value",
+          "description": "Flow rate value",
+          "type": "number"
+        },
+        {
+          "name": "fromUnit",
+          "description": "From unit (m3/s, gpm, etc.)",
+          "type": "string"
+        },
+        {
+          "name": "toUnit",
+          "description": "To unit (m3/s, gpm, etc.)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "CONVERTPRESSURE",
+      "name": "CONVERTPRESSURE",
+      "description": "Convert pressure between units",
+      "result": {
+        "type": "number"
+      },
+      "parameters": [
+        {
+          "name": "value",
+          "description": "Pressure value",
+          "type": "number"
+        },
+        {
+          "name": "fromUnit",
+          "description": "From unit (Pa, psi, etc.)",
+          "type": "string"
+        },
+        {
+          "name": "toUnit",
+          "description": "To unit (Pa, psi, etc.)",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}
+
